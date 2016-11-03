@@ -52,6 +52,7 @@ class PowerOnTpmCommand(HardwareCommand):
             tpm_slot_id = int(tpm_id)
             self._hardware.PowerOnTPM(tpm_slot_id+1)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
+        answer['retvalue']= byte_to_bool_array(tpm_is_on)
         return answer
 
 
@@ -76,6 +77,8 @@ class PowerOffTpmCommand(HardwareCommand):
         else:
             tpm_slot_id = int(tpm_id)
             self._hardware.PowerOffTPM(tpm_slot_id+1)
+        tpm_is_on = self._hardware.GetTPMOnOffVect()
+        answer['retvalue']= byte_to_bool_array(tpm_is_on)
         return answer
 
 
