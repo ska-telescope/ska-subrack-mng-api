@@ -1,0 +1,13 @@
+*.swp
+*~
+*.sav
+*.old
+*.new
+*.ori
+*.out
+*.fts
+*.csv
+*.pyc
+*.png
+*.gif
+*.md5
