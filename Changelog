@@ -1,0 +1,5 @@
+## version 2.0.0
+ - version for API generation for TANGO device driver
+ - add SubrackMngBoard
+ - use of Backplane and MngBoard
+ - add some utils script: subrack_monitor.py, fpga_i2c_reg.py, fpga_reg.py, i2c_reg.py, power_on_tpm.py,power_off_tpm.py 
