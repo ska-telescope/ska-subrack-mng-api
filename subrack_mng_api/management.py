@@ -373,8 +373,6 @@ class Management():
     #@param[in] name name of register it must have following format <category_name>.<register_name>
     #return read register value
     def read(self, name):
-        if print_debug:
-            print("Read: " + name)
         reg = translate_reg(name)
         if reg != Error_p:
             if print_debug:
@@ -385,6 +383,8 @@ class Management():
             fo.close()
         else:
             value = 0#self.lastError = res
+        if print_debug:
+            print("Read: " + name + ", " + hex(value))
         return int(value)
 
     ###write
@@ -394,7 +394,7 @@ class Management():
     #@param[in] value: value will be write in selected register
     def write(self, name, value):
         if print_debug:
-            print("Write: " + name + ", " + str(value))
+            print("Write: " + name + ", " + hex(value))
         reg = translate_reg(name)
         if print_debug:
             print("register: " + reg)

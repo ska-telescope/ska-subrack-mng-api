@@ -9,7 +9,7 @@ from management import *
 from backplane import *
 import logging
 from pyaavs.tile import Tile
-
+from emulator_classes import *
 
 TPMInfo_t={
 "ip_address":       "",
@@ -91,13 +91,20 @@ def detect_ip(tpm_slot_id):
 ###Subrack Management Board Class
 #This class implements methods to manage and to monitor the subrack management board
 class SubrackMngBoard:
-    def __init__(self):
+    def __init__(self,**kwargs):
+        self._simulation=kwargs.get("simulation")
+
         self.data = []
-        self.Mng = Management()
-        self.Bkpln = Backplane(self.Mng)
+        if(self._simulation==True):
+            self.Mng = Management_sim()
+            self.Bkpln = Backplane_sim(self.Mng)
+        else:
+            self.Mng = Management()
+            self.Bkpln = Backplane(self.Mng)
         self.mode = 0
         self.status = 0
         self.first_config = False
+
     def __del__(self):
         self.data = []
 
@@ -330,14 +337,21 @@ class SubrackMngBoard:
         return auto_mode
 
     def PllInitialize(self):
-        cmd = "./pll_cfg.sh"
-        res=run(cmd)
-        lines=res.splitlines()
-        r=lines[len(lines)-1]
-        print("pll res = %s" %r)
-        if r!="0x33":
-            print ("ERROR: PLL configuration failed, PLL not locked")
+        if self._simulation==False:
+            cmd = "bash ./pll_cfg.sh"
+            res=run(cmd)
+            lines=res.splitlines()
+            r=lines[len(lines)-1]
+            print("pll res = %s" %r)
+            if r!="0x33":
+                print ("ERROR: PLL configuration failed, PLL not locked")
             #raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
+        else:
+            r = "0x33"
+            print("pll res = %s" % r)
+            if r != "0x33":
+                print ("ERROR: PLL configuration failed, PLL not locked")
+
 
     def GetPSVout(self,ps_id):
         if ps_id>2 or ps_id<0:

@@ -1,0 +1,2 @@
+cat:HKeep,name:TPMsPresent,value:0x8c,def:0,state:1,mode:RW
+cat:Fram,name:TPM_SUPPLY_STATUS,value:0x0,def:0,state:1,mode:RW

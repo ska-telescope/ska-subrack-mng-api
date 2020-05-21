@@ -4,9 +4,16 @@ from subprocess import Popen, PIPE
 import sys
 import os
 import time
-from management import *
+from def4emulation import *
+from management_sim import *
 
 print_debug=False
+
+
+class FPGA_I2CBUS:
+    i2c1 = 0
+    i2c2 = 0x1
+    i2c3 = 0x2
 
 class BackplaneInvalidParameter(Exception):
     """ Define an exception which occurs when an invalid parameter is provided
@@ -20,7 +27,7 @@ power_supply_i2c_offset=[0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
 ### Backplane Board Class
 #This class contain methods to permit access to major functionality
 #of backplane board from management CPU (iMX6) via registers mapped in filesystem
-class Backplane():
+class Backplane_sim():
     def __init__(self, Management_b):
         self.data = []
         self.mng = Management_b
@@ -48,6 +55,11 @@ class Backplane():
             print("Error writing on device " + hex(i2c_add))
             return status
         status=self.mng.fpgai2c_write8(i2c_add,0x00,0xBB,FPGA_I2CBUS.i2c2)#power on tpm
+        #update poweron reg used only for symulation
+        reg=self.mng.read("Fram.TPM_SUPPLY_STATUS")
+        reg=reg|(1<<tpm_id-1)
+        self.mng.write("Fram.TPM_SUPPLY_STATUS",reg)
+        #end of update sequence
         if(status!=0):
             print("Error writing on device " + hex(i2c_add))
         else:
@@ -65,6 +77,11 @@ class Backplane():
         i2c_add=0x80+power_supply_i2c_offset[tpm_id-1]
         #print "I2C ADD "+hex(i2c_add)
         status=self.mng.fpgai2c_write8(i2c_add,0x00,0xB3,FPGA_I2CBUS.i2c2)#power off tpm
+        # update poweron reg used only for symulation
+        reg = self.mng.read("Fram.TPM_SUPPLY_STATUS")
+        reg = reg ^(1<< (tpm_id - 1))
+        self.mng.write("Fram.TPM_SUPPLY_STATUS", reg)
+        # end of update sequence
         if(status!=0):
             print("Error writing on device " + hex(i2c_add))
         else:
@@ -99,9 +116,11 @@ class Backplane():
     #@param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     #return pwr: power value in W
     def get_power_tpm(self,tpm_id):
-        power=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_power")
-        pwr=float(power*0.04*16.64*65536)/((65535*65535)*0.0025)
-        pwr=round(pwr,3)
+        if self.is_tpm_on(tpm_id):
+            power=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_power")
+        else:
+            power=0.0
+        pwr=round(power,3)
         if print_debug:
             print("power, "+str(pwr))
         return pwr
@@ -111,9 +130,12 @@ class Backplane():
     #@param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     #return vout: voltage value in V
     def get_voltage_tpm(self,tpm_id):
-        voltage=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_Vsource")
-        vout=float(voltage*16.64)/(65535)
-        vout=round(vout,3)
+        if self.is_tpm_on(tpm_id):
+            voltage=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_Vsource")
+        else:
+            voltage=0.0
+        vout = float(voltage * 16.64) / (65535)
+        vout = round(vout, 3)
         if print_debug:
             print("voltage, " + str(vout))
         return vout
@@ -230,7 +252,6 @@ class Backplane():
             temp = float((temperature&0xfff - 4096)) / 16
         else:
             temp = float((temperature & 0xfff) )/16
-        temp=round(temp,2)
         return temp,0x0
 
 
