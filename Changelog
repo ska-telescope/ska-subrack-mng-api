@@ -3,3 +3,8 @@
  - add SubrackMngBoard
  - use of Backplane and MngBoard
  - add some utils script: subrack_monitor.py, fpga_i2c_reg.py, fpga_reg.py, i2c_reg.py, power_on_tpm.py,power_off_tpm.py 
+ 
+## version 2.0.1
+ - add emulator_classes used in simaulation mode
+ - add flag simulation to enable simulation mode
+ - add subrack_emulator files csv to store and update states of some regs
