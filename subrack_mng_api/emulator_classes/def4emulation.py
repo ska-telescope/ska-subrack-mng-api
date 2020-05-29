@@ -79,7 +79,7 @@ simulation_regs=[
     {"cat": "Fram", "name": "FAN2_TACH", "value": random.randrange(1000,1500), "def": random.randrange(1000,1500), "state": 0, "mode": "RO"},
     {"cat": "Fram", "name": "FAN3_TACH", "value": random.randrange(1000,1500), "def": random.randrange(1000,1500), "state": 0, "mode": "RO"},
     {"cat": "Fram", "name": "FAN4_TACH", "value": random.randrange(1000,1500), "def": random.randrange(1000,1500), "state": 0, "mode": "RO"},
-    {"cat": "Fram", "name": "FAN_PWM", "value": 0, "def": 0x2ff3030, "state": 0, "mode": "RO"},
+    {"cat": "Fram", "name": "FAN_PWM", "value": 0, "def": 0x3ff3030, "state": 0, "mode": "RW"},
     #psu voltage and current
     {"cat": "Fram", "name": "PSU0_Vout", "value": random.randrange(0x17d0, 0x1850), "def": random.randrange(0x17d0, 0x1850), "state": 0, "mode": "RO"},
     {"cat": "Fram", "name": "PSU1_Vout", "value": random.randrange(0x17d0, 0x1850), "def": random.randrange(0x17d0, 0x1850), "state": 0, "mode": "RO"},
@@ -135,6 +135,10 @@ def rw_emulator_regs_file(op,cat,name,value=None):
                     if name=="TPMsPresent":
                         olddata=fields[cpldfields.value]
                         newdata="value:"+hex(random.randrange(1,255))
+                        new_regs_line=new_regs_line.replace(olddata,newdata)
+                    else:
+                        olddata = fields[cpldfields.value]
+                        newdata="value:"+fields[cpldfields.default].split(":")[1]
                         new_regs_line=new_regs_line.replace(olddata,newdata)
                     fw=open(CPLD_REGS_FILE,'w')
                     m=allfile.replace(stringa,new_regs_line)

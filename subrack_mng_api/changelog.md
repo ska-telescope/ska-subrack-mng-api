@@ -15,3 +15,7 @@
  - add emulator_classes used in simaulation mode
  - add flag simulation to enable simulation mode
  - add subrack_emulator files csv to store and update states of some regs
+
+## version 2.0.2
+ - moved emulation classes function in api classes
+ - removed emulation classes files

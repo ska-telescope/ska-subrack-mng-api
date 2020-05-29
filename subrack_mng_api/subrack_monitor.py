@@ -3,7 +3,7 @@ __author__ = 'Cristian Albanese'
 import sys
 import time
 from optparse import OptionParser
-from subrack_management_board import *
+from subrack_mng_api.subrack_management_board import *
 
 import terminaltables
 import os
