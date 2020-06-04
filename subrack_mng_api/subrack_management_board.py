@@ -5,11 +5,11 @@ import sys
 import os
 import time
 from datetime import datetime
-from management import *
-from backplane import *
+from subrack_mng_api.management import *
+from subrack_mng_api.backplane import *
 import logging
 from pyaavs.tile import Tile
-from emulator_classes import *
+
 
 TPMInfo_t={
 "ip_address":       "",
@@ -93,14 +93,9 @@ def detect_ip(tpm_slot_id):
 class SubrackMngBoard:
     def __init__(self,**kwargs):
         self._simulation=kwargs.get("simulation")
-
         self.data = []
-        if(self._simulation==True):
-            self.Mng = Management_sim()
-            self.Bkpln = Backplane_sim(self.Mng)
-        else:
-            self.Mng = Management()
-            self.Bkpln = Backplane(self.Mng)
+        self.Mng = Management(self._simulation)
+        self.Bkpln = Backplane(self.Mng,self._simulation)
         self.mode = 0
         self.status = 0
         self.first_config = False
@@ -138,9 +133,7 @@ class SubrackMngBoard:
     ###GetTPMTemperature
     #@brief method to get temperature of onboard TPM selected board present on subrack
     #@param[in]: subrack slot index for selected TPM, accepted value 1-8
-    #@return tpm_sn
-    #@return tpm_hw_rev
-    #@return tpm_bios
+    #@return tpm_temperature
     def GetTPMTemperature(self,tpm_slot_id,forceread=False):
         prev_onoff = 0
         if self.GetTPMPresent()&(1<<(tpm_slot_id-1))!=0:
@@ -322,6 +315,7 @@ class SubrackMngBoard:
 
     def GetFanSpeed(self,fan_id):
         rpm,pwm_perc,status = self.Bkpln.get_bkpln_fan_speed(fan_id)
+        #print ("rpm %d, pwm_perc %d" %(rpm,pwm_perc))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return rpm, pwm_perc
@@ -332,6 +326,7 @@ class SubrackMngBoard:
 
     def GetFanMode(self,fan_id):
         auto_mode,status = self.Bkpln.get_bkpln_fan_mode(fan_id)
+        #print("auto_mode %d, status %d" % (auto_mode, status))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return auto_mode
