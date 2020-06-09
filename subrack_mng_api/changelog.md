@@ -1,4 +1,4 @@
-# management cpu script changelog
+# Subrack Management API changelog
 ## version 0.1.0
  - first version of class management_board and script fpga_reg.py i2c_reg.py
 ## version 0.1.1
