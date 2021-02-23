@@ -5,10 +5,15 @@ import sys
 import os
 import time
 from datetime import datetime
-from management import *
-from backplane import *
+from subrack_mng_api.management import *
+from subrack_mng_api.backplane import *
 import logging
-from pyaavs.tile import Tile
+#from pyaavs.tile import Tile
+sys.path.append("../")
+import cpld_mng_api.bsp.management as cpld_mng
+
+from optparse import OptionParser
+
 
 
 TPMInfo_t={
@@ -63,6 +68,8 @@ class SubrackHealtState: #to be clarify
     DEGRADED =1,
     FAILED=2
 
+TPM_CPLD_REGFILE_BA=0x30000000
+
 subrack_slot_config_file="/etc/SKA/subrack_slot.conf"
 
 def detect_ip(tpm_slot_id):
@@ -91,21 +98,61 @@ def detect_ip(tpm_slot_id):
 ###Subrack Management Board Class
 #This class implements methods to manage and to monitor the subrack management board
 class SubrackMngBoard:
-    def __init__(self):
+    def __init__(self,**kwargs):
+        self._simulation=kwargs.get("simulation")
         self.data = []
-        self.Mng = Management()
-        self.Bkpln = Backplane(self.Mng)
+        self.Mng = Management(self._simulation)
+        self.Bkpln = Backplane(self.Mng,self._simulation)
+        ipstr=self.Mng.get_cpld_actual_ip()
+        #print("MANAGEMENT creating..")
+        self.CpldMng = cpld_mng.MANAGEMENT(ip=ipstr,port="10000",timeout=10)
+        #print("MANAGEMENT created")
         self.mode = 0
         self.status = 0
         self.first_config = False
+        self.powermon_cfgd = False
+
+
     def __del__(self):
         self.data = []
 
+    """
+    def mng_eth_cpld_read(self,add):
+        cmd="../cpld_mng_api/reg.py --ip " + self.ipstr + " " + hex(add)
+        res=run(cmd)
+        lines = res.splitlines()
+        r = lines[len(lines) - 1]
+        print("read val = %s" % r)
+        return int(r,16)
 
-    ###GetTPMInfo
+    def mng_eth_cpld_write(self,add,val):
+        cmd="../cpld_mng_api/reg.py --ip " + self.ipstr + " " + hex(add) + " " + hex(val)
+        res=run(cmd)
+        lines = res.splitlines()
+        r = lines[len(lines) - 1]
+        print("read val = %s" % r)
+        return int(r,16)
+    """
+
+    def read_tpm_singlewire(self,tpm_id,address):
+        self.CpldMng.write_register(0x500, tpm_id - 1)  # select tpm by psnt_mux
+        self.CpldMng.write_register(0xA00,0x30000000) #set EIM add
+        regval=self.CpldMng.read_register(address)
+        return regval
+
+    def write_tpm_singlewire(self, tpm_id, address,value):
+        self.CpldMng.write_register(0x500, tpm_id - 1)  # select tpm by psnt_mux
+        self.CpldMng.write_register(0xA00,0x30000000) #set EIM add
+        self.CpldMng.write_register(address,value)
+
+
+
+
+        ###GetTPMInfo
     #@brief method to get info about TPM board present on subrack
     #@param[in]: subrack slot index for selected TPM, accepted value 1-8
     #@return TPM_INFO
+    """
     def GetTPMInfo(self,tpm_slot_id):
         prev_onoff = 0
         if self.GetTPMPresent()&(1<<(tpm_slot_id-1))!=0:
@@ -126,14 +173,14 @@ class SubrackMngBoard:
                 raise SubrackExecFault("Error:TPM Power on Failed")
         logging.info(tpm_info)
         return tpm_info
+    """
 
 
     ###GetTPMTemperature
     #@brief method to get temperature of onboard TPM selected board present on subrack
     #@param[in]: subrack slot index for selected TPM, accepted value 1-8
-    #@return tpm_sn
-    #@return tpm_hw_rev
-    #@return tpm_bios
+    #@return tpm_temperature
+    """
     def GetTPMTemperature(self,tpm_slot_id,forceread=False):
         prev_onoff = 0
         if self.GetTPMPresent()&(1<<(tpm_slot_id-1))!=0:
@@ -161,7 +208,7 @@ class SubrackMngBoard:
                 raise SubrackExecFault("Error:TPM Power on Failed")
         logging.info(tpm_temp)
         return tpm_temp
-
+    """
 
     ###GetTPMMCUTemperature
     #@brief method to get temperature of onboard TPM selected board present on subrack
@@ -169,6 +216,7 @@ class SubrackMngBoard:
     #@return tpm_sn
     #@return tpm_hw_rev
     #@return tpm_bios
+    """
     def GetTPMMCUTemperature(self,tpm_slot_id,forceread=False):
         prev_onoff = 0
         if self.GetTPMPresent()&(1<<(tpm_slot_id-1))!=0:
@@ -194,17 +242,18 @@ class SubrackMngBoard:
                 raise SubrackExecFault("Error:TPM Power on Failed")
         logging.info(tpm_mcu_temp)
         return tpm_mcu_temp
+    """
 
 
 
-
-    ###GetTPMInfo
-    #@brief method Initizlize the Subrack after installation: create board  configuration table
-    #@param[in]: subrack slot index for selected TPM, accepted value 1-8
-    #@return vector of tpm positional, 1 TPM detected, 0 no TPM inserted, bit 7:0, bit 0 slot 1, bit 7 slot 8
+    ###SubrackInitialConfiguration
+    #@brief method Initizlize the Subrack power control configuration for TPM current limit
     def SubrackInitialConfiguration(self):
         self.mode = "INIT"
-        print("TO BE DEFINED")
+        print("Config TPM's Power monitor to config 5")
+        for i in range (1,9):
+            self.Bkpln.pwr_set_ilimt(i,5)
+        self.powermon_cfgd=True
 
     ###GetTPMPresent
     #@brief method to get info about TPM board present on subrack
@@ -222,6 +271,9 @@ class SubrackMngBoard:
         tpmison_vect=reg&0xff
         return tpmison_vect
 
+    ###GetTPMSupplyFault
+    #@brief method to get info about TPM supply fault status, 1 for each TPM in backplane slot
+    #@return tpmsupplyfault: vector of tpm supply fault status, 1 fault, 0 no fault, bit 7:0, bit 0 slot 1, bit 7 slot 8
     def GetTPMSupplyFault(self):
         reg=self.Mng.read("Fram.TPM_SUPPLY_STATUS")
         tpmsupplyfault=(reg&0xff00)>>8
@@ -281,28 +333,42 @@ class SubrackMngBoard:
     #@brief method to power on selected tpm
     #@param[in]: subrack slot index for selected TPM, accepted value 1-8
     def PowerOnTPM(self,tpm_slot_id,force=False):
-        if self.GetTPMPresent()&(1<<(tpm_slot_id-1))==0 and not force:
+        if self.GetTPMPresent()&(1<<(tpm_slot_id-1))==0:
             logging.error("ERROR: TPM not present in selected slot")
-            raise SubrackExecFault("ERROR: TPM not present in selected slot")
+            if force==True:
+                self.Bkpln.pwr_on_tpm(tpm_slot_id)
+            else:
+                raise SubrackExecFault("ERROR: TPM not present in selected slot")
         else:
+            if self.Bkpln.get_bkpln_is_onoff()==0:
+                self.Bkpln.power_on_bkpln()
+                if self.powermon_cfgd==False:
+                    self.SubrackInitialConfiguration()
             if self.Bkpln.pwr_on_tpm(tpm_slot_id):
                 logging.error("Power TPM on slot %d failed" %tpm_slot_id)
                 raise SubrackExecFault("ERROR: power on TPM command failed")
-
 
     #PowerOff TPM
     #@brief method to power off selected tpm
     #@param[in]: subrack slot index for selected TPM, accepted value 1-8
     def PowerOffTPM(self,tpm_slot_id,force=False):
-        if self.GetTPMPresent()&(1<<(tpm_slot_id-1))==0 and not force:
+        if self.GetTPMPresent()&(1<<(tpm_slot_id-1))==0:
             logging.error("ERROR: TPM not present in selected slot")
-            raise SubrackExecFault("ERROR: TPM not present in selected slot")
+            if force == True:
+                self.Bkpln.pwr_off_tpm(tpm_slot_id)
+            else:
+                raise SubrackExecFault("ERROR: TPM not present in selected slot")
         else:
             if self.Bkpln.pwr_off_tpm(tpm_slot_id):
                 logging.error("Power TPM off slot %d failed" %tpm_slot_id)
                 raise SubrackExecFault("ERROR: power off TPM command failed")
 
 
+    #SetFanSpeed
+    #@brief This method set the_bkpln_fan_speed
+    #@param[in] fan_id: id of the selected fan accepted value: 1-4
+    #@param[in] speed_pwm_perc: percentage value of fan RPM  (MIN 0=0% - MAX 100=100%)
+    #@note settings of fan speed is possible only if fan mode is manual
     def SetFanSpeed(self,fan_id,speed_pwm_perc):
         status=self.Bkpln.set_bkpln_fan_speed(fan_id,speed_pwm_perc)
         if status==1:
@@ -312,9 +378,14 @@ class SubrackMngBoard:
         elif status>0:
             raise SubrackExecFault("ERROR: Command Failed unexpected status")
 
-
+    #GetFanSpeed
+    #This method get the get_bkpln_fan_speed
+    #@param[in] fan_id: id of the selected fan accepted value: 1-4
+    #return fanrpm: fan rpm value
+    #return fan_bank_pwm: pwm value of selected fan
     def GetFanSpeed(self,fan_id):
         rpm,pwm_perc,status = self.Bkpln.get_bkpln_fan_speed(fan_id)
+        #print ("rpm %d, pwm_perc %d" %(rpm,pwm_perc))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return rpm, pwm_perc
@@ -323,21 +394,38 @@ class SubrackMngBoard:
         if self.Bkpln.set_bkpln_fan_mode(fan_id_blk,auto_mode)==1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
 
+    #GetFanMode
+    #@brief This method get the_bkpln_fan_mode
+    #@param[in] fan_id: id of the selected fan accepted value: 1-4
+    #return auto_mode: functional fan mode: auto or manual
+    #return status: status of operation
     def GetFanMode(self,fan_id):
         auto_mode,status = self.Bkpln.get_bkpln_fan_mode(fan_id)
+        #print("auto_mode %d, status %d" % (auto_mode, status))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return auto_mode
 
+
+
     def PllInitialize(self):
-        cmd = "./pll_cfg.sh"
-        res=run(cmd)
-        lines=res.splitlines()
-        r=lines[len(lines)-1]
-        print("pll res = %s" %r)
-        if r!="0x33":
-            print ("ERROR: PLL configuration failed, PLL not locked")
+        if self._simulation==False:
+            ipstring=self.Mng.get_cpld_actual_ip()
+            cmd = "bash ./pll_cfg.sh "+ ipstring
+            print (cmd)
+            res=run(cmd)
+            lines=res.splitlines()
+            r=lines[len(lines)-1]
+            print("pll res = %s" %r)
+            if r!="0x33":
+                print ("ERROR: PLL configuration failed, PLL not locked")
             #raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
+        else:
+            r = "0x33"
+            print("pll res = %s" % r)
+            if r != "0x33":
+                print ("ERROR: PLL configuration failed, PLL not locked")
+
 
     def GetPSVout(self,ps_id):
         if ps_id>2 or ps_id<0:

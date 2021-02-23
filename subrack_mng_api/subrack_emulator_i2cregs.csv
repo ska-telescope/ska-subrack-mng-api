@@ -1,0 +1,12 @@
+bus:i2c2,devadd:0x80,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x82,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x84,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x86,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x88,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x8a,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x8c,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x8e,offset:0x0,value:0xb3,def:0xb3,state:1,mode:RW
+bus:i2c2,devadd:0x30,offset:0x03,value:0,def:0,state:0,mode:RW
+bus:i2c2,devadd:0x30,offset:0x04,value:0,def:0,state:0,mode:RW
+bus:i2c2,devadd:0x32,offset:0x03,value:0,def:0,state:0,mode:RW
+bus:i2c2,devadd:0x32,offset:0x04,value:0,def:0,state:0,mode:RW

@@ -4,8 +4,8 @@ from subprocess import Popen, PIPE
 import sys
 import os
 import time
-from management import *
-
+from subrack_mng_api import management
+from subrack_mng_api.management import FPGA_I2CBUS
 print_debug=False
 
 class BackplaneInvalidParameter(Exception):
@@ -16,18 +16,48 @@ class BackplaneInvalidParameter(Exception):
 
 
 power_supply_i2c_offset=[0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
+
+
 #mng=MngBoard()
 ### Backplane Board Class
 #This class contain methods to permit access to major functionality
 #of backplane board from management CPU (iMX6) via registers mapped in filesystem
 class Backplane():
-    def __init__(self, Management_b):
+    def __init__(self, Management_b,simulation):
         self.data = []
         self.mng = Management_b
+        self.simulation=simulation
     def __del__(self):
         self.data = []
 
     ######BACKPLANE TPM POWER CONTROL FUNCTIONS
+
+    ###power_on_bkpln
+    #This method Power On the Bacplane Board providing supply to the TPMs Powercontrol devices
+    ##@param[in] onoff: select the operation: 1 power on, 0 power off
+    def power_on_bkpln(self):
+        self.mng.write("CtrlRegs.BkplOnOff",1)
+        rdval=self.mng.read("CtrlRegs.BkplOnOff")
+        if rdval!=1:
+            print("Error during operation: Expected %d, Read %d" %(1,rdval))
+
+    ###power_off_bkpln
+    #This method Power Off the Bacplane Board providing supply to the TPMs Powercontrol devices
+    ##@param[in] onoff: select the operation: 1 power on, 0 power off
+    def power_off_bkpln(self):
+        self.mng.write("CtrlRegs.BkplOnOff",0)
+        rdval=self.mng.read("CtrlRegs.BkplOnOff")
+        if rdval!=0:
+            print("Error during operation: Expected %d, Read %d" %(0,rdval))
+
+
+    ###get_bkpln_is_onoff
+    #This method return the status of the Power On/Off registers for the Backplane Board power on,off
+    #return onoff: status of backplane board, 0 Pwered Off, 1 Powered On
+    def get_bkpln_is_onoff(self):
+        rdval=self.mng.read("CtrlRegs.BkplOnOff")
+        return rdval
+
 
     ###reset_pwr_fault_reg
     #This method reset the Bacplane TMP Power Controller fault register
@@ -48,6 +78,12 @@ class Backplane():
             print("Error writing on device " + hex(i2c_add))
             return status
         status=self.mng.fpgai2c_write8(i2c_add,0x00,0xBB,FPGA_I2CBUS.i2c2)#power on tpm
+        #update poweron reg used only for symulation
+        if self.simulation == True:
+            reg=self.mng.read("Fram.TPM_SUPPLY_STATUS")
+            reg=reg|(1<<tpm_id-1)
+            self.mng.write("Fram.TPM_SUPPLY_STATUS",reg)
+        #end of update sequence
         if(status!=0):
             print("Error writing on device " + hex(i2c_add))
         else:
@@ -65,6 +101,12 @@ class Backplane():
         i2c_add=0x80+power_supply_i2c_offset[tpm_id-1]
         #print "I2C ADD "+hex(i2c_add)
         status=self.mng.fpgai2c_write8(i2c_add,0x00,0xB3,FPGA_I2CBUS.i2c2)#power off tpm
+        # update poweron reg used only for symulation
+        if self.simulation == True:
+            reg = self.mng.read("Fram.TPM_SUPPLY_STATUS")
+            reg = reg ^(1<< (tpm_id - 1))
+            self.mng.write("Fram.TPM_SUPPLY_STATUS", reg)
+        # end of update sequence
         if(status!=0):
             print("Error writing on device " + hex(i2c_add))
         else:
@@ -99,21 +141,38 @@ class Backplane():
     #@param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     #return pwr: power value in W
     def get_power_tpm(self,tpm_id):
-        power=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_power")
-        pwr=float(power*0.04*16.64*65536)/((65535*65535)*0.0025)
-        pwr=round(pwr,3)
+        if self.simulation == True:
+            if self.is_tpm_on(tpm_id):
+                power = self.mng.read("Fram.LTC4281_B" + str(tpm_id) + "_power")
+            else:
+                power = 0.0
+            pwr = round(power, 3)
+        else:
+            power = self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_power")
+            pwr = float(power*0.04*16.64*65536)/((65535*65535)*0.0025)
+            pwr = round(pwr,3)
         if print_debug:
             print("power, "+str(pwr))
         return pwr
+
+
 
     ###get_voltage_tpm
     #This method return the selected TPM board power control voltage value provided to TPM board
     #@param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     #return vout: voltage value in V
     def get_voltage_tpm(self,tpm_id):
-        voltage=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_Vsource")
-        vout=float(voltage*16.64)/(65535)
-        vout=round(vout,3)
+        if self.simulation == True:
+            if self.is_tpm_on(tpm_id):
+                voltage = self.mng.read("Fram.LTC4281_B" + str(tpm_id) + "_Vsource")
+            else:
+                voltage = 0.0
+            vout = float(voltage * 16.64) / (65535)
+            vout = round(vout, 3)
+        else:
+            voltage=self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_Vsource")
+            vout=float(voltage*16.64)/(65535)
+            vout=round(vout,3)
         if print_debug:
             print("voltage, " + str(vout))
         return vout
@@ -160,6 +219,7 @@ class Backplane():
             status=1
             return status
         else:
+            self.reset_pwr_fault_reg(tpm_id)
             i2c_add=0x80+power_supply_i2c_offset[tpm_id-1]
             data,status=self.mng.fpgai2c_read8(i2c_add,0x11,FPGA_I2CBUS.i2c2)
             datatowr=int(data)|(cfg<<5)
@@ -280,12 +340,15 @@ class Backplane():
             print("Invalid command auto mode is Enable")
             return 2
         else:
-            regval=((0xFF/100)*speed_pwm_perc)&0xff
+            if speed_pwm_perc<0 or speed_pwm_perc>100:
+                print("Error, It should be  0 < speed_pwm_perc < 100, given %s!"%str(speed_pwm_perc))
+                return 3
+            regval=int(round(float(speed_pwm_perc)/100*255)) & 0xff
             if fan_id>2:
-                val=(fanpwmreg&0x0FFFF00)|(regval<<8)
+                val=(fanpwmreg&0x0FF00FF)|(regval<<8)
             else:
                 val=(fanpwmreg&0x00FFFF00)|regval
-            self.mng.write("Fram.FAN_PWM",regval)
+            self.mng.write("Fram.FAN_PWM",val)
             return 0
 
 
@@ -316,14 +379,14 @@ class Backplane():
         fanpwmreg = self.mng.read("Fram.FAN_PWM")
         if auto_mode==1:
             if fan_id>2:
-                self.mng.write("Fram.FAN_PWM",fanpwmreg|0x01000000)
+                self.mng.write("Fram.FAN_PWM",fanpwmreg|0x02000000)
             else:
                 self.mng.write("Fram.FAN_PWM",fanpwmreg|0x01000000)
         else:
             if fan_id>2:
-                self.mng.write("Fram.FAN_PWM",fanpwmreg&0xFFFFFF)
+                self.mng.write("Fram.FAN_PWM",fanpwmreg&(~0x02000000))
             else:
-                self.mng.write("Fram.FAN_PWM",fanpwmreg&0xFFFFFF)
+                self.mng.write("Fram.FAN_PWM",fanpwmreg&(~0x01000000))
         return 0
 
 
@@ -354,7 +417,7 @@ class Backplane():
     #return i: iout value
     #return status: status of operation
     def get_ps_iout(self,ps_id):
-        iout=self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vout")
+        iout=self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iout")
         i=float((iout&0x7FF)*pow(2,-3))
         i=round(i,3)
         return i

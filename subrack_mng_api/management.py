@@ -6,7 +6,9 @@ import os
 import psutil
 import time
 from datetime import datetime
+import random
 import logging
+from subrack_mng_api.emulator_classes.def4emulation import *
 
 lasttemp = 59.875
 
@@ -42,7 +44,7 @@ TPM_PRESENT_MASK=[0x1,0x2,0x4,0x8,0x80,0x40,0x20,0x10]
 
 
 print_debug=False
-categories=["FPGA_FW","UserReg","MCUR","Led","HKeep","ETH","Fram","FPGA_I2C","ONEWIRE"]
+categories=["FPGA_FW","UserReg","MCUR","Led","HKeep","ETH","Fram","FPGA_I2C","ONEWIRE","CtrlRegs","CpldUart"]
 
 FpgaI2C_p = "/sys/bus/platform/devices/8010000.skamngfpgai2c/parameters/"  #file system path to FPGA I2C Regs
 FpgaI2CReg_names = [
@@ -54,13 +56,12 @@ FpgaI2CReg_names = [
 	"twi_irq_en",
 	"twi_wrdata",
 	"twi_rdata"
-
 ]
 
-
+#FirmwareBuildHigh  FirmwareBuildLow   FirmwareVersion
 FpgaFwVersion_p = "/sys/bus/platform/devices/8000000.skamngfpga/parameters/"  #file system path to FPGA FW Version Regs
 
-#FirmwareBuildHigh  FirmwareBuildLow   FirmwareVersion
+
 UserReg_p = "/sys/bus/platform/devices/8000a00.skamnguserreg/parameters/"        #file system path to FPGA User Regs
 UserReg_names = [
     "UserReg0",
@@ -68,6 +69,21 @@ UserReg_names = [
     "UserReg2",
     "UserReg3"
 ]
+
+
+
+CtrlRegs_p = "/sys/bus/platform/devices/8000900.skamngctrlregs/parameters/"        #file system path to CTRL Regs
+CtrlRegs_names = [
+    "McuReset",
+    "McuPollingTime",
+    "EIMHadd",
+    "BkplOnOff"
+]
+
+
+
+
+
 
 MCURegs_p = "/sys/bus/platform/devices/8030000.skamngmcuregs/parameters/"        #file system path to MCU Regs Mirrored in FPGA
 MCUReg_names = [
@@ -94,8 +110,6 @@ MCUReg_names = [
     "MCUTemp"
 ]
 
-
-
 UserLed_p = "/sys/bus/platform/devices/8000400.skamngled/parameters/"        #file system path to FPGA User Led Control Regs
 UserLedReg_names=[
     "Led_Tpm_A",
@@ -104,8 +118,12 @@ UserLedReg_names=[
     "Led_User_K"
 ]
 
+
+
+
 HKeepRegs_p = "/sys/bus/platform/devices/8000500.skamnghkregs/parameters/"      #file system path to FPGA House Keeping Regs
 HKeep_flag_names=[
+    "PsntMux",
     "TPMsPresent",
     "PPSMux",
     "HKTempReg",
@@ -125,8 +143,6 @@ HKeep_flag_names=[
     "TPMAAlert",
     "TPMBAlert",
     "TPMFanAlert",
-    "McuResetStatus",
-    "McuPollingTime"
 ]
 
 
@@ -138,6 +154,14 @@ LockRegs_names=[
     "MCULock",
     "UCPLock",
     "CPULock"
+]
+
+CpldUart_p = "/sys/bus/platform/devices/8070000.skamngcplduartregs/parameters/"        #file system path to CPLDUART Regs
+CpldUart_names = [
+    "Rnw",
+    "TxData",
+    "RxData",
+    "Status"
 ]
 
 OneWireRegs_p = "/sys/bus/platform/devices/80b0000.skamngmonewireregs/parameters/"        #file system path to ONEWIRE Regs
@@ -165,6 +189,8 @@ UserReg_list=[]
 FramRegs_list=[]
 OneWire_list=[]
 LockRegs_list=[]
+CtrlRegs_list=[]
+CpldUart_list=[]
 
 def run(command):
     running=False
@@ -202,6 +228,10 @@ def get_cat(name):
         categ = LockRegs_p
     elif cat == "ONEWIRE":
         categ = OneWireRegs_p
+    elif cat == "CtrlRegs":
+        categ = CtrlRegs_p
+    elif cat == "CpldUart":
+        categ = CpldUart_p
     else:
         categ = Error_p
     if print_debug:
@@ -211,7 +241,8 @@ def get_cat(name):
     return categ
 
 def translate_reg(name):
-    cat=name[0:(string.find(name,"."))]
+    #cat=name[0:(string.find(name,"."))]
+    cat = name[0:name.find(".")]
     if cat == "FPGA_FW":
         categ = FpgaFwVersion_p
     elif cat == "UserReg":
@@ -232,16 +263,22 @@ def translate_reg(name):
         categ = LockRegs_p
     elif cat == "ONEWIRE":
         categ = OneWireRegs_p
+    elif cat == "CtrlRegs":
+        categ = CtrlRegs_p
+    elif cat == "CpldUart":
+        categ = CpldUart_p
     else:
         categ = Error_p
     if print_debug:
         print("from get_cat: name "+name)
         print("from get_cat: cat "+cat)
         print("from get_cat: category "+categ)
-    return categ+name[(string.find(name,"."))+1:]
+    #return categ+name[(string.find(name,"."))+1:]
+    return categ + name[name.find(".") + 1:]
 
 def reg_name(name):
-    reg=name[(string.find(name,".")+1):len(name)-1]
+    #reg=name[(string.find(name,".")+1):len(name)-1]
+    reg = name[(name.find(".") + 1):len(name) - 1]
 
 def check_pid(pid):
     """ Check For the existence of a unix pid. """
@@ -259,24 +296,26 @@ CPULOCK_UNLOCK_VAL =0xfffffff
 #This class contain methods to permit access to all registers connected to the
 #management CPU (iMX6) mapped in filesystem
 class Management():
-    def __init__(self):
+    def __init__(self,simulation):
         self.data = []
-        #set gpio for I2C control Request
-        cmd = "ls -l /sys/class/gpio/"
-        gpiolist=run(cmd)
-        gpios=gpiolist.splitlines()
-        gpioexist=False
-        for l in range(0,len(gpios)):
-            if gpios[l].find("gpio134")!= -1:
-                gpioexist=True
-                break
-        if gpioexist==False:
-            cmd = "echo 134 > /sys/class/gpio/export"
+        self.simulation=simulation
+        if self.simulation == False:
+            #set gpio for I2C control Request
+            cmd = "ls -l /sys/class/gpio/"
+            gpiolist=str(run(cmd))
+            gpios=gpiolist.splitlines()
+            gpioexist=False
+            for l in range(0,len(gpios)):
+                if gpios[l].find("gpio134")!= -1:
+                    gpioexist=True
+                    break
+            if gpioexist==False:
+                cmd = "echo 134 > /sys/class/gpio/export"
+                run(cmd)
+            cmd = "echo out > /sys/class/gpio/gpio134/direction"
             run(cmd)
-        cmd = "echo out > /sys/class/gpio/gpio134/direction"
-        run(cmd)
-        cmd = "echo 1 > /sys/class/gpio/gpio134/value"
-        run(cmd)
+            cmd = "echo 1 > /sys/class/gpio/gpio134/value"
+            run(cmd)
 
     def __del__(self):
         self.data = []
@@ -287,7 +326,7 @@ class Management():
     def create_all_regs_list(self):
         for i in range (0, len(categories)):
             cmd = "ls -l " + get_cat(categories[i])
-            regs=run(cmd)
+            regs=str(run(cmd))
             #print regs
             lines=regs.splitlines()
             for l in range(0, len(lines)):
@@ -310,6 +349,10 @@ class Management():
                         LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
                     elif categories[i] == "ONEWIRE":
                         OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
+                    elif categories[i] == "CtrlRegs":
+                        OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
+                    elif categories[i] == "CpldUart":
+                        OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
 
         print("FpgaFwVersionReg_list:", FpgaFwVersionReg_list)
         print("UserReg_list:", UserReg_list)
@@ -320,14 +363,15 @@ class Management():
         print("FramRegs_list:", FramRegs_list)
         print("LockRegs_list:", LockRegs_list)
         print("OneWireRegs_list:", OneWire_list)
-
+        print("CtrlRegs_list:", CtrlRegs_list)
+        print("CpldUart_list:", CtrlRegs_list)
     ###create_regs_list
     #This method permit to fill selected categories
     #register lists (<category_name>_list variable)
     #@param[in] categories: categories name
     def create_regs_list(self, categories):
         cmd = "ls -l " + get_cat(categories)
-        regs=run(cmd)
+        regs=str(run(cmd))
         #print regs
         lines=regs.splitlines()
         for l in range(0, len(lines)):
@@ -350,6 +394,10 @@ class Management():
                     LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                 elif categories == "ONEWIRE":
                         OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
+                elif categories == "CtrlRegs":
+                    OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
+                elif categories == "CpldUart":
+                    OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
         print("FpgaFwVersionReg_list:", FpgaFwVersionReg_list)
         print("UserReg_list:", UserReg_list)
         print("MCUReg_list:", MCUReg_list)
@@ -359,7 +407,8 @@ class Management():
         print("FramRegs_list:", FramRegs_list)
         print("LockRegs_list:", LockRegs_list)
         print("OneWireRegs_list:", OneWire_list)
-
+        print("CtrlRegs_list:", CtrlRegs_list)
+        print("CpldUart_list:", CtrlRegs_list)
     ###dump_categories
     #This method permit to print
     #all available registers categories
@@ -373,19 +422,36 @@ class Management():
     #@param[in] name name of register it must have following format <category_name>.<register_name>
     #return read register value
     def read(self, name):
-        if print_debug:
-            print("Read: " + name)
-        reg = translate_reg(name)
-        if reg != Error_p:
-            if print_debug:
-                print("Opening file")
-            fo = open(reg,"r")
-            value = fo.readline()
-            value = value[0:len(value)-1]
-            fo.close()
+        if self.simulation == True:
+            reg_category = name.split(".")[0]
+            reg_name = name.split(".")[1]
+            el = [element for element in simulation_regs if
+                  (element.get("cat", "") == reg_category and element.get("name", "") == reg_name)]
+            if el[0].get("mode") == "RO":
+                if el[0].get("state") == 0:
+                    val = el[0].get("def")
+                    el[0]["state"] = 1
+                else:
+                    val = el[0].get("value")
+                # print("Read: " + name + ", " + hex(val))
+                return int(val)
+            else:
+                val = rw_emulator_regs_file("r", reg_category, reg_name)
+                return int(val)
         else:
-            value = 0#self.lastError = res
-        return int(value)
+            reg = translate_reg(name)
+            if reg != Error_p:
+                if print_debug:
+                    print("Opening file")
+                fo = open(reg,"r")
+                value = fo.readline()
+                value = value[0:len(value)-1]
+                fo.close()
+            else:
+                value = 0#self.lastError = res
+            if print_debug:
+                print("Read: " + name + ", " + hex(value))
+            return int(value)
 
     ###write
     #This method implements write
@@ -393,20 +459,32 @@ class Management():
     #@param[in] name: name of register it must have following format <category_name>.<register_name>
     #@param[in] value: value will be write in selected register
     def write(self, name, value):
-        if print_debug:
-            print("Write: " + name + ", " + str(value))
-        reg = translate_reg(name)
-        if print_debug:
-            print("register: " + reg)
-        if reg != Error_p:
-            if print_debug:
-                print("Opening file")
-            fo = open(reg,"w")
-            fo.write(str(value))
-            fo.close()
-            self.lastError = 0
+        if self.simulation == True:
+            reg_category = name.split(".")[0]
+            reg_name = name.split(".")[1]
+            el = [element for element in simulation_regs if
+                  (element.get("cat", "") == reg_category and element.get("name", "") == reg_name)]
+            if el[0].get("mode") == "RO":
+                if el[0].get("state") == 0:
+                    el[0]["state"] = 1
+                el[0]["value"] = value
+            else:
+                rw_emulator_regs_file("w", reg_category, reg_name, value)
         else:
-            self.lastError="Register " + reg + " Not Exist"#value = value[0:len(res)-1]
+            if print_debug:
+                print("Write: " + name + ", " + hex(value))
+            reg = translate_reg(name)
+            if print_debug:
+                print("register: " + reg)
+            if reg != Error_p:
+                if print_debug:
+                    print("Opening file")
+                fo = open(reg,"w")
+                fo.write(str(value))
+                fo.close()
+                self.lastError = 0
+            else:
+                self.lastError="Register " + reg + " Not Exist"#value = value[0:len(res)-1]
 
 
 
@@ -504,6 +582,20 @@ class Management():
             reg_value=self.read("ONEWIRE."+OneWire_list[i])
             print(OneWire_list[i]+" = " + hex(reg_value&0xff))
 
+    #get_cpld_actual_ip
+    #This method retrieve the IP Adddress assigned to CPLD on board
+    #return ipadd:ipaddress string
+    def get_cpld_actual_ip(self):
+        ip=self.read("ETH.IP")
+        print ("Read ip: %s" %hex(ip))
+        ipadd=[]
+        ipadd.append((ip&0xff000000)>>24)
+        ipadd.append((ip&0x00ff0000)>>16)
+        ipadd.append((ip&0x0000ff00)>>8)
+        ipadd.append((ip&0x000000ff))
+        ipstring=str(ipadd[0])+"."+str(ipadd[1])+"."+str(ipadd[2])+"."+str(ipadd[3])
+        print("ipstring %s" %ipstring)
+        return ipstring
     ###get_fram_reg
     #This method return selected FPGA Ram register value
     #@param[in] name: name of register will be read
@@ -693,35 +785,106 @@ class Management():
 
 
     def fpgai2c_write8(self,ICadd, reg_add,datatx,i2cbus_id ):
-        #print datatx
-        data2wr=(datatx<<8)|(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 2,1,data2wr,i2cbus_id)
-        return status
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                el[0]["value"] = datatx
+                return 0
+            else:
+                if i2cbus_id == 0:
+                    i2cbus = "i2c1"
+                elif i2cbus_id == 1:
+                    i2cbus = "i2c2"
+                elif i2cbus_id == 2:
+                    i2cbus = "i2c3"
+                rw_emulator_i2c_file("w", i2cbus, hex(ICadd), hex(reg_add), datatx)
+                return 0
+        else:
+            data2wr=(datatx<<8)|(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 2,1,data2wr,i2cbus_id)
+            return status
 
     def fpgai2c_read8(self,ICadd, reg_add,i2cbus_id ):
-        data2wr=(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 1,1,data2wr,i2cbus_id)
-        return data,status
+        i2cbus="i2c1"
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                if len(el) != 0:
+                    return el[0].get("value") & 0xff, 0
+                else:
+                    return 0, -1
+            else:
+                if i2cbus_id == 0:
+                    i2cbus = "i2c1"
+                elif i2cbus_id == 1:
+                    i2cbus = "i2c2"
+                elif i2cbus_id == 2:
+                    i2cbus = "i2c3"
+                val = rw_emulator_i2c_file("r", i2cbus, hex(ICadd), hex(reg_add))
+                return val, 0
+        else:
+            data2wr=(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 1,1,data2wr,i2cbus_id)
+            return data,status
 
     def fpgai2c_write16(self,ICadd, reg_add,datatx,i2cbus_id ):
-        if i2cbus_id==FPGA_I2CBUS.i2c3:
-            #data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
-            data2wr=(datatx<<8)|(reg_add&0xFF)
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                el[0]["value"] = datatx & 0xffff
+                return 0
+            else:
+                if i2cbus_id == 0:
+                    i2cbus = "i2c1"
+                elif i2cbus_id == 1:
+                    i2cbus = "i2c2"
+                elif i2cbus_id == 2:
+                    i2cbus = "i2c3"
+                rw_emulator_i2c_file("w", i2cbus, hex(ICadd), hex(reg_add), datatx & 0xffff)
+                return 0
         else:
-            data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
-            data2wr=(data2wr<<8)|(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 3,1,data2wr,i2cbus_id)
-        return status
+            if i2cbus_id==FPGA_I2CBUS.i2c3:
+                #data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
+                data2wr=(datatx<<8)|(reg_add&0xFF)
+            else:
+                data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
+                data2wr=(data2wr<<8)|(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 3,1,data2wr,i2cbus_id)
+            return status
 
     def fpgai2c_read16(self,ICadd, reg_add,i2cbus_id ):
-        data2wr=(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 1,2,data2wr,i2cbus_id)
-        if i2cbus_id==FPGA_I2CBUS.i2c3:
-            datar=data
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                if len(el) != 0:
+                    return el[0].get("value") & 0xffff, 0
+                else:
+                    return 0, -1
+            if i2cbus_id == 0:
+                i2cbus = "i2c1"
+            elif i2cbus_id == 1:
+                i2cbus = "i2c2"
+            elif i2cbus_id == 2:
+                i2cbus = "i2c3"
+            val = rw_emulator_i2c_file("r", i2cbus, hex(ICadd), hex(reg_add))
+            return val & 0xffff, 0
         else:
-            #datar=((data&0xff00)>>8)|((data&0x00ff)<<8)
-            datar=data
-        return datar,status
+            data2wr=(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 1,2,data2wr,i2cbus_id)
+            if i2cbus_id==FPGA_I2CBUS.i2c3:
+                datar=data
+            else:
+                #datar=((data&0xff00)>>8)|((data&0x00ff)<<8)
+                datar=data
+            return datar,status
 
     def GetMngTemp(self,sens_id):
         if sens_id <1 or sens_id >2:
