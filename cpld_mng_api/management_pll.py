@@ -86,7 +86,7 @@ if __name__ == "__main__":
         print ("Command WITH update IO")
         if len(args) == 1:
             inst.write_spi(0xf,0x1)
-            print hex(inst.read_spi(int(args[0],16)))
+            print(hex(inst.read_spi(int(args[0],16))))
         elif len(args) == 2:
             inst.write_spi(int(args[0],16), int(args[1],16))
             inst.write_spi(0xf,0x1);

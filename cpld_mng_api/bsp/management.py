@@ -3,9 +3,9 @@ import sys
 import cpld_mng_api.netproto.rmp as rmp
 #import netproto.rmp as rmp
 import lxml.etree as ET
-from management_bsp import MANAGEMENT_BSP
-from management_flash import MngProgFlash
-from management_spi import MANAGEMENT_SPI
+from .management_bsp import MANAGEMENT_BSP
+from .management_flash import MngProgFlash
+from .management_spi import MANAGEMENT_SPI
 #from tpm_spi import TPM_SPI
 #from enum import Enum
 from pyfabil.base.definitions import *
@@ -74,18 +74,18 @@ class MANAGEMENT():
       self.extended_info = ""
 
       if not 'ip' in kwargs.keys():
-         print "Error! An IP address must be specified!"
+         print("Error! An IP address must be specified!")
          sys.exit()
       else:
          ip   = kwargs['ip']
          #print("provided ip %s" %(ip) )
       if not 'port' in kwargs.keys():
-         print "Assuming UDP port 10000"
+         print("Assuming UDP port 10000")
          port = 10000
       else:
          port = int(kwargs['port']) 
       if not 'timeout' in kwargs.keys():
-         print "Assuming UDP socket timeout 1 second"
+         print("Assuming UDP socket timeout 1 second")
          timeout = 1
       else:      
          timeout = int(kwargs['timeout'])
@@ -103,8 +103,8 @@ class MANAGEMENT():
          #self.board = self.get_board(0x10)
          self.board = "MNG"
          #self.board = "KCU105"
-      print
-      print "Using board", self.board
+      print("")
+      print("Using board", self.board)
       #self.spi = TPM_SPI(self.board, self.rmp)
       self.bsp = MANAGEMENT_BSP(self.board, self.rmp)
       self.spiflash=MngProgFlash(self, self.rmp)
@@ -159,7 +159,7 @@ class MANAGEMENT():
             for n in rd:
                xml_hex_str += format(n, '08x')
          else:
-            print rd
+            print(str(rd))
             xml_hex_str += format(rd, '08x')
          if byte_to_read == 0:
             break
@@ -192,7 +192,7 @@ class MANAGEMENT():
             for n in rd:
                hex_str += format(n,'08x')
          else:
-            print rd
+            print(str(rd))
             hex_str += format(rd,'08x')
          if byte_to_read == 0:
             break
@@ -207,7 +207,7 @@ class MANAGEMENT():
       if m != None:
          return m.group(1)
       else:
-         print "Field BOARD" + " doesn't exist in extended info!"
+         print("Field BOARD" + " doesn't exist in extended info!")
          sys.exit(1)
       
    def load_firmware_blocking(self, Device, path_to_xml_file="", xml_map_offset=0x8):
@@ -318,7 +318,7 @@ class MANAGEMENT():
          for m in matches:
             if lines == []:
                lines.append(["Name","Address","Mask","Size"])
-            print m
+            print(str(m))
             lines.append([m['name'],"0x" + m['address'],m['bitmask'],m['size']])
          if lines != []:
             pprint_table(lines)
@@ -331,7 +331,7 @@ class MANAGEMENT():
       for n in found_reg:
          name_list.append(n['name'])
          if display == True:
-            print n['name']
+            print(n['name'])
       return name_list
    
    def read_register(self, register, n = 1, offset = 0, device = None):
@@ -348,8 +348,8 @@ class MANAGEMENT():
       else:
          self.checkLoad()
          if not register in self.reg_dict.keys():
-            print register
-            print "Error: register " + register + " not found!"
+            print(register)
+            print("Error: register " + register + " not found!")
          else:
             #check if it is a bitfield and other bitfields are present
             is_bitfield = self.reg_dict[register]['is_bitfield']
@@ -373,7 +373,7 @@ class MANAGEMENT():
       else:
          self.checkLoad()
          if not register in self.reg_dict.keys():
-            print "Error: register " + register + " not found!"
+            print("Error: register " + register + " not found!")
          else:
             #check if it is a bitfield and other bitfields are present
             is_bitfield = self.reg_dict[register]['is_bitfield']

@@ -417,8 +417,9 @@ class SubrackMngBoard:
             lines=res.splitlines()
             r=lines[len(lines)-1]
             print("pll res = %s" %r)
-            if r!="0x33":
-                print ("ERROR: PLL configuration failed, PLL not locked")
+            if (r!="0x33"):
+                if (str(r) != "b'0x33'"):
+                    print ("ERROR: PLL configuration failed, PLL not locked")
             #raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
         else:
             r = "0x33"

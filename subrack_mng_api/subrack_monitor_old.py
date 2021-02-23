@@ -112,10 +112,10 @@ def search():
             time.sleep(0.5)
 
             board = x + 1
-            print "Search device for board %d" % board
+            print("Search device for board " + str(board))
             dev_id = search_device()
 
-            print "Detected %d devices" % len(dev_id)
+            print("Detected " + str(len(dev_id)) + " devices")
 
             for i in range(0, len(dev_id)):
                 # print "Device %d id:" %i
@@ -133,7 +133,7 @@ def tpm_present():
     global present_done
     global present
 
-    print "Searching..."
+    print("Searching...")
 
     present_i = Mng.read("HKeep.TPMsPresent")
     # Put present in a list
@@ -154,9 +154,9 @@ def tpm_present():
         partial_reverse(present,4, 7)
         partial_reverse(tpmison,4, 7)
 
-    print present_i
-    print present
-    print tpmison
+    print(str(present_i))
+    print(str(present))
+    print(str(tpmison))
 
     if reverseTPM == False:
         table_index = ['Board 1', 'Board 2', 'Board 3', 'Board 4', 'Board 5', 'Board 6', 'Board 7', 'Board 8']
@@ -172,7 +172,7 @@ def tpm_present():
     clear()
     tablepres = terminaltables.AsciiTable(table_present)
     tablepres.title = "TPM Present & ON"
-    print tablepres.table
+    print(str(tablepres.table))
 
 def start_conversion():
     Mng.OneWire_SelectMux(0x08) #all boards
@@ -551,7 +551,7 @@ while (1):
     tpm_present()
     table = terminaltables.AsciiTable(table_data)
     table.title = "TPM Temperatures"
-    print table.table
+    print(str(table.table))
 
     brd_tmp = [0, 0, 0, 0, 0]
     brd_tmp[0] = Mng.read("Fram.Adt1TempValue")
@@ -578,7 +578,7 @@ while (1):
     ]
     tablebrdtmp = terminaltables.AsciiTable(table_brdtmp)
     tablebrdtmp.title = "Board Temperatures"
-    print tablebrdtmp.table
+    print(str(tablebrdtmp.table))
 
 
     tpm_v_reg = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -633,7 +633,7 @@ while (1):
     ]
     tabletpmpow = terminaltables.AsciiTable(table_tpmpow)
     tabletpmpow.title = "Board Powers"
-    print tabletpmpow.table
+    print(str(tabletpmpow.table))
 
 
     fan1 = Mng.read("Fram.FAN1_TACH")
@@ -669,12 +669,12 @@ while (1):
 
     tablefan = terminaltables.AsciiTable(fan_data)
     tablefan.title = "RPM Fan Speed & PWM"
-    print tablefan.table
+    print(str(tablefan.table))
 
     if fan_settings & 0x2:
-        print "Fan Control: Automatic"
+        print("Fan Control: Automatic")
     else:
-        print "Fan Control: Manual"
+        print("Fan Control: Manual")
 
     ps0_vout_reg = Mng.read("Fram.PSU0_Vout")
     ps0_iout_reg = Mng.read("Fram.PSU0_Iout")
@@ -694,18 +694,18 @@ while (1):
     ]
     tablepsu = terminaltables.AsciiTable(table_psu)
     tablepsu.title = "PSU Data"
-    print tablepsu.table
+    print(str(tablepsu.table))
 
 
     #help
-    print "\n\nKeyboard command help:"
-    print "A-Z:\tUp & Down Fan 1 Bank (TPM 1-4)"
-    print "S-X:\tUp & Down Fan 2 Bank (TPM 5-8)"
-    print "C:\tEnable Automatic Fan Control"
-    print "1-8:\tToggle TPM Power"
-    print "0:\tToggle TPM Power Sequence (if ANY TPM is on, this start a shutdown procedure for all boards"
-    print "R:\tSearch new board (OneWire sensors)"
-    print "\nQ:\tQuit"
+    print("\n\nKeyboard command help:")
+    print("A-Z:\tUp & Down Fan 1 Bank (TPM 1-4)")
+    print("S-X:\tUp & Down Fan 2 Bank (TPM 5-8)")
+    print("C:\tEnable Automatic Fan Control")
+    print("1-8:\tToggle TPM Power")
+    print("0:\tToggle TPM Power Sequence (if ANY TPM is on, this start a shutdown procedure for all boards")
+    print("R:\tSearch new board (OneWire sensors)")
+    print("\nQ:\tQuit")
 
     #start_conversion()
     Mng.OneWire_StartConversion()

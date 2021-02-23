@@ -1,6 +1,6 @@
 import time
 import binascii
-from management_spi import MANAGEMENT_SPI
+from .management_spi import MANAGEMENT_SPI
 
 eep_addr_0 = 0xA0
 eep_addr_1 = 0xA2
@@ -17,20 +17,20 @@ class MANAGEMENT_BSP():
         print("creating bsp")
         self.mode=self.rmp.rd32(0x120)
         if self.mode == BOARD_MODE['subrack']:
-            print "mode: SUBRACK"
+            print("mode: SUBRACK")
             self.spi = MANAGEMENT_SPI(board,rmp,subrack_pll_cs)
         elif self.mode == BOARD_MODE['cabinet']:
-            print "mode: CABINET"
+            print("mode: CABINET")
             self.spi = MANAGEMENT_SPI(board,rmp,cabinet_pll_cs)
         else:
-            print "mode: UNKNOWN"
+            print("mode: UNKNOWN")
             self.spi = MANAGEMENT_SPI(board,rmp,subrack_pll_cs)
         self.hw_rev=[]
         hw_rev=self.rmp.rd32(0x124)
         self.hw_rev.append((hw_rev>>16)&0xff)
         self.hw_rev.append((hw_rev>>8)&0xff)
         self.hw_rev.append((hw_rev>>0)&0xff)
-        print "HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2])
+        print("HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2]))
 
     def wr32_multi(self, add, dat, ba=[0x00000000,0x10000000]):
         for b in ba:
@@ -62,7 +62,7 @@ class MANAGEMENT_BSP():
             while (True):
                 rd = self.rmp.rd32(ba + 0xC)
                 if rd == 2:
-                    print "eep_wr8 error: ack_error"
+                    print("eep_wr8 error: ack_error")
                     time.sleep(0.1)
                     break
                 elif rd == 0:
@@ -70,7 +70,7 @@ class MANAGEMENT_BSP():
                     return
                 else:
                     time.sleep(0.1)
-                    print "."
+                    print(".")
 
     def eep_rd16(self, offset, phy_addr = eep_addr_0):
         rd = 0
@@ -149,7 +149,7 @@ class MANAGEMENT_BSP():
             self.rmp.wr32(0x90000000 + 0x70 * 4, 0x0)  # disable wishbone connection
 
             if n % 1000 == 0:
-                print "Reading CPLD config frame " + str(n) + "/9212"
+                print("Reading CPLD config frame " + str(n) + "/9212")
 
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x26)
@@ -177,7 +177,7 @@ class MANAGEMENT_BSP():
         return bytearray(dump)
 
     def cpld_flash_write(self, bitfile):
-        print "Using CPLD bitfile " + bitfile
+        print("Using CPLD bitfile " + bitfile)
         f = open(bitfile, "rb")
         dump = bytearray(f.read())
         f.close()
@@ -187,7 +187,7 @@ class MANAGEMENT_BSP():
                 start_idx = n
                 break
         if start_idx == -1:
-            print "Invalid CPLD bitfile. Start word not found!"
+            print("Invalid CPLD bitfile. Start word not found!")
             exit(1)
         if start_idx > 0:
             dump = dump[start_idx:]
@@ -196,7 +196,7 @@ class MANAGEMENT_BSP():
             dump = dump + bytearray([0xFF]*(16 - len(dump) % 16))
 
         # enable configuration access
-        print "Enable CPLD configuration access"
+        print("Enable CPLD configuration access")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x74)  #
         self.cpld_efb_wr(0x08)  #
@@ -208,7 +208,7 @@ class MANAGEMENT_BSP():
         time.sleep(0.001)
 
         # erase flash
-        print "Erase Flash"
+        print("Erase Flash")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x0E)  #
         self.cpld_efb_wr(0x04)  #
@@ -216,7 +216,7 @@ class MANAGEMENT_BSP():
         self.cpld_efb_wr(0x00)  #
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x0)  # disable wishbone connection
 
-        print "Flash status check"
+        print("Flash status check")
         while True:
             # status check
             self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
@@ -231,11 +231,11 @@ class MANAGEMENT_BSP():
             if rd == 0:
                 break
             else:
-                print "CPLD status register: " + hex(rd)
+                print("CPLD status register: " + hex(rd))
                 time.sleep(0.2)
 
         # Init Address
-        print "Init Address"
+        print("Init Address")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x46)
         self.cpld_efb_wr(0x00)
@@ -247,7 +247,7 @@ class MANAGEMENT_BSP():
 
         nof_frame = (len(dump))/16
         idx = 0
-        print "Write configuration flash"
+        print("Write configuration flash")
         for n in range(nof_frame):
             self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
             self.cpld_efb_wr(0x70)
@@ -259,7 +259,7 @@ class MANAGEMENT_BSP():
                 idx += 1
             self.rmp.wr32(0x90000000 + 0x70 * 4, 0x0)  # disable wishbone connection
             if n % 1000 == 0:
-                print "Writing CPLD config frame " + str(n) + "/" + str(nof_frame)
+                print("Writing CPLD config frame " + str(n) + "/" + str(nof_frame))
 
             while True:
                 # status check
@@ -275,11 +275,11 @@ class MANAGEMENT_BSP():
                 if rd == 0:
                     break
                 else:
-                    print "CPLD status register: " + hex(rd)
+                    print("CPLD status register: " + hex(rd))
                     time.sleep(0.2)
 
         # program DONE
-        print "Program Done"
+        printr( "Program Done")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x5E)
         self.cpld_efb_wr(0x00)
@@ -291,7 +291,7 @@ class MANAGEMENT_BSP():
         time.sleep(0.01)
 
         # disable configuration access
-        print "Disable CPLD configuration access"
+        print("Disable CPLD configuration access")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x26)
         self.cpld_efb_wr(0x00)
@@ -301,7 +301,7 @@ class MANAGEMENT_BSP():
             pass
 
         # Bypass
-        print "Bypass"
+        print("Bypass")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0xFF)  #
         self.cpld_efb_wr(0xFF)  #
@@ -318,15 +318,15 @@ class MANAGEMENT_BSP():
             #print dump[n]
             #print
             if readback_dump[n] != dump[n]:
-                print "CPLD Verify Flash error!"
-                print "Address ", str(n)
-                print "CPLD doesn't have a good bitstream, it will not boot!"
-                print "Write a valid bistream into the Flash before rebooting, otherwise you will need to use then JTAG!"
+                print("CPLD Verify Flash error!")
+                print("Address ", str(n))
+                print("CPLD doesn't have a good bitstream, it will not boot!")
+                print("Write a valid bistream into the Flash before rebooting, otherwise you will need to use then JTAG!")
                 exit(1)
 
 
         #Refresh
-        print "Refresh"
+        print("Refresh")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x79)
         self.cpld_efb_wr(0x00)
@@ -336,7 +336,7 @@ class MANAGEMENT_BSP():
         while self.rmp.rd32(0x90000000 + 0x72 * 4) & 0x20 == 0:
             pass
 
-        print "CPLD bitstream update done!"
+        print("CPLD bitstream update done!")
 
     def mcu_reset_n(self,value):
         SAM_RESET_N = 0x900
@@ -351,7 +351,7 @@ class MANAGEMENT_BSP():
 
         rd = self.rmp.rd32(0x0001003C)
         if rd & 0x10000 == 0:
-            print "I2C password not accepted!"
+            print("I2C password not accepted!")
             exit(-1)
         #else:
         #    print "I2C password accepted!"

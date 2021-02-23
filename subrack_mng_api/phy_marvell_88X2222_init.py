@@ -42,11 +42,11 @@ def read22(mux,phy_adr,register):
 	wr(ba+0,0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr)<<5))
 	wr(ba+4,register)
 	value = rd(ba+0x08) & 0xffff
-	print "read22 " +hex(mux)+", "+hex(phy_adr)+", "+hex(register)+", "+hex(value)
+	print("read22 " +hex(mux)+", "+hex(phy_adr)+", "+hex(register)+", "+hex(value))
 	return value
 
 def write22(mux,phy_adr,register,value):
-	print "write22 " +hex(mux)+", "+hex(phy_adr)+", "+hex(register)+", "+hex(value)
+	print("write22 " +hex(mux)+", "+hex(phy_adr)+", "+hex(register)+", "+hex(value))
 	wr(ba+0,0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr)<<5))
 	wr(ba+4,register)
 	wr(ba+0x08,value)
@@ -123,9 +123,9 @@ def set_field(port,reg_def,field_name,field_value):
 	write22(2,port,reg_def['offset'],reg_value)
 
 def decode_register(port,reg_def,reg_value):
-	print "=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ==="
+	print("=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ===")
 	for field in reg_def['fields']:
-		print field[0]+": " + str(reg_value >> field[1] & field[2])
+		print(field[0]+": " + str(reg_value >> field[1] & field[2]))
 
 def get_port_cfg(port):
 	read_and_decode(port,port_status_reg)
@@ -142,7 +142,7 @@ def write_scratch(mux,offset,value):
 	#print "wr status " + hex(read22(mux,0x1c,0x1a))
 	while(read22(mux,0x1c,0x1a) &0x8000 != 0):
 		time.sleep(0.001)
-		print "."
+		print(".")
 	return
 	
 def set_SFP():
@@ -179,9 +179,9 @@ tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
 decode_register(10,port_status_reg,0x7fff)
 fw_ver=0
 fw_ver = tpm_inst[0x8]
-print "Fw ver: " + hex(fw_ver)
+print("Fw ver: " + hex(fw_ver))
 if (fw_ver & 0xffff) < 0x0009:
-	print "Error, minimum version required 0x0009"
+	print("Error, minimum version required 0x0009")
 	exit(1)
 	
 read_scratch(2,0x60)
@@ -190,7 +190,7 @@ write_scratch(2,0x62,0x80)
 write_scratch(2,0x6b,0x7<<4)
 write_scratch(2,0x63,0xf9)
 for i in range(16):
-	print hex(0x60+i) + " " + hex(read_scratch(2,0x60+i))
+	print(hex(0x60+i) + " " + hex(read_scratch(2,0x60+i)))
 
 while(1):
 	write_scratch(2,0x65,0xf9 | (0x0 << 1))
@@ -216,21 +216,21 @@ exit(0)
 set_SFP()
 while(1):
 	get_port_cfg(9)
-	print hex(read22(2,9,0x1f))
+	print(hex(read22(2,9,0x1f)))
 	time.sleep(1)
 exit(0)
 
 WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xffff
 WIS_Device_Identifier_2 = read45(mdio_mux, 0, 2, 0x0003) & 0xffff
-print "WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1)
-print "WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2)
+print("WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1))
+print("WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2))
 if (WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0f15):
-	print "Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver"
+	print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver")
 elif (WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0d99):
-	print "Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP"
+	print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP")
 	exit(-1)
 else:
-	print "Unknown PHY"
+	print("Unknown PHY")
 	exit(-1)
 
 
@@ -241,22 +241,22 @@ else:
 write45(mdio_mux,0,31,0xF404,0x4000)
 time.sleep(0.100)
 
-print "Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400))
-print "Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401))
-print "Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402))
-print "Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403))
-print "Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002))
+print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 #mgdPDStatePowerUp()
-print "Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400))
-print "Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401))
-print "Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403))
-print "Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402))
-print "Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002))
+print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 #31,0xf403
 
 #/*10GR - XAUI mode*/
 for port in {0}:
-	print "=== PORT " + str(port) + " ==="
+	print("=== PORT " + str(port) + " ===")
 	write45(mdio_mux,port,31,0xf002,0x7173)
 	write45(mdio_mux,port,30,0xb841,0xe000)
 	write45(mdio_mux,port,30,0x9041,0x03fe)
@@ -286,11 +286,11 @@ for port in {0}:
 	time.sleep(0.2000)
 	readmodifywrite(mdio_mux,port,30,0xb1b5,0b0001000000000000,0b0001000000000000)
 	readmodifywrite(mdio_mux,port,30,0xb1b4,0b0001000000000000,0b0001000000000000)
-	print "Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400))
-	print "Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401))
-	print "Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403))
-	print "Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402))
-	print "Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002))
+	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 tpm_inst.disconnect()
 
 
