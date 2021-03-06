@@ -1,3 +1,6 @@
+"""
+LFAA SPS Subrack control board hardware driver. 
+"""
 from HardwareBaseClass import *
 from subrack_mng_api.subrack_management_board import *
 import time
@@ -27,32 +30,70 @@ def byte_to_bool_array(byte_in):
 
 
 class PowerOnTpmCommand(HardwareCommand):
-    def do(self, params):
+    """
+    Power On TPM command. Switches on a single or multiple TPM
+    """
+    def do(self, tpm_id):
+        """
+        Power on TPMs
+        
+        :param tpm_id: index of TPM to power on (0-7) or list of indexes 
+        : type tpm_id: str, list(str)
+
+        :return: dictionary with HardwareCommand response. List of TPM On status
+        :rtype: dict
+        """
+
         answer = super().do()
-        if type(params) == list:
-            for tpm_slot_id in params:
+        if type(tpm_id) == list:
+            for tpm_slot_id in tpm_id:
                 self._hardware.PowerOnTPM(int(tpm_slot_id))
         else:
-            tpm_slot_id = int(params)
+            tpm_slot_id = int(tpm_id)
             self._hardware.PowerOnTPM(tpm_slot_id)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
         return answer
 
 
 class PowerOffTpmCommand(HardwareCommand):
-    def do(self, params):
+    """
+    Power Off TPM command. Switches off a single or multiple TPM
+    """
+    def do(self, tpm_id):
+        """
+        Power off TPMs
+        
+        :param tpm_id: index of TPM to power on (0-7) or list of indexes 
+        : type tpm_id: str, list(str)
+
+        :return: dictionary with HardwareCommand response. List of TPM On status
+        :rtype: dict
+        """
         answer = super().do()
         if type(params) == list:
-            for tpm_slot_id in params:
+            for tpm_slot_id in tpm_id:
                 self._hardware.PowerOffTPM(int(tpm_slot_id))
         else:
-            tpm_slot_id = int(params)
+            tpm_slot_id = int(tpm_id)
             self._hardware.PowerOffTPM(tpm_slot_id)
         return answer
 
 
 class IsTpmOnCommand(HardwareCommand):
+    """
+    Check TPM power status
+    """
     def do(self, params):
+        """
+        Check power status of TPMs
+            
+        :param tpm_id: index of TPM to check (0-7)
+        : type tpm_id: str
+
+        :return: dictionary with HardwareCommand response. Integer retvalue
+        :rtype: dict
+        """
+
         answer = super().do()
         tpm_slot_id = int(params)
         tpm_on = self._hardware.GetTPMOnOffVect(tpm_slot_id)
@@ -65,7 +106,19 @@ class IsTpmOnCommand(HardwareCommand):
 
 
 class PowerUpCommand(HardwareCommand):
+    """
+    Power on all TPMs
+    """
     def do(self, params):
+        """
+        Power on all TPMs
+        
+        :param params: unused
+
+        :return: dictionary with HardwareCommand response. List of TPM On status
+        :rtype: dict
+        """
+
         answer = super().do()
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
@@ -75,7 +128,19 @@ class PowerUpCommand(HardwareCommand):
 
 
 class PowerDownCommand(HardwareCommand):
+    """
+    Power off all TPMs
+    """
     def do(self, params):
+        """
+        Power off all TPMs
+        
+        :param params: unused
+
+        :return: dictionary with HardwareCommand response. List of TPM On status
+        :rtype: dict
+        """
+
         answer = super().do()
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
@@ -85,19 +150,44 @@ class PowerDownCommand(HardwareCommand):
 
 
 class SetFanMode(HardwareCommand):
+    """ 
+    Set fan mode (manual, auto) 
+    """
     def do(self, params):
+        """ 
+        :param params: [0]: Fan ID (in range 0-3), [1]: mode [MANUAL|AUTO]
+
+        :return: dictionary with HardwareCommand response. 
+        :rtype: dict
+        """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
             answer["status"] = "ERROR"
             answer["info"] = "Command requres 2 parameters"
         else:
-            fan_id = params[0]
+            fan_id = int(params[0])-1
             fan_mode = params[1]
-            self._hardware.SetFanMode(fan_id, fan_speed)
+            if fan_id >= 1 && fan_id <= 4:
+                self._hardware.SetFanMode(fan_id, fan_speed)
+            else:
+                answer['status'] = 'ERROR'
+                answer['info'] = 'Fan ID must be between 0 and 3'
         return answer
 
 
 class SetFanSpeed(HardwareCommand):
+    """ 
+    Set cabinet fan speed (0-100) 
+    """
+    def do(self, params):
+        """ 
+        :param params: [0]: Fan ID (in range 0-3), [1]: speed (percentage)
+
+        :return: dictionary with HardwareCommand response. Retval is actual speed 
+        :rtype: dict
+        """
+        answer = super().do()
+        if (type(params) == list) & (len(params) < 2):
     def do(self, params):
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
@@ -111,7 +201,16 @@ class SetFanSpeed(HardwareCommand):
 
 
 class SetPSFanSpeed(HardwareCommand):
+    """ 
+    Set Power Supply fan speed (0-100) 
+    """
     def do(self, params):
+        """ 
+        :param params: [0]: Fan ID (in range 0-1), [1]: speed (percentage)
+
+        :return: dictionary with HardwareCommand response. Retval is actual speed 
+        :rtype: dict
+        """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
             answer["status"] = "ERROR"
@@ -127,7 +226,14 @@ class SetPSFanSpeed(HardwareCommand):
 
 
 class BackplaneTemperature(HardwareAttribute):
+    """
+    Backplane temperature, in celsius
+    """
     def read_value(self):
+        """
+        :return: backplane temperature, in celsius, for the two backplane halves
+        :rtype: list[float]
+        """
         temperature = self._hardware.GetSubrackTemperatures()
         answer = temperature[2:4]
         return answer
@@ -135,6 +241,10 @@ class BackplaneTemperature(HardwareAttribute):
 
 class BoardCurrent(HardwareAttribute):
     def read_value(self):
+        """
+        :return: Total subrack current (A)
+        :rtype: float
+        """
         current1 = self._hardware.GetPSIout(1)
         current2 = self._hardware.GetPSIout(2)
         return current1 + current2
@@ -142,20 +252,21 @@ class BoardCurrent(HardwareAttribute):
 
 class BoardTemperature(HardwareAttribute):
     def read_value(self):
+        """
+        :return: Subrack control board temperature, in celsius, 2 values
+        :rtype: list[float]
+        """
         temperature = self._hardware.GetSubrackTemperatures()
         answer = temperature[0:2]
         return answer
 
 
-class BoardCurrent(HardwareAttribute):
-    def read_value(self):
-        current1 = self._hardware.GetPsIout(1)
-        current2 = self._hardware.GetPsIout(2)
-        return current1 + current2
-
-
 class FanSpeedPercent(HardwareAttribute):
     def read_value(self):
+        """
+        :return: Subrack fan speed, in percent of the maximum values, for the 4 fans
+        :rtype: list[float]
+        """
         answer = []
         for fan_id in range(4):
             answer = answer + [self._hardware.GetFanSpeed(fan_id + 1)[1]]
@@ -164,6 +275,10 @@ class FanSpeedPercent(HardwareAttribute):
 
 class FanSpeed(HardwareAttribute):
     def read_value(self):
+        """
+        :return: Subrack fan speed, in RPM, for the 4 fans
+        :rtype: list[float]
+        """
         answer = []
         for fan_id in range(4):
             answer = answer + [self._hardware.GetFanSpeed(fan_id + 1)[0]]
@@ -171,7 +286,15 @@ class FanSpeed(HardwareAttribute):
 
 
 class TpmTemperatures(HardwareAttribute):
+    """
+    TPM bpard temperatures, in celsius. 
+    Returns 8 values, 0.0 for boards not present
+    """
     def read_value(self):
+        """
+        :return: TPM board temperature, in Celsius
+        :rtype: list[float]
+        """
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
@@ -181,6 +304,10 @@ class TpmTemperatures(HardwareAttribute):
 
 
 class TpmCurrents(HardwareAttribute):
+    """
+    TPM board current, in A. 
+    Returns 8 values, 0.0 for boards not present
+    """
     def read_value(self):
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
@@ -191,7 +318,14 @@ class TpmCurrents(HardwareAttribute):
 
 
 class TpmVoltages(HardwareAttribute):
+    """
+    TPM board power supply voltages (V)
+    """
     def read_value(self):
+        """
+        :return: 8 values, 0.0 for boards not present
+        :rvalue: list(Bool)
+        """
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
@@ -201,18 +335,30 @@ class TpmVoltages(HardwareAttribute):
 
 
 class TpmSupplyFault(HardwareAttribute):
+    """
+    TPM supply fault status
+    Returns 8 bool values, True if board supply fault has been triggered
+    """
+    answer = [0.0] * False
     def read_value(self):
-        tpm_detected = byte_to_bool_array(self._hardware.GetTPMSupplyFault())
-        return tpm_detected
+        tpm_supply_fault = byte_to_bool_array(self._hardware.GetTPMSupplyFault())
+        return tpm_supply_fault
 
 
 class TpmOnOffVect(HardwareAttribute):
+    """
+    TPM board power status
+    """
     def read_value(self):
-        tpm_detected = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
-        return tpm_detected
+        tpm_is_on = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
+        return tpm_is_on
 
 
 class TpmPresent(HardwareAttribute):
+    """
+    TPM board presence
+    Returns 8 values, True if board present and powered on
+    """
     def read_value(self):
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         return tpm_detected
