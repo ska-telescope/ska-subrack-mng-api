@@ -47,10 +47,10 @@ class PowerOnTpmCommand(HardwareCommand):
         answer = super().do()
         if type(tpm_id) == list:
             for tpm_slot_id in tpm_id:
-                self._hardware.PowerOnTPM(int(tpm_slot_id))
+                self._hardware.PowerOnTPM(int(tpm_slot_id+1))
         else:
             tpm_slot_id = int(tpm_id)
-            self._hardware.PowerOnTPM(tpm_slot_id)
+            self._hardware.PowerOnTPM(tpm_slot_id+1)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
         return answer
 
@@ -70,12 +70,12 @@ class PowerOffTpmCommand(HardwareCommand):
         :rtype: dict
         """
         answer = super().do()
-        if type(params) == list:
+        if type(tpm_id) == list:
             for tpm_slot_id in tpm_id:
-                self._hardware.PowerOffTPM(int(tpm_slot_id))
+                self._hardware.PowerOffTPM(int(tpm_slot_id+1))
         else:
             tpm_slot_id = int(tpm_id)
-            self._hardware.PowerOffTPM(tpm_slot_id)
+            self._hardware.PowerOffTPM(tpm_slot_id+1)
         return answer
 
 
@@ -96,7 +96,7 @@ class IsTpmOnCommand(HardwareCommand):
 
         answer = super().do()
         tpm_slot_id = int(params)
-        tpm_on = self._hardware.GetTPMOnOffVect(tpm_slot_id)
+        tpm_on = self._hardware.GetTPMOnOffVect()
         if tpm_on & (1 << tpm_slot_id) != 0:
             retval = 1
         else:
@@ -165,10 +165,10 @@ class SetFanMode(HardwareCommand):
             answer["status"] = "ERROR"
             answer["info"] = "Command requres 2 parameters"
         else:
-            fan_id = int(params[0])-1
+            fan_id = int(params[0])+1
             fan_mode = params[1]
-            if fan_id >= 1 && fan_id <= 4:
-                self._hardware.SetFanMode(fan_id, fan_speed)
+            if (fan_id >= 1) & (fan_id <= 4):
+                self._hardware.SetFanMode(fan_id, fan_mode)
             else:
                 answer['status'] = 'ERROR'
                 answer['info'] = 'Fan ID must be between 0 and 3'
@@ -188,15 +188,16 @@ class SetFanSpeed(HardwareCommand):
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-    def do(self, params):
-        answer = super().do()
-        if (type(params) == list) & (len(params) < 2):
             answer["status"] = "ERROR"
             answer["info"] = "Command requres 2 parameters"
         else:
-            fan_id = params[0]
+            fan_id = int(params[0])+1
             fan_speed = params[1]
-            self._hardware.SetFanSpeed(fan_id, fan_speed)
+            if (fan_id >= 1) & (fan_id <= 4):
+                self._hardware.SetFanSpeed(fan_id, fan_speed)
+            else:
+                answer['status'] = 'ERROR'
+                answer['info'] = 'Fan ID must be between 0 and 3'
         return answer
 
 
@@ -216,9 +217,13 @@ class SetPSFanSpeed(HardwareCommand):
             answer["status"] = "ERROR"
             answer["info"] = "Command requres 2 parameters"
         else:
-            fan_id = params[0]
-            fan_speed = params[1]
-            self._hardware.SetPSFanSpeed(fan_id, fan_speed)
+            fan_id = int(params[0])+1
+            fan_speed = int(params[1])
+            if (fan_id >= 1) & (fan_id <= 2):
+                self._hardware.SetPSFanSpeed(fan_id, fan_speed)
+            else:
+                answer['status'] = 'ERROR'
+                answer['info'] = 'Fan ID must be between 0 and 1'
         return answer
 
 
@@ -273,6 +278,18 @@ class FanSpeedPercent(HardwareAttribute):
         return answer
 
 
+class FanMode(HardwareAttribute):
+    def read_value(self):
+        """
+        :return: Subrack fan mode
+        :rtype: list[float]
+        """
+        answer = []
+        for fan_id in range(4):
+            answer = answer + [self._hardware.GetFanMode(fan_id + 1)]
+        return answer
+
+
 class FanSpeed(HardwareAttribute):
     def read_value(self):
         """
@@ -309,6 +326,10 @@ class TpmCurrents(HardwareAttribute):
     Returns 8 values, 0.0 for boards not present
     """
     def read_value(self):
+        """
+        :return: 8 values, 0.0 for boards not present
+        :rvalue: list(float)
+        """
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
@@ -324,13 +345,30 @@ class TpmVoltages(HardwareAttribute):
     def read_value(self):
         """
         :return: 8 values, 0.0 for boards not present
-        :rvalue: list(Bool)
+        :rvalue: list(float)
         """
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
             if tpm_detected[tpm]:
                 answer[tpm] = self._hardware.GetTPMVoltage(tpm + 1)
+        return answer
+
+
+class TpmPowers(HardwareAttribute):
+    """
+    TPM board power usage (W)
+    """
+    def read_value(self):
+        """
+        :return: 8 values, 0.0 for boards not present
+        :rvalue: list(float\)
+        """
+        answer = [0.0] * 8
+        tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
+        for tpm in range(8):
+            if tpm_detected[tpm]:
+                answer[tpm] = self._hardware.GetTPMPower(tpm + 1)
         return answer
 
 
@@ -420,6 +458,7 @@ class SubrackHardware(HardwareBaseDevice):
         self.add_attribute(BackplaneTemperature("backplane_temperatures", 0, subrack))
         self.add_attribute(BoardTemperature("board_temperatures", 0, subrack))
         self.add_attribute(BoardCurrent("board_current", 0, subrack))
+        self.add_attribute(FanMode("fan_mode", 0, subrack))
         self.add_attribute(FanSpeed("fan_speed", 0, subrack))
         self.add_attribute(FanSpeedPercent("fan_speed_percent", 0, subrack))
         self.add_attribute(TpmTemperatures("tpm_temperatures", 0, subrack))
@@ -441,21 +480,21 @@ class SubrackHardware(HardwareBaseDevice):
             answer = {
                 "status": "ERROR",
                 "command": command,
-                "info": message,
+                "info": str(message),
                 "retvalue": "",
             }
         except SubrackInvalidCmd as message:
             answer = {
                 "status": "ERROR",
                 "command": command,
-                "info": message,
+                "info": str(message),
                 "retvalue": "",
             }
         except SubrackInvalidParameter as message:
             answer = {
                 "status": "ERROR",
                 "command": command,
-                "info": message,
+                "info": str(message),
                 "retvalue": "",
             }
         return answer

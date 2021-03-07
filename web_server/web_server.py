@@ -55,6 +55,7 @@ class MyServer(BaseHTTPRequestHandler):
         # query_components = parse_qs(urlparse(self.path).query)
         query = urisplit(self.path)
         query_components = mangle_dict(query.getquerydict())
+        # print(str(query_components))
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()

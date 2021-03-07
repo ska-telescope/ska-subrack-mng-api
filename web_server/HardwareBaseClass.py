@@ -296,7 +296,7 @@ class HardwareBaseDevice:
 
         :return: dictionary for json answer
         """
-        E
+
         if attribute in self.attribute_dict.keys():
             answer = self.attribute_dict[attribute].read()
         else:
@@ -321,7 +321,7 @@ class HardwareBaseDevice:
         if issubclass(type(command), HardwareCommand):
             self.command_dict[command.name()] = command
             return True
-        else
+        else:
             return False
 
     def add_attribute(self, attribute):
@@ -337,5 +337,5 @@ class HardwareBaseDevice:
         if issubclass(type(attribute), HardwareAttribute):
             self.attribute_dict[attribute.name()] = attribute
             return True
-        else
+        else:
             return False
