@@ -10,6 +10,7 @@ Hardware objects, commands and attributes can be subclassed for specific
 behaviors. 
 """
 
+
 class HardwareCommand:
     """
     Command for a Hardware base class. Command has a name, has access to
@@ -235,7 +236,7 @@ class GetAllAttributesCommand(HardwareCommand):
 
 class HardwareBaseDevice:
     """
-    Server side of the hardware device. 
+    Server side of the hardware device.
     """
 
     def __init__(self):
