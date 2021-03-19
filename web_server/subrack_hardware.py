@@ -2,6 +2,7 @@
 LFAA SPS Subrack control board hardware driver. 
 """
 from HardwareBaseClass import *
+from HarwareThreadedClass import *
 from subrack_mng_api.subrack_management_board import *
 import time
 import json
@@ -29,11 +30,11 @@ def byte_to_bool_array(byte_in):
 # Commands for subrack
 
 
-class PowerOnTpmCommand(HardwareCommand):
+class PowerOnTpmCommand(ThreadedHardwareCommand):
     """
     Power On TPM command. Switches on a single or multiple TPM
     """
-    def do(self, tpm_id):
+    def thread(self, tpm_id):
         """
         Power on TPMs
         
@@ -44,23 +45,23 @@ class PowerOnTpmCommand(HardwareCommand):
         :rtype: dict
         """
 
-        answer = super().do()
         if type(tpm_id) == list:
             for tpm_slot_id in tpm_id:
                 self._hardware.PowerOnTPM(int(tpm_slot_id+1))
+                if self._abort:
+                    break
         else:
             tpm_slot_id = int(tpm_id)
             self._hardware.PowerOnTPM(tpm_slot_id+1)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
-        answer['retvalue']= byte_to_bool_array(tpm_is_on)
-        return answer
+        return
 
 
-class PowerOffTpmCommand(HardwareCommand):
+class PowerOffTpmCommand(ThreadedHardwareCommand):
     """
     Power Off TPM command. Switches off a single or multiple TPM
     """
-    def do(self, tpm_id):
+    def thread(self, tpm_id):
         """
         Power off TPMs
         
@@ -70,16 +71,16 @@ class PowerOffTpmCommand(HardwareCommand):
         :return: dictionary with HardwareCommand response. List of TPM On status
         :rtype: dict
         """
-        answer = super().do()
         if type(tpm_id) == list:
             for tpm_slot_id in tpm_id:
                 self._hardware.PowerOffTPM(int(tpm_slot_id+1))
+                if self._abort:
+                    break
         else:
             tpm_slot_id = int(tpm_id)
             self._hardware.PowerOffTPM(tpm_slot_id+1)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
-        answer['retvalue']= byte_to_bool_array(tpm_is_on)
-        return answer
+        return
 
 
 class IsTpmOnCommand(HardwareCommand):
@@ -108,48 +109,44 @@ class IsTpmOnCommand(HardwareCommand):
         return answer
 
 
-class PowerUpCommand(HardwareCommand):
+class PowerUpCommand(ThreadedHardwareCommand):
     """
     Power on all TPMs
     """
-    def do(self, params):
+    def thread(self, params):
         """
         Power on all TPMs
         
         :param params: unused
-
-        :return: dictionary with HardwareCommand response. List of TPM On status
-        :rtype: dict
         """
 
-        answer = super().do()
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
             if tpm_detected[tpm]:
                 self._hardware.PowerOnTPM(tpm + 1)
-        return answer
+                if self._abort:
+                    break
+        return 
 
 
-class PowerDownCommand(HardwareCommand):
+class PowerDownCommand(ThreadedHardwareCommand):
     """
     Power off all TPMs
     """
-    def do(self, params):
+    def thread(self, params):
         """
         Power off all TPMs
         
         :param params: unused
-
-        :return: dictionary with HardwareCommand response. List of TPM On status
-        :rtype: dict
         """
 
-        answer = super().do()
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
             if tpm_detected[tpm]:
                 self._hardware.PowerOffTPM(tpm + 1)
-        return answer
+                if self._abort:
+                    break
+        return
 
 
 class SetFanMode(HardwareCommand):
@@ -441,19 +438,25 @@ class PSVoltage(HardwareAttribute):
         return fan_speed
 
 
-class SubrackHardware(HardwareBaseDevice):
+class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
         subrack = SubrackMngBoard(simulation=emulation)
         self.subrack = subrack
         # Actual initialization
         subrack.PllInitialize()
+        # power on the backplane
+        if subrack.Bkpln.get_bkpln_is_onoff()==0:
+            subrack.Bkpln.power_on_bkpln()
+        if subrack.powermon_cfgd==False:
+            subrack.SubrackInitialConfiguration()
+
 
         # Add Commands
-        self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1))
-        self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1))
+        self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, True))
+        self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1, True))
         self.add_command(IsTpmOnCommand("is_tpm_on", subrack, 1))
-        self.add_command(PowerUpCommand("turn_on_tpms", subrack, 0))
-        self.add_command(PowerDownCommand("turn_off_tpms", subrack, 0))
+        self.add_command(PowerUpCommand("turn_on_tpms", subrack, 0, True))
+        self.add_command(PowerDownCommand("turn_off_tpms", subrack, 0, True))
         self.add_command(SetFanMode("set_fan_mode", subrack, 2))
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
