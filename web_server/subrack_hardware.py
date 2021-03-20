@@ -152,6 +152,12 @@ class PowerDownCommand(ThreadedHardwareCommand):
         self._completed = True
         return
 
+class AreTpmsOnCommand(HardwareCommand):
+    def do(self, params):
+        answer = super().do()
+        tpm_on_list = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
+        answer.retvalue = tpm_on_list
+        return answer
 
 class SetFanMode(HardwareCommand):
     """ 
@@ -293,6 +299,20 @@ class FanMode(HardwareAttribute):
             answer = answer + [self._hardware.GetFanMode(fan_id + 1)]
         return answer
 
+class FanMode(HardwareAttribute):
+    def read_value(self):
+        answer = []
+        for fan_id in range(4):
+            answer = answer + [self._hardware.GetFanMode(fan_id + 1)]
+        return answer
+    def write_value(self, mode): 
+        for fan_id in range(4):
+            if mode[fan_id] == 0:
+                mode_i = 0
+            else:
+                mode_i = 1
+            self._hardware.SetFanMode(fan_id + 1, mode_i)
+        return self.read_value()
 
 class FanSpeed(HardwareAttribute):
     def read_value(self):
@@ -459,18 +479,22 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, True))
         self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1, True))
         self.add_command(IsTpmOnCommand("is_tpm_on", subrack, 1))
+        self.add_command(AreTpmsOnCommand("are_tpms_on", subrack, 0))
         self.add_command(PowerUpCommand("turn_on_tpms", subrack, 0, True))
         self.add_command(PowerDownCommand("turn_off_tpms", subrack, 0, True))
         self.add_command(SetFanMode("set_fan_mode", subrack, 2))
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
         # Add attributes
-        self.add_attribute(BackplaneTemperature("backplane_temperatures", 0, subrack))
-        self.add_attribute(BoardTemperature("board_temperatures", 0, subrack))
+        self.add_attribute(BackplaneTemperature("backplane_temperatures", 
+            [0]*2, subrack))
+        self.add_attribute(BoardTemperature("board_temperatures", [0]*2, subrack))
         self.add_attribute(BoardCurrent("board_current", 0, subrack))
-        self.add_attribute(FanMode("fan_mode", 0, subrack))
-        self.add_attribute(FanSpeed("fan_speed", 0, subrack))
-        self.add_attribute(FanSpeedPercent("fan_speed_percent", 0, subrack))
+        self.add_attribute(FanSpeed("subrack_fan_speed", [0]*4, subrack))
+        self.add_attribute(FanSpeedPercent("subrack_fan_speed_percent", 
+            [0]*4, subrack))
+        self.add_attribute(FanMode( "subrack_fan_mode", 
+            [0]*4, subrack, HardwareAttribute.HW_ATTR_RW, 4))
         self.add_attribute(TpmTemperatures("tpm_temperatures", 0, subrack))
         self.add_attribute(TpmVoltages("tpm_voltages", 0, subrack))
         self.add_attribute(TpmCurrents("tpm_currents", 0, subrack))
