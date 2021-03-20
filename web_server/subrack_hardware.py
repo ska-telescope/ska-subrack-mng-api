@@ -476,12 +476,12 @@ class SubrackHardware(HardwareThreadedDevice):
 
 
         # Add Commands
-        self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, True))
-        self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1, True))
+        self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, blocking=True))
+        self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1, blocking=True))
         self.add_command(IsTpmOnCommand("is_tpm_on", subrack, 1))
         self.add_command(AreTpmsOnCommand("are_tpms_on", subrack, 0))
-        self.add_command(PowerUpCommand("turn_on_tpms", subrack, 0, True))
-        self.add_command(PowerDownCommand("turn_off_tpms", subrack, 0, True))
+        self.add_command(PowerUpCommand("turn_on_tpms", subrack, 0, blocking=True))
+        self.add_command(PowerDownCommand("turn_off_tpms", subrack, 0, blocking=True))
         self.add_command(SetFanMode("set_fan_mode", subrack, 2))
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
@@ -494,7 +494,7 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_attribute(FanSpeedPercent("subrack_fan_speed_percent", 
             [0]*4, subrack))
         self.add_attribute(FanMode( "subrack_fan_mode", 
-            [0]*4, subrack, HardwareAttribute.HW_ATTR_RW, 4))
+            [0]*4, subrack)) # , HardwareAttribute.HW_ATTR_RW, 4)) TODO
         self.add_attribute(TpmTemperatures("tpm_temperatures", 0, subrack))
         self.add_attribute(TpmVoltages("tpm_voltages", 0, subrack))
         self.add_attribute(TpmCurrents("tpm_currents", 0, subrack))

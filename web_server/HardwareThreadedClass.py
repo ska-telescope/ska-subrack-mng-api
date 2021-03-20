@@ -93,6 +93,7 @@ class ThreadedHardwareCommand(HardwareCommand):
             if not (self._thread is None):
                 self._thread.join()
                 self._thread = None
+        # print('Debug: ' + self._name + ' completed = ' + str(self._completed))
         return self._completed
 
     def is_blocking(self):
@@ -128,7 +129,7 @@ class AbortCommand(HardwareCommand):
                 command.abort()
         else:
             answer["status"] = "ERROR"
-            answer["info"] = command + " not implemented"
+            answer["info"] = param + " not implemented"
 
         return answer
 
@@ -139,30 +140,33 @@ class IsCompletedCommand(HardwareCommand):
     or the blocking thread is currently running
     """
 
-    def do(self, param=None):
+    def do(self, param=''):
         """
         :param: Command to check or None
         :type: class.ThreadedHardwareCommand
         """
         answer = super().do()
         device = self._hardware
-        completed = False
-        if param is None:
+        completed = True
+        # print('Debug: IsCompleted with param '+str(param))
+        if param == '':
             if device._blocked:
                 if device._runningCommand is None:
+                    # print('Debug: IsCompleted - blocked by none')
                     pass
                 else:
+                    # print('Debug: IsCompleted - blocked by ' +  device._runningCommand.name())
                     completed = device._runningCommand.completed()
-            if not running:
-                device._runningCommand = None
-                device._blocked = False
-
         elif param in device.command_dict.keys():
             command = device.command_dict[param]
             if issubclass(type(command), ThreadedHardwareCommand):
                 completed = command.completed()
+        # print('Debug: IsCompleted - ' + str(completed))
+        if completed:
+            device._runningCommand = None
+            device._blocked = False
 
-        answer["retvalue"] = str(completed)
+        answer["retvalue"] = completed
         return answer
 
 
