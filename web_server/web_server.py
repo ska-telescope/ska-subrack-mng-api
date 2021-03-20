@@ -13,6 +13,12 @@ hostName = "0.0.0.0"
 serverPort = 8081
 
 def mangle_dict(input_dict):
+    """
+    Takes a query dictionary from the http.getquerydict()
+    FOr each element keeps only the first element (list of values)
+    Converts it to scalar if it is a list of 1 element
+    If some values are numeric convert them to numbers
+    """
     output_dict = {}
     for key in input_dict:
         value = input_dict[key][0]    # keep only first element
@@ -33,11 +39,23 @@ def mangle_dict(input_dict):
 
 
 class MyServer(BaseHTTPRequestHandler):
+    """
+    Request handler, subclassed from http package
+    """
 
     def do_GET(self):
+        """
+        Callback for GET request
+        Retrieves query, and splits it into a dictionary
+        Use mangle_dict to convert 1-lists to scalars, 
+        and numeric strings to numbers
+        Calls appropriate methods of the hardware class. 
+        Formats the return dictionary to json and send it as response
+        """
         # query_components = parse_qs(urlparse(self.path).query)
         query = urisplit(self.path)
         query_components = mangle_dict(query.getquerydict())
+        # print(str(query_components))
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()
@@ -78,13 +96,7 @@ class MyServer(BaseHTTPRequestHandler):
 
         response = json.dumps(query_answer)
         self.wfile.write(bytes(response, "utf-8"))
-    def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write("<html><body><h1>POST!</h1></body></html>")
+
 
 hardware = SubrackHardware()
 
