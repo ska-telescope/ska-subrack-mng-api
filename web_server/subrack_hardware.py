@@ -2,7 +2,7 @@
 LFAA SPS Subrack control board hardware driver. 
 """
 from HardwareBaseClass import *
-from HarwareThreadedClass import *
+from HardwareThreadedClass import *
 from subrack_mng_api.subrack_management_board import *
 import time
 import json
@@ -54,6 +54,7 @@ class PowerOnTpmCommand(ThreadedHardwareCommand):
             tpm_slot_id = int(tpm_id)
             self._hardware.PowerOnTPM(tpm_slot_id+1)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
+        self._completed = True
         return
 
 
@@ -80,6 +81,7 @@ class PowerOffTpmCommand(ThreadedHardwareCommand):
             tpm_slot_id = int(tpm_id)
             self._hardware.PowerOffTPM(tpm_slot_id+1)
         tpm_is_on = self._hardware.GetTPMOnOffVect()
+        self._completed = True
         return
 
 
@@ -126,6 +128,7 @@ class PowerUpCommand(ThreadedHardwareCommand):
                 self._hardware.PowerOnTPM(tpm + 1)
                 if self._abort:
                     break
+        self._completed = True
         return 
 
 
@@ -146,6 +149,7 @@ class PowerDownCommand(ThreadedHardwareCommand):
                 self._hardware.PowerOffTPM(tpm + 1)
                 if self._abort:
                     break
+        self._completed = True
         return
 
 
