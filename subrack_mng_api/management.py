@@ -6,7 +6,9 @@ import os
 import psutil
 import time
 from datetime import datetime
+import random
 import logging
+from subrack_mng_api.emulator_classes.def4emulation import *
 
 lasttemp = 59.875
 
@@ -211,7 +213,8 @@ def get_cat(name):
     return categ
 
 def translate_reg(name):
-    cat=name[0:(string.find(name,"."))]
+    #cat=name[0:(string.find(name,"."))]
+    cat = name[0:name.find(".")]
     if cat == "FPGA_FW":
         categ = FpgaFwVersion_p
     elif cat == "UserReg":
@@ -238,10 +241,12 @@ def translate_reg(name):
         print("from get_cat: name "+name)
         print("from get_cat: cat "+cat)
         print("from get_cat: category "+categ)
-    return categ+name[(string.find(name,"."))+1:]
+    #return categ+name[(string.find(name,"."))+1:]
+    return categ + name[name.find(".") + 1:]
 
 def reg_name(name):
-    reg=name[(string.find(name,".")+1):len(name)-1]
+    #reg=name[(string.find(name,".")+1):len(name)-1]
+    reg = name[(name.find(".") + 1):len(name) - 1]
 
 def check_pid(pid):
     """ Check For the existence of a unix pid. """
@@ -259,24 +264,26 @@ CPULOCK_UNLOCK_VAL =0xfffffff
 #This class contain methods to permit access to all registers connected to the
 #management CPU (iMX6) mapped in filesystem
 class Management():
-    def __init__(self):
+    def __init__(self,simulation):
         self.data = []
-        #set gpio for I2C control Request
-        cmd = "ls -l /sys/class/gpio/"
-        gpiolist=run(cmd)
-        gpios=gpiolist.splitlines()
-        gpioexist=False
-        for l in range(0,len(gpios)):
-            if gpios[l].find("gpio134")!= -1:
-                gpioexist=True
-                break
-        if gpioexist==False:
-            cmd = "echo 134 > /sys/class/gpio/export"
+        self.simulation=simulation
+        if self.simulation == False:
+            #set gpio for I2C control Request
+            cmd = "ls -l /sys/class/gpio/"
+            gpiolist=str(run(cmd))
+            gpios=gpiolist.splitlines()
+            gpioexist=False
+            for l in range(0,len(gpios)):
+                if gpios[l].find("gpio134")!= -1:
+                    gpioexist=True
+                    break
+            if gpioexist==False:
+                cmd = "echo 134 > /sys/class/gpio/export"
+                run(cmd)
+            cmd = "echo out > /sys/class/gpio/gpio134/direction"
             run(cmd)
-        cmd = "echo out > /sys/class/gpio/gpio134/direction"
-        run(cmd)
-        cmd = "echo 1 > /sys/class/gpio/gpio134/value"
-        run(cmd)
+            cmd = "echo 1 > /sys/class/gpio/gpio134/value"
+            run(cmd)
 
     def __del__(self):
         self.data = []
@@ -287,7 +294,7 @@ class Management():
     def create_all_regs_list(self):
         for i in range (0, len(categories)):
             cmd = "ls -l " + get_cat(categories[i])
-            regs=run(cmd)
+            regs=str(run(cmd))
             #print regs
             lines=regs.splitlines()
             for l in range(0, len(lines)):
@@ -327,7 +334,7 @@ class Management():
     #@param[in] categories: categories name
     def create_regs_list(self, categories):
         cmd = "ls -l " + get_cat(categories)
-        regs=run(cmd)
+        regs=str(run(cmd))
         #print regs
         lines=regs.splitlines()
         for l in range(0, len(lines)):
@@ -373,19 +380,36 @@ class Management():
     #@param[in] name name of register it must have following format <category_name>.<register_name>
     #return read register value
     def read(self, name):
-        if print_debug:
-            print("Read: " + name)
-        reg = translate_reg(name)
-        if reg != Error_p:
-            if print_debug:
-                print("Opening file")
-            fo = open(reg,"r")
-            value = fo.readline()
-            value = value[0:len(value)-1]
-            fo.close()
+        if self.simulation == True:
+            reg_category = name.split(".")[0]
+            reg_name = name.split(".")[1]
+            el = [element for element in simulation_regs if
+                  (element.get("cat", "") == reg_category and element.get("name", "") == reg_name)]
+            if el[0].get("mode") == "RO":
+                if el[0].get("state") == 0:
+                    val = el[0].get("def")
+                    el[0]["state"] = 1
+                else:
+                    val = el[0].get("value")
+                # print("Read: " + name + ", " + hex(val))
+                return int(val)
+            else:
+                val = rw_emulator_regs_file("r", reg_category, reg_name)
+                return int(val)
         else:
-            value = 0#self.lastError = res
-        return int(value)
+            reg = translate_reg(name)
+            if reg != Error_p:
+                if print_debug:
+                    print("Opening file")
+                fo = open(reg,"r")
+                value = fo.readline()
+                value = value[0:len(value)-1]
+                fo.close()
+            else:
+                value = 0#self.lastError = res
+            if print_debug:
+                print("Read: " + name + ", " + hex(value))
+            return int(value)
 
     ###write
     #This method implements write
@@ -393,20 +417,32 @@ class Management():
     #@param[in] name: name of register it must have following format <category_name>.<register_name>
     #@param[in] value: value will be write in selected register
     def write(self, name, value):
-        if print_debug:
-            print("Write: " + name + ", " + str(value))
-        reg = translate_reg(name)
-        if print_debug:
-            print("register: " + reg)
-        if reg != Error_p:
-            if print_debug:
-                print("Opening file")
-            fo = open(reg,"w")
-            fo.write(str(value))
-            fo.close()
-            self.lastError = 0
+        if self.simulation == True:
+            reg_category = name.split(".")[0]
+            reg_name = name.split(".")[1]
+            el = [element for element in simulation_regs if
+                  (element.get("cat", "") == reg_category and element.get("name", "") == reg_name)]
+            if el[0].get("mode") == "RO":
+                if el[0].get("state") == 0:
+                    el[0]["state"] = 1
+                el[0]["value"] = value
+            else:
+                rw_emulator_regs_file("w", reg_category, reg_name, value)
         else:
-            self.lastError="Register " + reg + " Not Exist"#value = value[0:len(res)-1]
+            if print_debug:
+                print("Write: " + name + ", " + hex(value))
+            reg = translate_reg(name)
+            if print_debug:
+                print("register: " + reg)
+            if reg != Error_p:
+                if print_debug:
+                    print("Opening file")
+                fo = open(reg,"w")
+                fo.write(str(value))
+                fo.close()
+                self.lastError = 0
+            else:
+                self.lastError="Register " + reg + " Not Exist"#value = value[0:len(res)-1]
 
 
 
@@ -693,35 +729,105 @@ class Management():
 
 
     def fpgai2c_write8(self,ICadd, reg_add,datatx,i2cbus_id ):
-        #print datatx
-        data2wr=(datatx<<8)|(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 2,1,data2wr,i2cbus_id)
-        return status
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                el[0]["value"] = datatx
+                return 0
+            else:
+                if i2cbus_id == 0:
+                    i2cbus = "i2c1"
+                elif i2cbus_id == 1:
+                    i2cbus = "i2c2"
+                elif i2cbus_id == 2:
+                    i2cbus = "i2c3"
+                rw_emulator_i2c_file("w", i2cbus, hex(ICadd), hex(reg_add), datatx)
+                return 0
+        else:
+            data2wr=(datatx<<8)|(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 2,1,data2wr,i2cbus_id)
+            return status
 
     def fpgai2c_read8(self,ICadd, reg_add,i2cbus_id ):
-        data2wr=(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 1,1,data2wr,i2cbus_id)
-        return data,status
-
-    def fpgai2c_write16(self,ICadd, reg_add,datatx,i2cbus_id ):
-        if i2cbus_id==FPGA_I2CBUS.i2c3:
-            #data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
-            data2wr=(datatx<<8)|(reg_add&0xFF)
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                if len(el) != 0:
+                    return el[0].get("value") & 0xff, 0
+                else:
+                    return 0, -1
+            else:
+                if i2cbus_id == 0:
+                    i2cbus = "i2c1"
+                elif i2cbus_id == 1:
+                    i2cbus = "i2c2"
+                elif i2cbus_id == 2:
+                    i2cbus = "i2c3"
+                val = rw_emulator_i2c_file("r", i2cbus, hex(ICadd), hex(reg_add))
+                return val, 0
         else:
-            data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
-            data2wr=(data2wr<<8)|(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 3,1,data2wr,i2cbus_id)
-        return status
+            data2wr=(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 1,1,data2wr,i2cbus_id)
+            return data,status
+
+        def fpgai2c_write16(self,ICadd, reg_add,datatx,i2cbus_id ):
+            if self.simulation == True:
+                el = [element for element in simulation_i2c_regs if (
+                            element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                        "bus", "") == i2cbus_id)]
+                if el[0].get("mode") == "RO":
+                    el[0]["value"] = datatx & 0xffff
+                    return 0
+                else:
+                    if i2cbus_id == 0:
+                        i2cbus = "i2c1"
+                    elif i2cbus_id == 1:
+                        i2cbus = "i2c2"
+                    elif i2cbus_id == 2:
+                        i2cbus = "i2c3"
+                    rw_emulator_i2c_file("w", i2cbus, hex(ICadd), hex(reg_add), datatx & 0xffff)
+                    return 0
+            else:
+                if i2cbus_id==FPGA_I2CBUS.i2c3:
+                    #data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
+                    data2wr=(datatx<<8)|(reg_add&0xFF)
+                else:
+                    data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
+                    data2wr=(data2wr<<8)|(reg_add&0xFF)
+                data,status=self.fpgai2c_op(ICadd, 3,1,data2wr,i2cbus_id)
+                return status
 
     def fpgai2c_read16(self,ICadd, reg_add,i2cbus_id ):
-        data2wr=(reg_add&0xFF)
-        data,status=self.fpgai2c_op(ICadd, 1,2,data2wr,i2cbus_id)
-        if i2cbus_id==FPGA_I2CBUS.i2c3:
-            datar=data
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                if len(el) != 0:
+                    return el[0].get("value") & 0xffff, 0
+                else:
+                    return 0, -1
+            if i2cbus_id == 0:
+                i2cbus = "i2c1"
+            elif i2cbus_id == 1:
+                i2cbus = "i2c2"
+            elif i2cbus_id == 2:
+                i2cbus = "i2c3"
+            val = rw_emulator_i2c_file("r", i2cbus, hex(ICadd), hex(reg_add))
+            return val & 0xffff, 0
         else:
-            #datar=((data&0xff00)>>8)|((data&0x00ff)<<8)
-            datar=data
-        return datar,status
+            data2wr=(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 1,2,data2wr,i2cbus_id)
+            if i2cbus_id==FPGA_I2CBUS.i2c3:
+                datar=data
+            else:
+                #datar=((data&0xff00)>>8)|((data&0x00ff)<<8)
+                datar=data
+            return datar,status
 
     def GetMngTemp(self,sens_id):
         if sens_id <1 or sens_id >2:

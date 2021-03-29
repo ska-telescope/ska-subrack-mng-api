@@ -1,0 +1,3 @@
+cat:HKeep,name:TPMsPresent,value:0x75,def:0x00,state:1,mode:RW
+cat:Fram,name:TPM_SUPPLY_STATUS,value:0x00,def:0x00,state:1,mode:RW
+cat:Fram,name:FAN_PWM,value:0x3ff3030,def:0x3ff3030,state:0,mode:RW

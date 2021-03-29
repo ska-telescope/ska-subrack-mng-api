@@ -1,4 +1,4 @@
-# management cpu script changelog
+# Subrack Management API changelog
 ## version 0.1.0
  - first version of class management_board and script fpga_reg.py i2c_reg.py
 ## version 0.1.1
@@ -10,5 +10,12 @@
  - add SubrackMngBoard
  - rename MngBoard class filename to management
  - use of Backplane and MngBoard
- 
- 
+
+## version 2.0.1
+ - add emulator_classes used in simaulation mode
+ - add flag simulation to enable simulation mode
+ - add subrack_emulator files csv to store and update states of some regs
+
+## version 2.0.2
+ - moved emulation classes function in api classes
+ - removed emulation classes files

@@ -3,12 +3,12 @@ __author__ = 'Cristian Albanese'
 import sys
 import time
 from optparse import OptionParser
-from subrack_management_board import *
+from subrack_mng_api.subrack_management_board import *
 
 import terminaltables
 import os
 import sys
-import termios, fcntl
+#import termios, fcntl
 import select
 import struct
 import select
@@ -24,16 +24,21 @@ reverseTPM = True
 tpmison = [0, 0, 0, 0, 0, 0, 0, 0]
 rpmfan = ['0', '0', '0', '0']
 pwm_perc = ['0', '0', '0', '0']
-tpm_v_reg = [0, 0, 0, 0, 0, 0, 0, 0,"V"]
-tpm_p_reg = [0, 0, 0, 0, 0, 0, 0, 0,"W"]
-tpm_a_reg = [0, 0, 0, 0, 0, 0, 0, 0,"A"]
+tpm_v_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Vin (V)"]
+tpm_a_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Iin (A)"]
+tpm_p_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pin (W)"]
+tpm_dummy = ["","","","","","","","",""]
+tpm_a_max_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Imax (A)"]
+tpm_p_max_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pmax (W)"]
 temps = [0, 0, 0, 0, 0]
 tpm_board_temp=[0,0,0,0,0,0,0,0]
 tpm_mcu_temp=[0,0,0,0,0,0,0,0]
-psu_volt=[0,0,"Vout (V)"]
-psu_curr=[0,0,"Iout (V)"]
-psu_pow=[0,0,"Pow (W)"]
-psu_index=["PSU 1","PSU 2","MEAS"]
+psu_volt=[0,0,"","Vout (V)"]
+psu_curr=[0,0,"","Iout (A)"]
+psu_dummy=["","","","",]
+psu_pow=[0,0,0,"Pout (W)"]
+psu_pow_max=["%6.2f"%0,"%6.2f"%0,"%6.2f"%0,"Pmax (W)"]
+psu_index=["PSU 1","PSU 2","TOT","MEAS"]
 
 
 
@@ -44,11 +49,11 @@ present = []
 present_done = False
 
 clear = lambda: os.system('clear') #on Linux System
-subrack=SubrackMngBoard()
 
 
 
 
+"""
 class KeyReader :
     '''
     Read keypresses one at a time, without waiting for a newline.
@@ -127,7 +132,7 @@ class KeyReader :
             return sys.stdin.read()
         except (IOError, TypeError) as e:
             return None
-
+"""
 def partial_reverse(list_, from_, to):
     (list_[4], list_[7]) = (list_[7], list_[4])
     (list_[5], list_[6]) = (list_[6], list_[5])
@@ -181,24 +186,35 @@ def tab_fandata():
     tablefan.title = "RPM Fan Speed (Rpm) & PWM (%)"
     print(tablefan.table)
 
-
 def voltagedata():
     presentdata()
     for i in range (1,8):
         if present[i-1]!=0:
-            tpm_v_reg[i-1]=subrack.GetTPMVoltage(i)
-            tpm_a_reg[i-1] = subrack.GetTPMCurrent(i)
-            tpm_p_reg[i-1] = subrack.GetTPMPower(i)
+            _volt = subrack.GetTPMVoltage(i)
+            _curr = subrack.GetTPMCurrent(i)
+            _pow = _volt*_curr
+            tpm_v_reg[i-1] = "%5.2f"%_volt
+            tpm_a_reg[i-1] = "%5.2f"%_curr
+            tpm_p_reg[i-1] = "%5.2f"%_pow
+            if _pow>float(tpm_p_max_reg[i-1]):
+                tpm_a_max_reg[i-1] = "%5.2f"%_curr
+                tpm_p_max_reg[i-1] = "%5.2f"%_pow
         else:
-            tpm_v_reg[i-1]=0
-            tpm_a_reg[i-1] = 0
-            tpm_p_reg[i-1] =0
+            tpm_v_reg[i-1] = "%5.2f"%0
+            tpm_a_reg[i-1] = "%5.2f"%0
+            tpm_p_reg[i-1] = "%5.2f"%0
+            tpm_a_max_reg[i-1] = "%5.2f"%0
+            tpm_p_max_reg[i-1] = "%5.2f"%0
+
 def tab_voltagedata():
     table_tpmpow = [
         table_index_pow,
         tpm_v_reg,
         tpm_a_reg,
         tpm_p_reg,
+        tpm_dummy,
+        tpm_a_max_reg,
+        tpm_p_max_reg,
     ]
     tabletpmpow = terminaltables.AsciiTable(table_tpmpow)
     tabletpmpow.title = "Board Powers (Voltage, Current, Power)"
@@ -206,10 +222,18 @@ def tab_voltagedata():
 
 def tempdata():
     temps[0],temps[1],temps[2],temps[3]=subrack.GetSubrackTemperatures()
-    p = subprocess.Popen("cat /sys/class/thermal/thermal_zone0/temp", stdout=subprocess.PIPE, shell=True)
-    (output, err) = p.communicate()
-    p_status = p.wait()
-    temps[4]= str(float(output)/1000)
+    if subrack._simulation==False:
+        p = subprocess.Popen("cat /sys/class/thermal/thermal_zone0/temp", stdout=subprocess.PIPE, shell=True)
+        (output, err) = p.communicate()
+        p_status = p.wait()
+        temps[4]= (float(output)/1000)
+        for i in range(len(temps)):
+            temps[i] = "%2.2f"%(temps[i])
+    else:
+        temps[4] = (random.triangular(35.5,45.5))
+        for i in range(len(temps)):
+            temps[i] = "%2.2f" % (temps[i])
+
 
 def tab_tempdata():
     table_brdtmp = [
@@ -243,11 +267,20 @@ def tab_tpmtempdata():
     print(tabletpmtmp.table)
 
 def psudata():
+    psu_pow[2]=0
     for i in range (0,2):
-        psu_volt[i]=subrack.GetPSVout(i+1)
-        psu_curr[i]=subrack.GetPSIout(i+1)
-        psu_pow[i]=subrack.GetPSPower(i+1)
-
+        _volt=subrack.GetPSVout(i+1)
+        _curr=subrack.GetPSIout(i+1)
+        _pow=_volt*_curr
+        psu_volt[i]="%6.2f"%_volt
+        psu_curr[i]="%6.2f"%_curr
+        psu_pow[i]="%6.2f"%_pow
+        psu_pow[2]+=_pow
+        if _pow > float(psu_pow_max[i]):
+            psu_pow_max[i] = psu_pow[i]
+    if psu_pow[2] > float(psu_pow_max[2]):
+        psu_pow_max[2] = "%6.2f"%psu_pow[2]
+    psu_pow[2]="%6.2f"%psu_pow[2]
 
 
 def tab_psudata():
@@ -255,7 +288,9 @@ def tab_psudata():
         psu_index,
         psu_volt,
         psu_curr,
-        psu_pow
+        psu_pow,
+        psu_dummy,
+        psu_pow_max
         #['PSU', 'Voltage Out', 'Amperage Out', 'Power Out'],
         #['PSU 0', str(float("{0:.2f}".format(ps0_vout))) + "V", str(ps0_iout) + "A", str(float("{0:.2f}".format(ps0_iout * ps0_vout))) + "W"],
         #['PSU 1', str(float("{0:.2f}".format(ps1_vout))) + "V", str(ps1_iout) + "A", str(float("{0:.2f}".format(ps1_iout * ps1_vout))) + "W"],
@@ -270,7 +305,10 @@ parser = OptionParser()
 parser.add_option("-s", "--show",
                 action="store_true", dest="show_measure", default=False,
                 help="dump all fpga registers & flags")
-parser.add_option("-r", "--remot",
+parser.add_option("-e", "--emulation",
+                action="store_true", dest="emulation", default=False,
+                help="enable emulation mode")
+parser.add_option("-r", "--remote",
                 action="store_true", dest="remote", default=False,
                 help="connect and send data to client")
 
@@ -280,8 +318,9 @@ parser.add_option("-r", "--remot",
 
 (options, args) = parser.parse_args()
 
-do_block = False
-keyreader = KeyReader(echo=False, block=do_block)
+subrack=SubrackMngBoard(simulation=options.emulation)
+#do_block = False
+#keyreader = KeyReader(echo=False, block=do_block)
 
 # Set logging
 def set_logging(level):
@@ -361,11 +400,13 @@ if options.remote:
         logging.info("\nTerminated")
 elif options.show_measure:
     while (1):
-        presentdata()
-        fandata()
-        voltagedata()
-        tempdata()
-        psudata()
+        for i in range(20):
+            presentdata()
+            fandata()
+            voltagedata()
+            tempdata()
+            psudata()
+            time.sleep(0.05)
         #tpmtempdata()
         tab_present()
         tab_voltagedata()
@@ -373,10 +414,5 @@ elif options.show_measure:
         tab_tempdata()
         #tab_tpmtempdata()
         tab_psudata()
-        time.sleep(2)
 else:
     set_logging("INFO")
-
-
-
-

@@ -5,8 +5,8 @@ import sys
 import os
 import time
 from datetime import datetime
-from management import *
-from backplane import *
+from subrack_mng_api.management import *
+from subrack_mng_api.backplane import *
 import logging
 from pyaavs.tile import Tile
 
@@ -91,13 +91,15 @@ def detect_ip(tpm_slot_id):
 ###Subrack Management Board Class
 #This class implements methods to manage and to monitor the subrack management board
 class SubrackMngBoard:
-    def __init__(self):
+    def __init__(self,**kwargs):
+        self._simulation=kwargs.get("simulation")
         self.data = []
-        self.Mng = Management()
-        self.Bkpln = Backplane(self.Mng)
+        self.Mng = Management(self._simulation)
+        self.Bkpln = Backplane(self.Mng,self._simulation)
         self.mode = 0
         self.status = 0
         self.first_config = False
+
     def __del__(self):
         self.data = []
 
@@ -131,9 +133,7 @@ class SubrackMngBoard:
     ###GetTPMTemperature
     #@brief method to get temperature of onboard TPM selected board present on subrack
     #@param[in]: subrack slot index for selected TPM, accepted value 1-8
-    #@return tpm_sn
-    #@return tpm_hw_rev
-    #@return tpm_bios
+    #@return tpm_temperature
     def GetTPMTemperature(self,tpm_slot_id,forceread=False):
         prev_onoff = 0
         if self.GetTPMPresent()&(1<<(tpm_slot_id-1))!=0:
@@ -315,6 +315,7 @@ class SubrackMngBoard:
 
     def GetFanSpeed(self,fan_id):
         rpm,pwm_perc,status = self.Bkpln.get_bkpln_fan_speed(fan_id)
+        #print ("rpm %d, pwm_perc %d" %(rpm,pwm_perc))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return rpm, pwm_perc
@@ -325,19 +326,27 @@ class SubrackMngBoard:
 
     def GetFanMode(self,fan_id):
         auto_mode,status = self.Bkpln.get_bkpln_fan_mode(fan_id)
+        #print("auto_mode %d, status %d" % (auto_mode, status))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return auto_mode
 
     def PllInitialize(self):
-        cmd = "./pll_cfg.sh"
-        res=run(cmd)
-        lines=res.splitlines()
-        r=lines[len(lines)-1]
-        print("pll res = %s" %r)
-        if r!="0x33":
-            print ("ERROR: PLL configuration failed, PLL not locked")
+        if self._simulation==False:
+            cmd = "bash ./pll_cfg.sh"
+            res=run(cmd)
+            lines=res.splitlines()
+            r=lines[len(lines)-1]
+            print("pll res = %s" %r)
+            if r!="0x33":
+                print ("ERROR: PLL configuration failed, PLL not locked")
             #raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
+        else:
+            r = "0x33"
+            print("pll res = %s" % r)
+            if r != "0x33":
+                print ("ERROR: PLL configuration failed, PLL not locked")
+
 
     def GetPSVout(self,ps_id):
         if ps_id>2 or ps_id<0:
