@@ -7,7 +7,7 @@ import logging
 import time
 import struct
 import socket
-#import netproto.rmp as rmp
+# import netproto.rmp as rmp
 
 FIFOSIZE = 1024
 PAGESIZE = 256
@@ -390,7 +390,7 @@ class MngProgFlash():
 
         memblock1, bitstreamSize, size = self.loadBitstream(bitstreamFilename, sectorSize)
         if add_len == True:
-            print "Prepending bitsream size in flash writing"
+            print("Prepending bitsream size in flash writing")
             lght = bytearray(4)
             lght[0] = (size & 0xff000000) >> 24
             lght[1] = (size & 0xff0000) >> 16
@@ -444,10 +444,10 @@ class MngProgFlash():
             if upper_flash == False and (i * sectorSize) >= 0x1000000:
                 upper_flash = True
                 self.FlashDevice_Enter4byteAddMode(device)
-            print "W ",
+            print("W ",)
             b = formatted_bitstream[(j * sectorSize_w):((j * sectorSize_w) + sectorSize_w)]
             self.FlashDevice_writesector(device, i * sectorSize, b)
-            print "V"
+            print("V")
             bufferI = self.FlashDevice_readsector(device, i * sectorSize)
             # bufferI=self.FlashDevice_read(device, i * sectorSize, sectorSize)
             bufferD = bufferD + bufferI
@@ -463,13 +463,13 @@ class MngProgFlash():
             if c != 0:
                 retry = 2
                 while (retry > 0):
-                    print "Error detected, retring to write sector"
+                    print("Error detected, retring to write sector")
                     print("Sector %03d @ %08X: Erasing" % (i, i * sectorSize))
                     self.FlashDevice_erase(device, i * sectorSize, sectorSize)
-                    print "W ",
+                    print("W ",)
                     # b=formatted_bitstream[(j * sectorSize_w):((j * sectorSize_w) +sectorSize_w)]
                     self.FlashDevice_writesector(device, i * sectorSize, b)
-                    print "V"
+                    print("V")
                     bufferI = self.FlashDevice_readsector(device, i * sectorSize)
                     # bufferI=self.FlashDevice_read(device, i * sectorSize, sectorSize)
                     bufferD = bufferD + bufferI
@@ -484,13 +484,13 @@ class MngProgFlash():
                     if counterr == 0:
                         break
                 if counterr != 0 and retry == 0:
-                    print "Impossible to write bitstream in flash device %d" % flashdeviceindedx
+                    print("Impossible to write bitstream in flash device %d" % flashdeviceindedx)
                     exit()
             ec += c
             j += 1
             i += 1
             sect += 1
-            if (sect == sector_num):
+            if sect == sector_num:
                 break
 
         print("----------------------------------------------------------------------------------------------------")

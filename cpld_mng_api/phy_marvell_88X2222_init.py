@@ -25,20 +25,24 @@ import logging
 import os
 from bsp.management import *
 import time
+from optparse import OptionParser
+from sys import argv, stdout
 
-ba = 0x60000 #MDIO baseaddress
+ba = 0x60000 # MDIO baseaddress
 
-def wr(address,value):
-	#print "WR "+hex(address)+"-"+hex(value)
+
+def wr(address, value):
+	# print "WR "+hex(address)+"-"+hex(value)
 	mng[address] = value
+
 
 def rd(address):
 	value=None
 	value = mng[address]
-	#if value is not None:
-	#	print "RD "+hex(address)+"-"+hex(value)
-	#else:
-	#	print "RD "+hex(address)+"-"+"Dummy"
+	# if value is not None:
+	# 	print "RD "+hex(address)+"-"+hex(value)
+	# else:
+	# 	print "RD "+hex(address)+"-"+"Dummy"
 	return value
 
 
@@ -61,12 +65,12 @@ def read22(mux, phy_adr, register):
 	wr(ba + 0, 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
 	wr(ba + 4, register)
 	value = rd(ba + 0x08) & 0xffff
-	print "read22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value)
+	print("read22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
 	return value
 
 
 def write22(mux, phy_adr, register, value):
-	print "write22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value)
+	print("write22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
 	wr(ba + 0, 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
 	wr(ba + 4, register)
 	wr(ba + 0x08, value)
@@ -80,9 +84,9 @@ def readmodifywrite(mux, phy_adr, device, register, value, select):
 
 # test to acces switches
 # for mux in [2]:
-#	print " === MUX " + str(mux) + " ==="
-#	for i in range(11):
-#		print hex(i) + " " +hex(read22(mux,0,i)&0xffff)
+# 	print " === MUX " + str(mux) + " ==="
+# 	for i in range(11):
+# 		print hex(i) + " " +hex(read22(mux,0,i)&0xffff)
 # exit(0)
 
 port_status_reg = {'name': "Port Status", 'offset': 0x0, 'fields': [
@@ -148,9 +152,9 @@ def set_field(port, reg_def, field_name, field_value):
 
 
 def decode_register(port, reg_def, reg_value):
-	print "=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ==="
+	print("=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ===")
 	for field in reg_def['fields']:
-		print field[0] + ": " + str(reg_value >> field[1] & field[2])
+		print(field[0] + ": " + str(reg_value >> field[1] & field[2]))
 
 
 def get_port_cfg(port, mdio_mux=2):
@@ -168,114 +172,109 @@ def read_scratch(mux, offset):
 def write_scratch(mux, offset, value):
 	write22(mux, 0x1c, 0x1a, 0x8000 | ((offset & 0x7f) << 8) | (value & 0xff))
 	# print "wr status " + hex(read22(mux,0x1c,0x1a))
-	while (read22(mux, 0x1c, 0x1a) & 0x8000 != 0):
+	while (read22(mux, 0x1c, 0x1a) & 0x8000) != 0:
 		time.sleep(0.001)
-		print "."
+		print(".")
 	return
 
 
 def set_SFP(mdio_mux=2):
-	get_port_cfg(9,mdio_mux)
-	#/* Set Ports in 1000Base-X
-	write22(mdio_mux,9,0x0,0x9)
-	#/* P9
-	write22(mdio_mux,0x1c,25,0xF054)
-	write22(mdio_mux,0x1c,24,0x8124)
-	write22(mdio_mux,0x1c,25,0x400c)
-	write22(mdio_mux,0x1c,24,0x8524)
-	write22(mdio_mux,0x1c,25,0xF054)
-	write22(mdio_mux,0x1c,24,0x8124)
-	write22(mdio_mux,0x1c,25,0x4000)
-	write22(mdio_mux,0x1c,24,0x8524)
-	#/*Start configuring ports for traffic
-	#/*Clear power down bit and reset SERDES P9
-	write22(mdio_mux,0x1c,25,0x2000)
-	write22(mdio_mux,0x1c,24,0x8124)
-	write22(mdio_mux,0x1c,25,0xa040)
-	write22(mdio_mux,0x1c,24,0x8524)
-	#/*Fix 1000Base-X AN advertisement
-	#/*write45 4.2004.5 to 1
-	#/* ADDR 0x09
-	write22(mdio_mux,0x1c,25,0x2004)
-	write22(mdio_mux,0x1c,24,0x8124)
-	write22(mdio_mux,0x1c,25,0x20)
-	write22(mdio_mux,0x1c,24,0x8524)
-	#/*Enable Forwarding on ports:
-	write22(mdio_mux,9,4,0x007F)
-	get_port_cfg(9,mdio_mux)
+	get_port_cfg(9, mdio_mux)
+	# /* Set Ports in 1000Base-X
+	write22(mdio_mux, 9, 0x0, 0x9)
+	# /* P9
+	write22(mdio_mux, 0x1c, 25, 0xF054)
+	write22(mdio_mux, 0x1c, 24, 0x8124)
+	write22(mdio_mux, 0x1c, 25, 0x400c)
+	write22(mdio_mux, 0x1c, 24, 0x8524)
+	write22(mdio_mux, 0x1c, 25, 0xF054)
+	write22(mdio_mux, 0x1c, 24, 0x8124)
+	write22(mdio_mux, 0x1c, 25, 0x4000)
+	write22(mdio_mux, 0x1c, 24, 0x8524)
+	# /*Start configuring ports for traffic
+	# /*Clear power down bit and reset SERDES P9
+	write22(mdio_mux, 0x1c, 25, 0x2000)
+	write22(mdio_mux, 0x1c, 24, 0x8124)
+	write22(mdio_mux, 0x1c, 25, 0xa040)
+	write22(mdio_mux, 0x1c, 24, 0x8524)
+	# /*Fix 1000Base-X AN advertisement
+	# /*write45 4.2004.5 to 1
+	# /* ADDR 0x09
+	write22(mdio_mux, 0x1c, 25, 0x2004)
+	write22(mdio_mux, 0x1c, 24, 0x8124)
+	write22(mdio_mux, 0x1c, 25, 0x20)
+	write22(mdio_mux, 0x1c, 24, 0x8524)
+	# /*Enable Forwarding on ports:
+	write22(mdio_mux, 9, 4, 0x007F)
+	get_port_cfg(9, mdio_mux)
 
 
-
-
-from optparse import OptionParser
-from sys import argv, stdout
 
 parser = OptionParser(usage="usage: %test_tpm [options]")
-parser.add_option("--ip", action="store", dest="ip",
-				  default="10.0.10.10", help="IP [default: 10.0.10.10]")
-parser.add_option("--port", action="store", dest="port",
-				  type="int", default="10000", help="Port [default: 10000]")
+parser.add_option("--ip", action="store", dest="ip", default="10.0.10.10", help="IP [default: 10.0.10.10]")
+parser.add_option("--port", action="store", dest="port", type="int", default="10000", help="Port [default: 10000]")
 
 (conf, args) = parser.parse_args(argv[1:])
 
-#tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
+# tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
 mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
 decode_register(10, port_status_reg, 0x7fff)
 fw_ver = 0
 fw_ver = mng[0x8]
-print "Fw ver: " + hex(fw_ver)
+print("Fw ver: " + hex(fw_ver))
 if (fw_ver & 0xffff) < 0x0009:
-	print "Error, minimum version required 0x0009"
+	print("Error, minimum version required 0x0009")
 	exit(1)
 
-#read_scratch(2, 0x60)
-#exit(0)
-#write_scratch(2, 0x62, 0x80)
-#write_scratch(2, 0x6b, 0x7 << 4)
-#write_scratch(2, 0x63, 0xf9)
-#for i in range(16):
-#	print hex(0x60 + i) + " " + hex(read_scratch(2, 0x60 + i))
+# read_scratch(2, 0x60)
+# exit(0)
+# write_scratch(2, 0x62, 0x80)
+# write_scratch(2, 0x6b, 0x7 << 4)
+# write_scratch(2, 0x63, 0xf9)
+# for i in range(16):
+#  print hex(0x60 + i) + " " + hex(read_scratch(2, 0x60 + i))
 
-#while (1):
-#	write_scratch(2, 0x65, 0xf9 | (0x0 << 1))
-#	time.sleep(1)
-#	write_scratch(2, 0x65, 0xf9 | (0x1 << 1))
-#	time.sleep(1)
-#	write_scratch(2, 0x65, 0xf9 | (0x2 << 1))
-#	time.sleep(1)
-#	write_scratch(2, 0x65, 0xf9 | (0x3 << 1))
-#	time.sleep(1)
-#exit(0)
+# while (1):
+# 	write_scratch(2, 0x65, 0xf9 | (0x0 << 1))
+# 	time.sleep(1)
+# 	write_scratch(2, 0x65, 0xf9 | (0x1 << 1))
+# 	time.sleep(1)
+# 	write_scratch(2, 0x65, 0xf9 | (0x2 << 1))
+# 	time.sleep(1)
+# 	write_scratch(2, 0x65, 0xf9 | (0x3 << 1))
+# 	time.sleep(1)
+# exit(0)
 
-#mdio_mux = 3  # MDIO select (SW0,SW1,PHY)
+# mdio_mux = 3  # MDIO select (SW0,SW1,PHY)
 
-#get_port_cfg(10)
-#exit(0)
-#read_and_decode(0, port_status_reg)
-#set_field(0, port_status_reg, "DuplexFixed", 1)
-#read_and_decode(0, port_status_reg)
-#exit(0)
+# get_port_cfg(10)
+# exit(0)
+# read_and_decode(0, port_status_reg)
+# set_field(0, port_status_reg, "DuplexFixed", 1)
+# read_and_decode(0, port_status_reg)
+# exit(0)
 
 for switch_mdio in range(1, 2):
 	set_SFP(switch_mdio)
 while (1):
 	for switch_mdio in range(1, 2):
 		get_port_cfg(9, switch_mdio)
-		print hex(read22(switch_mdio, 9, 0x1f))
+		print(hex(read22(switch_mdio, 9, 0x1f)))
 	time.sleep(1)
 exit(0)
 
 WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xffff
 WIS_Device_Identifier_2 = read45(mdio_mux, 0, 2, 0x0003) & 0xffff
-print "WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1)
-print "WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2)
-if (WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0f15):
-	print "Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver"
-elif (WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0d99):
-	print "Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP"
+
+print("WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1))
+print("WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2))
+if WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0f15:
+	print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver")
+elif WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0d99:
+	print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP")
 	exit(-1)
 else:
-	print "Unknown PHY"
+	print("Unknown PHY")
 	exit(-1)
 
 # os.system('sudo ifconfig ens2 down && sudo ifconfig ens3 down')
@@ -284,22 +283,22 @@ else:
 write45(mdio_mux, 0, 31, 0xF404, 0x4000)
 time.sleep(0.100)
 
-print "Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400))
-print "Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401))
-print "Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402))
-print "Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403))
-print "Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002))
+print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 # mgdPDStatePowerUp()
-print "Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400))
-print "Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401))
-print "Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403))
-print "Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402))
-print "Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002))
+print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 # 31,0xf403
 
 # /*10GR - XAUI mode*/
 for port in {0}:
-	print "=== PORT " + str(port) + " ==="
+	print("=== PORT " + str(port) + " ===")
 	write45(mdio_mux, port, 31, 0xf002, 0x7173)
 	write45(mdio_mux, port, 30, 0xb841, 0xe000)
 	write45(mdio_mux, port, 30, 0x9041, 0x03fe)
@@ -329,14 +328,11 @@ for port in {0}:
 	time.sleep(0.2000)
 	readmodifywrite(mdio_mux, port, 30, 0xb1b5, 0b0001000000000000, 0b0001000000000000)
 	readmodifywrite(mdio_mux, port, 30, 0xb1b4, 0b0001000000000000, 0b0001000000000000)
-	print "Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400))
-	print "Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401))
-	print "Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403))
-	print "Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402))
-	print "Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002))
+	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 tpm_inst.disconnect()
 
-# os.system('sudo ifconfig ens2 10.0.2.1 netmask 255.255.255.0 up && sudo ifconfig ens3 10.0.3.1 netmask 255.255.255.0 up')
-# os.system('sudo ethtool -s ens2 speed 10000  autoneg off && sudo ethtool -s ens3 speed 10000 autoneg off')
-# os.system('sudo ethtool ens2 && sudo ethtool ens3')
-# os.system('sudo ifconfig ens2 down && sudo ifconfig ens3 down')
+
