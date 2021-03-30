@@ -44,7 +44,7 @@ TPM_PRESENT_MASK=[0x1,0x2,0x4,0x8,0x80,0x40,0x20,0x10]
 
 
 print_debug=False
-categories=["FPGA_FW","UserReg","MCUR","Led","HKeep","ETH","Fram","FPGA_I2C","ONEWIRE"]
+categories=["FPGA_FW","UserReg","MCUR","Led","HKeep","ETH","Fram","FPGA_I2C","ONEWIRE","CtrlRegs","CpldUart"]
 
 FpgaI2C_p = "/sys/bus/platform/devices/8010000.skamngfpgai2c/parameters/"  #file system path to FPGA I2C Regs
 FpgaI2CReg_names = [
@@ -56,13 +56,12 @@ FpgaI2CReg_names = [
 	"twi_irq_en",
 	"twi_wrdata",
 	"twi_rdata"
-
 ]
 
-
+#FirmwareBuildHigh  FirmwareBuildLow   FirmwareVersion
 FpgaFwVersion_p = "/sys/bus/platform/devices/8000000.skamngfpga/parameters/"  #file system path to FPGA FW Version Regs
 
-#FirmwareBuildHigh  FirmwareBuildLow   FirmwareVersion
+
 UserReg_p = "/sys/bus/platform/devices/8000a00.skamnguserreg/parameters/"        #file system path to FPGA User Regs
 UserReg_names = [
     "UserReg0",
@@ -70,6 +69,21 @@ UserReg_names = [
     "UserReg2",
     "UserReg3"
 ]
+
+
+
+CtrlRegs_p = "/sys/bus/platform/devices/8000900.skamngctrlregs/parameters/"        #file system path to CTRL Regs
+CtrlRegs_names = [
+    "McuReset",
+    "McuPollingTime",
+    "EIMHadd",
+    "BkplOnOff"
+]
+
+
+
+
+
 
 MCURegs_p = "/sys/bus/platform/devices/8030000.skamngmcuregs/parameters/"        #file system path to MCU Regs Mirrored in FPGA
 MCUReg_names = [
@@ -96,8 +110,6 @@ MCUReg_names = [
     "MCUTemp"
 ]
 
-
-
 UserLed_p = "/sys/bus/platform/devices/8000400.skamngled/parameters/"        #file system path to FPGA User Led Control Regs
 UserLedReg_names=[
     "Led_Tpm_A",
@@ -106,8 +118,12 @@ UserLedReg_names=[
     "Led_User_K"
 ]
 
+
+
+
 HKeepRegs_p = "/sys/bus/platform/devices/8000500.skamnghkregs/parameters/"      #file system path to FPGA House Keeping Regs
 HKeep_flag_names=[
+    "PsntMux",
     "TPMsPresent",
     "PPSMux",
     "HKTempReg",
@@ -127,8 +143,6 @@ HKeep_flag_names=[
     "TPMAAlert",
     "TPMBAlert",
     "TPMFanAlert",
-    "McuResetStatus",
-    "McuPollingTime"
 ]
 
 
@@ -140,6 +154,14 @@ LockRegs_names=[
     "MCULock",
     "UCPLock",
     "CPULock"
+]
+
+CpldUart_p = "/sys/bus/platform/devices/8070000.skamngcplduartregs/parameters/"        #file system path to CPLDUART Regs
+CpldUart_names = [
+    "Rnw",
+    "TxData",
+    "RxData",
+    "Status"
 ]
 
 OneWireRegs_p = "/sys/bus/platform/devices/80b0000.skamngmonewireregs/parameters/"        #file system path to ONEWIRE Regs
@@ -167,6 +189,8 @@ UserReg_list=[]
 FramRegs_list=[]
 OneWire_list=[]
 LockRegs_list=[]
+CtrlRegs_list=[]
+CpldUart_list=[]
 
 def run(command):
     running=False
@@ -204,6 +228,10 @@ def get_cat(name):
         categ = LockRegs_p
     elif cat == "ONEWIRE":
         categ = OneWireRegs_p
+    elif cat == "CtrlRegs":
+        categ = CtrlRegs_p
+    elif cat == "CpldUart":
+        categ = CpldUart_p
     else:
         categ = Error_p
     if print_debug:
@@ -235,6 +263,10 @@ def translate_reg(name):
         categ = LockRegs_p
     elif cat == "ONEWIRE":
         categ = OneWireRegs_p
+    elif cat == "CtrlRegs":
+        categ = CtrlRegs_p
+    elif cat == "CpldUart":
+        categ = CpldUart_p
     else:
         categ = Error_p
     if print_debug:
@@ -258,6 +290,11 @@ def check_pid(pid):
         return True
 CPULOCK_UNLOCK_VAL =0xfffffff
 
+class mcu2cplduartbuff():
+    rxbuff=[]
+    txbuff=[]
+    rxusedflag=False
+    txusedflag=False
 
 
 ### Management Class
@@ -265,9 +302,12 @@ CPULOCK_UNLOCK_VAL =0xfffffff
 #management CPU (iMX6) mapped in filesystem
 class Management():
     def __init__(self,simulation):
+        self.mcuuart=mcu2cplduartbuff()
         self.data = []
+        print ("Mng instantiation")
         self.simulation=simulation
         if self.simulation == False:
+            print("No simulation selected")
             #set gpio for I2C control Request
             cmd = "ls -l /sys/class/gpio/"
             gpiolist=str(run(cmd))
@@ -284,6 +324,8 @@ class Management():
             run(cmd)
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
+        else:
+            print("simulation selected")
 
     def __del__(self):
         self.data = []
@@ -317,6 +359,10 @@ class Management():
                         LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
                     elif categories[i] == "ONEWIRE":
                         OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
+                    elif categories[i] == "CtrlRegs":
+                        CtrlRegs_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
+                    elif categories[i] == "CpldUart":
+                        CpldUart_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
 
         print("FpgaFwVersionReg_list:", FpgaFwVersionReg_list)
         print("UserReg_list:", UserReg_list)
@@ -327,7 +373,8 @@ class Management():
         print("FramRegs_list:", FramRegs_list)
         print("LockRegs_list:", LockRegs_list)
         print("OneWireRegs_list:", OneWire_list)
-
+        print("CtrlRegs_list:", CtrlRegs_list)
+        print("CpldUart_list:", CpldUart_list)
     ###create_regs_list
     #This method permit to fill selected categories
     #register lists (<category_name>_list variable)
@@ -357,6 +404,10 @@ class Management():
                     LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                 elif categories == "ONEWIRE":
                         OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" "))-1])
+                elif categories == "CtrlRegs":
+                    CtrlRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
+                elif categories == "CpldUart":
+                    CpldUart_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
         print("FpgaFwVersionReg_list:", FpgaFwVersionReg_list)
         print("UserReg_list:", UserReg_list)
         print("MCUReg_list:", MCUReg_list)
@@ -366,7 +417,8 @@ class Management():
         print("FramRegs_list:", FramRegs_list)
         print("LockRegs_list:", LockRegs_list)
         print("OneWireRegs_list:", OneWire_list)
-
+        print("CtrlRegs_list:", CtrlRegs_list)
+        print("CpldUart_list:", CpldUart_list)
     ###dump_categories
     #This method permit to print
     #all available registers categories
@@ -540,6 +592,20 @@ class Management():
             reg_value=self.read("ONEWIRE."+OneWire_list[i])
             print(OneWire_list[i]+" = " + hex(reg_value&0xff))
 
+    #get_cpld_actual_ip
+    #This method retrieve the IP Adddress assigned to CPLD on board
+    #return ipadd:ipaddress string
+    def get_cpld_actual_ip(self):
+        ip=self.read("ETH.IP")
+        print ("Read ip: %s" %hex(ip))
+        ipadd=[]
+        ipadd.append((ip&0xff000000)>>24)
+        ipadd.append((ip&0x00ff0000)>>16)
+        ipadd.append((ip&0x0000ff00)>>8)
+        ipadd.append((ip&0x000000ff))
+        ipstring=str(ipadd[0])+"."+str(ipadd[1])+"."+str(ipadd[2])+"."+str(ipadd[3])
+        print("ipstring %s" %ipstring)
+        return ipstring
     ###get_fram_reg
     #This method return selected FPGA Ram register value
     #@param[in] name: name of register will be read
@@ -751,6 +817,7 @@ class Management():
             return status
 
     def fpgai2c_read8(self,ICadd, reg_add,i2cbus_id ):
+        i2cbus="i2c1"
         if self.simulation == True:
             el = [element for element in simulation_i2c_regs if (
                         element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
@@ -774,32 +841,32 @@ class Management():
             data,status=self.fpgai2c_op(ICadd, 1,1,data2wr,i2cbus_id)
             return data,status
 
-        def fpgai2c_write16(self,ICadd, reg_add,datatx,i2cbus_id ):
-            if self.simulation == True:
-                el = [element for element in simulation_i2c_regs if (
-                            element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
-                        "bus", "") == i2cbus_id)]
-                if el[0].get("mode") == "RO":
-                    el[0]["value"] = datatx & 0xffff
-                    return 0
-                else:
-                    if i2cbus_id == 0:
-                        i2cbus = "i2c1"
-                    elif i2cbus_id == 1:
-                        i2cbus = "i2c2"
-                    elif i2cbus_id == 2:
-                        i2cbus = "i2c3"
-                    rw_emulator_i2c_file("w", i2cbus, hex(ICadd), hex(reg_add), datatx & 0xffff)
-                    return 0
+    def fpgai2c_write16(self,ICadd, reg_add,datatx,i2cbus_id ):
+        if self.simulation == True:
+            el = [element for element in simulation_i2c_regs if (
+                        element.get("devadd", "") == ICadd and element.get("offset", "") == reg_add and element.get(
+                    "bus", "") == i2cbus_id)]
+            if el[0].get("mode") == "RO":
+                el[0]["value"] = datatx & 0xffff
+                return 0
             else:
-                if i2cbus_id==FPGA_I2CBUS.i2c3:
-                    #data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
-                    data2wr=(datatx<<8)|(reg_add&0xFF)
-                else:
-                    data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
-                    data2wr=(data2wr<<8)|(reg_add&0xFF)
-                data,status=self.fpgai2c_op(ICadd, 3,1,data2wr,i2cbus_id)
-                return status
+                if i2cbus_id == 0:
+                    i2cbus = "i2c1"
+                elif i2cbus_id == 1:
+                    i2cbus = "i2c2"
+                elif i2cbus_id == 2:
+                    i2cbus = "i2c3"
+                rw_emulator_i2c_file("w", i2cbus, hex(ICadd), hex(reg_add), datatx & 0xffff)
+                return 0
+        else:
+            if i2cbus_id==FPGA_I2CBUS.i2c3:
+                #data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
+                data2wr=(datatx<<8)|(reg_add&0xFF)
+            else:
+                data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
+                data2wr=(data2wr<<8)|(reg_add&0xFF)
+            data,status=self.fpgai2c_op(ICadd, 3,1,data2wr,i2cbus_id)
+            return status
 
     def fpgai2c_read16(self,ICadd, reg_add,i2cbus_id ):
         if self.simulation == True:
@@ -841,6 +908,177 @@ class Management():
         temp=round(temp,2)
         return temp
 
+    #Uart CPLD2MCU
+
+    #uart2mcu_write
+    #This method implements write operation form CPLD to MCU uart
+    #@param[in] data_w: data to be write on MCU
+    #return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
+    def uart2mcu_write(self,data_w):
+        self.write("CpldUart.TxData",data_w)
+        self.write("CpldUart.Rnw",0)
+        op_status=0
+        start = time.time()
+        while (1):
+            if self.read("CpldUart.Status")&0x1==0:
+                if self.read("CpldUart.Status")&0x2==0x2:
+                    self.write("CpldUart.Rnw", 1)
+                    self.mcuuart.rxbuff.append(self.read("CpldUart.RxData"))
+                    self.mcuuart.rxusedflag=False
+                break
+            else:
+                now= time.time()
+                #print("[uart2mcu_write] time now %d" %now)
+                if (now-start>10):
+                    op_status=1
+                    break
+        return op_status,self.mcuuart.rxbuff
+
+
+    def uart2mcu_write_then_read(self,data_w,lenr=None):
+        op_status=0
+        start = time.time()
+        rxbuff=[]
+        print("[uart2mcu_write] time start %.6f" % start)
+        for i in range (0, len(data_w)):
+            self.write("CpldUart.TxData",data_w[i])
+            self.write("CpldUart.Rnw",0)
+            now = time.time()
+            print("[uart2mcu_write] time now %.6f" %now)
+            #if i<len(data_w)-1:
+            """
+            while (1):
+                if self.read("CpldUart.Status") & 0x1 == 0:
+                    now_while = time.time()
+                    print("[uart2mcu_write] time now_while %.6f" %now_while)
+                    break
+                else:
+                    now = time.time()
+                    # print("[uart2mcu_write] time now %d" %now)
+                    if (now - start > 1):
+                        op_status = 1
+                        return op_status,rxbuff
+            """
+            #else:
+            #    while (1):
+            #        if self.read("CpldUart.Status")&0x2==0x2:
+            #            self.write("CpldUart.Rnw", 1)
+            #            rxbuff.append(self.read("CpldUart.RxData"))
+            #        else:
+            #            now= time.time()
+            #            #print("[uart2mcu_write] time now %d" %now)
+            #            if (now-start>1):
+            #                #op_status=1
+            #                break
+        return op_status,rxbuff
+
+
+    #uart2mcu_write
+    #This method implements write operation form CPLD to MCU uart
+    #@param[in] data_w: data to be write on MCU
+    #return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
+    def uart2mcu_write_single(self,data_w):
+        self.write("CpldUart.TxData",data_w)
+        self.write("CpldUart.Rnw",0)
+        op_status=0
+        start = time.time()
+        while (1):
+            if self.read("CpldUart.Status")&0x1==0:
+                #if self.read("CpldUart.Status")&0x2==0x2:
+                #    self.write("CpldUart.Rnw", 1)
+                #    self.mcuuart.rxbuff.append(self.read("CpldUart.RxData"))
+                #    self.mcuuart.rxusedflag=False
+                break
+            else:
+                now= time.time()
+                #print("[uart2mcu_write] time now %d" %now)
+                if (now-start>10):
+                    op_status=1
+                    break
+        return op_status
+
+    #uart2mcu_write
+    #This method implements write operation form CPLD to MCU uart
+    #return rxdata: read data from MCU uart
+    #return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
+    def uart2mcu_read(self):
+        op_status=0
+        start = time.time()
+        rxdata=0
+        #self.mcuuart.rxbuff
+        #self.mcuuart.rxusedflag=True
+        #self.mcuuart.rxbuff=[]
+
+        while (1):
+            if (self.read("CpldUart.Status")&0x2)==0x2:
+                self.write("CpldUart.Rnw",0x1)
+                rxdata=self.read("CpldUart.RxData")
+                print ("uart2mcu_read")
+                break
+            else:
+                now= time.time()
+                if (now-start>30):
+                    print("[uart2mcu_read] time now %d" % now)
+                    op_status=1
+                    break
+        print ("Exit from uart2mcu_read")
+        return rxdata,op_status
+
+
+    #uart2mcu_read_buff
+    #This method implements write operation form CPLD to MCU uart
+    #return rxdata: read data from MCU uart
+    #return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
+    def uart2mcu_read_buff(self):
+        op_status=0
+        start = time.time()
+        rxdata=self.mcuuart.rxbuff
+        self.mcuuart.rxusedflag=True
+        self.mcuuart.rxbuff=[]
+        while (1):
+            if (self.read("CpldUart.Status")&0x2)==0x2:
+                self.write("CpldUart.Rnw",0x1)
+                rxdata.append(self.read("CpldUart.RxData"))
+                break
+            else:
+                now= time.time()
+                if (now-start>10):
+                    #print("[uart2mcu_read] time now %d" % now)
+                    op_status=1
+                    break
+        return rxdata,op_status
+
+
+    def uart2mcu_havedata(self):
+        if (self.read("CpldUart.Status") & 0x2) == 0x2:
+            return True
+        else:
+            return False
+
+    #start_mcu_sam_ba_monitor
+    #This method request to MCU to set uart
+    #return rxdata: read data from MCU uart
+    #return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
+    def start_mcu_sam_ba_monitor(self):
+        print ("Start MCU Monitor")
+        op_status=0
+        self.write("MCUR.GPReg0",0xb007)
+        start = time.time()
+        time.sleep(0.2)
+        while(1):
+            if self.read("MCUR.GPReg0")==0x5e7:
+                print("MCU Ready for Reset")
+                self.write("CtrlRegs.McuReset",0)
+                time.sleep(0.01)
+                self.write("CtrlRegs.McuReset",1)
+                time.sleep(0.1)
+                break
+            else:
+                now= time.time()
+                if (now-start>20):
+                    op_status=1
+                    break
+        return op_status
 
     #One Wire Section methods
     def OneWire_Set_CLK(self, clkvalue):

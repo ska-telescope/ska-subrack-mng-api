@@ -46,6 +46,7 @@ table_index = ['Board 1', 'Board 2', 'Board 3', 'Board 4', 'Board 5', 'Board 6',
 table_index_pow = ['Board 1', 'Board 2', 'Board 3', 'Board 4', 'Board 5', 'Board 6', 'Board 7', 'Board 8',"MEAS"]
 present_i = []
 present = []
+ip_assigned=[False,False,False,False,False,False,False,False]
 present_done = False
 
 clear = lambda: os.system('clear') #on Linux System
@@ -188,7 +189,7 @@ def tab_fandata():
 
 def voltagedata():
     presentdata()
-    for i in range (1,8):
+    for i in range (1,9):
         if present[i-1]!=0:
             _volt = subrack.GetTPMVoltage(i)
             _curr = subrack.GetTPMCurrent(i)
