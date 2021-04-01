@@ -4,6 +4,7 @@ import sys
 import lxml.etree as ET
 from .management_bsp import MANAGEMENT_BSP
 from .management_flash import MngProgFlash
+from .management_mcu_uart import MngMcuUart
 from .management_spi import MANAGEMENT_SPI
 # from tpm_spi import TPM_SPI
 # from enum import Enum
@@ -117,6 +118,7 @@ class MANAGEMENT:
         # self.spi = TPM_SPI(self.board, self.rmp)
         self.bsp = MANAGEMENT_BSP(self.board, self.rmp)
         self.spiflash = MngProgFlash(self, self.rmp)
+        self.mcuuart = MngMcuUart(self, self.rmp)
 
     def __getitem__(self, key):
         """ Override __getitem__, return value from board """
