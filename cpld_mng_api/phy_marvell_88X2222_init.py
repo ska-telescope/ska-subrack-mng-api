@@ -254,13 +254,20 @@ if (fw_ver & 0xffff) < 0x0009:
 # read_and_decode(0, port_status_reg)
 # exit(0)
 
-for switch_mdio in range(1, 2):
-	set_SFP(switch_mdio)
+# for switch_mdio in range(1, 2):
+# 	set_SFP(switch_mdio)
+# while (1):
+# 	for switch_mdio in range(1, 2):
+# 		get_port_cfg(9, switch_mdio)
+# 		print(hex(read22(switch_mdio, 9, 0x1f)))
+#	time.sleep(1)
+
+set_SFP(2)
 while (1):
-	for switch_mdio in range(1, 2):
-		get_port_cfg(9, switch_mdio)
-		print(hex(read22(switch_mdio, 9, 0x1f)))
+	get_port_cfg(9, 2)
+	print hex(read22(2, 9, 0x1f))
 	time.sleep(1)
+	exit(0)
 exit(0)
 
 WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xffff

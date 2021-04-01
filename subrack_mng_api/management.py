@@ -294,6 +294,7 @@ class mcu2cplduartbuff():
 # management CPU (iMX6) mapped in filesystem
 class Management():
     def __init__(self, simulation):
+        self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
         if self.simulation == False:
