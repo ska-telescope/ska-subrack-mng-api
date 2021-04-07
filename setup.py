@@ -11,5 +11,5 @@ setup(
     author_email='cristian.albanese@sanitaseg.it',
     description='Python API package for subrack management board',
     dependency_links=[],
-    install_requires=['future', 'lxml', 'parse', 'uritools','psutil', ' terminaltables', 'numpy', 'Cython', 'ipython'],
+    install_requires=['future', 'parse', 'uritools','psutil', ' terminaltables', 'ipython'],
 )

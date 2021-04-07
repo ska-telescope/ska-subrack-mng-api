@@ -4,10 +4,12 @@ import subprocess
 import sys
 from optparse import OptionParser
 
-options = OptionParser()
-options.add_option("--python_vers",
+parser = OptionParser()
+parser.add_option("--python_vers",
                 dest="python_version", default="3",
                 help="select version of python for venv")
+
+(options, args) = parser.parse_args()
 
 if options.python_version == "2":
     if os.path.isdir("./venv_py2"):
@@ -30,9 +32,9 @@ elif options.python_version == "3":
     if os.path.isdir("./venv_py3"):
         print ("WARNING VIRTUALENV ALREADY EXIST PLEASE ACTIVATE RUNNING: source venv_py3/bin/activate")
     else:
-        res = os.popen("python3 -m ./venv_py3")
+        res = os.popen("python3 -m venv ./venv_py3")
         print ("VIRTUALENV CREATED PLEASE CONFIGURE RUNNING:")
-        print ("source venv/bin/activate")
-        print ("./install_packages.sh")
+        print ("source venv_py3/bin/activate")
+        print ("source install_packages.sh")
 else:
     print("ERROR: Invalid option, permitted values are 2 or 3")
