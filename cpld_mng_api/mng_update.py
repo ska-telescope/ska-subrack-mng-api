@@ -35,7 +35,6 @@ if __name__ == "__main__":
     parser.add_option("-C", "--program-cpld", action="store_true", dest="program_cpld",
                       default=False, help="Program CPLD (cannot be used with other options) [default: False]")
 
-
     (conf, args) = parser.parse_args(argv[1:])
 
     # Set logging
@@ -48,46 +47,35 @@ if __name__ == "__main__":
 
     # Create Tile
     mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
-
-
-    error_count=0
-    #get expected board's devices info
-    dev=[]
-    for i in range(0,1):
+    error_count = 0
+    # get expected board's devices info
+    dev = []
+    for i in range(0, 1):
         dev.append(mng.spiflash.DeviceGetInfo(i))
-
-
-
-    id=[]
+    id = []
     print("Read and CHECK Flasehes ID")
     id.append(mng.spiflash.DeviceGetID(0))
-
-   # mng.spiflash.spi_config(1)
-   # mng.spiflash.spi_trigger(10)
-   # mng.spiflash.spi_config(0)
-
-
-
+    # mng.spiflash.spi_config(1)
+    # mng.spiflash.spi_trigger(10)
+    # mng.spiflash.spi_config(0)
     for i in range(0,1):
-        if id[i]!=dev[i].jedecID:
-            print("Error reading id of device %d: expected %x, read %x" %(i,dev[i].jedecID,id[i]))
-            error_count+=1
+        if id[i] != dev[i].jedecID:
+            print("Error reading id of device %d: expected %x, read %x" % (i, dev[i].jedecID, id[i]))
+            error_count += 1
         else:
-            print("DeviceID of device %d: %x " %(i,id[i]))
-
-
+            print("DeviceID of device %d: %x " % (i, id[i]))
     # Program CPLD
-    cpld_FW_start_add=0x10000
+    cpld_FW_start_add = 0x10000
     if conf.program_cpld:
         if conf.bitfile is not None:
             if os.path.exists(conf.bitfile) and os.path.isfile(conf.bitfile):
                 logging.info("Using CPLD bitfile {}".format(conf.bitfile))
-                #tile.program_cpld(conf.bitfile)
+                # tile.program_cpld(conf.bitfile)
                 starttime = time.time()
-                ec=mng.spiflash.firmwareProgram(0,conf.bitfile,cpld_FW_start_add)
+                ec = mng.spiflash.firmwareProgram(0, conf.bitfile, cpld_FW_start_add)
                 endtime = time.time()
                 delta = endtime - starttime
-                if ec==0:
+                if ec == 0:
                     print("Bitstream write complete, power-off the board")
                     print("elapsed time " + str(delta) + "s")
                 else:

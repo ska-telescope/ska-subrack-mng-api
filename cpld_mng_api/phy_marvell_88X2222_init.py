@@ -209,7 +209,6 @@ def set_SFP(mdio_mux=2):
 	get_port_cfg(9, mdio_mux)
 
 
-
 parser = OptionParser(usage="usage: %test_tpm [options]")
 parser.add_option("--ip", action="store", dest="ip", default="10.0.10.10", help="IP [default: 10.0.10.10]")
 parser.add_option("--port", action="store", dest="port", type="int", default="10000", help="Port [default: 10000]")

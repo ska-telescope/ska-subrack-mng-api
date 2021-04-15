@@ -1,8 +1,5 @@
 __author__ = 'Cristian Albanese'
 
-import numpy as np
-
-
 spi_if_ba = 0x00050000
 
 address_offset     = 0x00

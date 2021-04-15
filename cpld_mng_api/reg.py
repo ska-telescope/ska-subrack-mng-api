@@ -16,9 +16,9 @@ def get_max_width(table1, index1):
     return max([len(format(row1[index1])) for row1 in table1])
 
 def pprint_table(table):
-    #"""Prints out a table of data, padded for alignment
-    #@param table: The table to print. A list of lists.
-    #Each row must have the same number of columns. """
+    """Prints out a table of data, padded for alignment
+    @param table: The table to print. A list of lists.
+    Each row must have the same number of columns. """
 
     col_paddings = []
 
@@ -26,7 +26,7 @@ def pprint_table(table):
         col_paddings.append(get_max_width(table, i))
 
     for row in table:
-        #print row
+        # print row
         # left col
         print (row[0].ljust(col_paddings[0] + 1)),
         # rest of the cols
@@ -35,30 +35,15 @@ def pprint_table(table):
             print (col,)
         print
 
+
 if __name__ == "__main__":  
     parser = OptionParser()
-    parser.add_option("-p", "--udp_port",
-                    dest="udp_port",
-                    default="10000",
-                    help="BOARD UCP UDP port")
-    parser.add_option("--ip",
-                    dest="ip",
-                    default="10.0.10.10",
-                    help="BOARD IP Address")
-    parser.add_option("-d", "--design",
-                 dest="design",
-                 default = "MANAGEMENT",
-                 help="Number of 32 bits words")
-    parser.add_option("-n", "--num",
-                 dest="num",
-                 default = 1,
-                 help="Number of 32 bits words")
+    parser.add_option("-p", "--udp_port", dest="udp_port", default="10000", help="BOARD UCP UDP port")
+    parser.add_option("--ip", dest="ip", default="10.0.10.10", help="BOARD IP Address")
+    parser.add_option("-d", "--design", dest="design", default="MANAGEMENT", help="Number of 32 bits words")
+    parser.add_option("-n", "--num", dest="num", default=1, help="Number of 32 bits words")
 
     (options, args) = parser.parse_args()
-   
-    #config = config_man.get_config_from_file(config_file="../config/config.txt",design=options.design,display=False,check=False)
-
-
     management_inst = MANAGEMENT(ip=options.ip, port=options.udp_port, timeout=5)
 
     if len(args) == 1:
@@ -68,9 +53,9 @@ if __name__ == "__main__":
         lines = []
         k = 0
         for x in dat:
-            #if options.lookup:
+            # if options.lookup:
             #    lines.append([management_inst.get_register_name_by_address(int(args[0],16)+4*k), hex(x)])
-            #else:
+            # else:
             lines.append([hex(x)])
             k = k + 1
         if lines != []:

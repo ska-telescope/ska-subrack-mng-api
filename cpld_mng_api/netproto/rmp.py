@@ -133,7 +133,6 @@ class rmpNetwork():
         print("Received Add: " + hex(add))
         exit(-1)
 
-
     def rd32(self, add, n=1):
         """!@brief Read remote register at address add.
 
@@ -158,7 +157,7 @@ class rmpNetwork():
                 pkt.append(n)           # noo
                 pkt.append(req_add)     # sa
 
-                #print("self.fpga.ip %s" % self.fpga_ip)
+                # print("self.fpga.ip %s" % self.fpga_ip)
                 self.sock.sendto(bytes(pkt.tostring()), (self.fpga_ip, self.remote_udp_port))
 
                 data, addr = self.recvfrom_to(10240)
@@ -186,7 +185,6 @@ class rmpNetwork():
                     print("Received Add: " + hex(add))
                     print("Retrying...")
                     self.socket_flush()
-
             except:
                 if self.reliable == 1:
                     print("Failed UCP read, retrying ...")
@@ -197,7 +195,7 @@ class rmpNetwork():
         print("")
         print("UCP read error")
         print("Requested Add: " + hex(req_add))
-        #print "Received Add: " + hex(add)
+        # print "Received Add: " + hex(add)
         exit(-1)
 
     def socket_flush(self):

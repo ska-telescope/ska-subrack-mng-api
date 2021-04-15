@@ -9,8 +9,8 @@ import os
 from bsp.management import *
 import struct
 
-usage_string="usage: %prog [options] [<value>]\n"
-usage_hexample="es. %prog -s 0x0a\nes. %prog -r\n"
+usage_string = "usage: %prog [options] [<value>]\n"
+usage_hexample = "es. %prog -s 0x0a\nes. %prog -r\n"
 
 
 class flash_cmd():
@@ -28,9 +28,10 @@ class flash_cmd():
     WRITEPAGE_ARG=0x5A000001
     WRITEPAGEERASE_ARG=0x5A000003
 
-PAGE_SIZE=512
-SECTOR_PAGE=128
-MCU_NVMCTRL_BA=0x400E0A00
+
+PAGE_SIZE = 512
+SECTOR_PAGE = 128
+MCU_NVMCTRL_BA = 0x400E0A00
 
 
 def loadBitstream(filename, pagesize):
@@ -40,7 +41,7 @@ def loadBitstream(filename, pagesize):
     bitstreamSize = len(dump)
 
     pages = bitstreamSize / pagesize
-    if ((pages * pagesize) != bitstreamSize):
+    if (pages * pagesize) != bitstreamSize:
         pages = pages + 1
     print("Loading %s (%d bytes) = %d * %d bytes pages" % (filename, bitstreamSize, pages, pagesize))
     s = pages * pagesize
@@ -52,16 +53,14 @@ def loadBitstream(filename, pagesize):
     return tmp, bitstreamSize, s
 
 
-
 if __name__ == "__main__":
+
     parser = OptionParser(usage =(usage_string+usage_hexample))
     parser.add_option("--ip", action="store", dest="ip",
                       default="10.0.10.10", help="IP [default: 10.0.10.10]")
     parser.add_option("--port", action="store", dest="port",
                       type="int", default="10000", help="Port [default: 10000]")
-    parser.add_option("-u","--update",
-                    action="store_true",dest="update", default=False,
-                    help="Update MCU")
+    parser.add_option("-u", "--update", action="store_true", dest="update", default=False, help="Update MCU")
     parser.add_option("-f", "--bitfile", action="store", dest="bitfile",
                       default=None, help="Bitfile to use (-P still required)")
 
@@ -74,19 +73,19 @@ if __name__ == "__main__":
                 memblock, bitstreamSize, size = loadBitstream(options.bitfile, PAGE_SIZE)
                 # Read bitfile and cast as a list of unsigned integers
                 formatted_bitstream = list(struct.unpack_from('I' * (len(memblock) / 4), memblock))
-                cmd=""
-                page=0
-                dataw=[]
+                cmd = ""
+                page = 0
+                dataw = []
                 print("*************************** WARNING ************************************")
                 print("This operation will Erase actual MCU FW and it's dangerous are you sure to continue?(y/n)")
-                ans=raw_input("")
-                if ans!="y":
+                ans = raw_input("")
+                if ans != "y":
                     exit()
                 print ("Start Samba Monitor")
                 Mng.mcuuart.start_mcu_sam_ba_monitor()
                 print("Start FW loading in Flash")
-                start=time.time()
-                pre=start
+                start = time.time()
+                pre = start
                 # ERASE sector cmd
                 cmd_erase = [flash_cmd.ERASESECT0, flash_cmd.ERASESECT1, flash_cmd.ERASESECTL]
                 dataw = []
@@ -108,7 +107,7 @@ if __name__ == "__main__":
                     for k in range(0, len(cmd)):
                         dataw.append(ord(cmd[k]))
                     state = Mng.mcuuart.uart_send_buffer(dataw)
-                    if (state != 0):
+                    if state != 0:
                         print("ERROR: TIMEOUT Occurred during write")
                         exit()
                     bw = bw + 4
@@ -126,14 +125,14 @@ if __name__ == "__main__":
                         for k in range(0, len(wp_cmd)):
                             dataw.append(ord(wp_cmd[k]))
                         state = Mng.mcuuart.uart_send_buffer(dataw)
-                        if (state != 0):
+                        if state != 0:
                             print("ERROR: TIMEOUT Occurred during write")
                             exit()
                         time.sleep(0.5)
                         bw = 0
                 end = time.time()
                 print ("Elapsed time %.6f" %(end-start))
-                #set GPNVM
+                # set GPNVM
                 print("Setting MCU to start from Flash")
                 cmd = flash_cmd.SETGPNVM
                 dataw = []
@@ -141,11 +140,11 @@ if __name__ == "__main__":
                 for i in range(0, len(cmd)):
                     dataw.append(ord(cmd[i]))
                 state = Mng.mcuuart.uart_send_buffer(dataw)
-                if (state != 0):
+                if state != 0:
                     print("ERROR: TIMEOUT Occurred during write")
                     exit()
                 time.sleep(0.5)
-                #reset MCU
+                # reset MCU
                 print("resetting MCU...")
                 Mng.mcuuart.reset_mcu()
             else:

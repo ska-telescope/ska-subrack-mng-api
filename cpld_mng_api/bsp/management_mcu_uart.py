@@ -1,13 +1,10 @@
 __author__ = 'Bubs'
 
-from pyfabil.plugins.firmwareblock import FirmwareBlock
-from pyfabil.base.definitions import *
-#from pyfabil.base.utils import *
+
 import logging
 import time
 import struct
 import socket
-#import netproto.rmp as rmp
 
 FIFOSIZE = 1024
 PAGESIZE = 256

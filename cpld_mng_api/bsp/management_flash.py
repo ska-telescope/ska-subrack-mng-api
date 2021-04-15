@@ -1,8 +1,5 @@
 __author__ = 'Bubs'
 
-from pyfabil.plugins.firmwareblock import FirmwareBlock
-from pyfabil.base.definitions import *
-#from pyfabil.base.utils import *
 import logging
 import time
 import struct
@@ -40,15 +37,15 @@ FlashDevices = [FlashDevice_CPLD]
 
 
 class spiregisters():
-        spi_cs_ow       = 0x0800
-        spi_cs0         = 0x0800
-        spi_tx_byte     = 0x0804
-        spi_rx_byte     = 0x0808
-        spi_tx_buf_len  = 0x080c
-        spi_rx_buf_len  = 0x0810
-        spi_fifo_addr   = 0x0814
-        spi_mux         = 0x0818
-        spi_rxtxbuffer  =0x80000
+    spi_cs_ow = 0x0800
+    spi_cs0 = 0x0800
+    spi_tx_byte = 0x0804
+    spi_rx_byte = 0x0808
+    spi_tx_buf_len = 0x080c
+    spi_rx_buf_len = 0x0810
+    spi_fifo_addr = 0x0814
+    spi_mux = 0x0818
+    spi_rxtxbuffer = 0x80000
 
 
 
@@ -64,7 +61,7 @@ class MngProgFlash():
 
     #######################################################################################
 
-    ######################    SPI METHODS SECTION   ###############################
+    # #####################    SPI METHODS SECTION   ###############################
     def spi_chipselect(self, isactive):
         # mask = 0x0001
         self.board[spiregisters.spi_cs0]=0x10001
@@ -145,7 +142,7 @@ class MngProgFlash():
     def spi_mux_selection(self, slaveid):
         self.board[spiregisters.spi_mux] = slaveid
 
-    ########### FLASH COMMAND METHODS SECTION ####################################
+    # ########## FLASH COMMAND METHODS SECTION ####################################
 
     def SPITransaction(self, device, TxBuffer, cmd, size):
         RxBuffer = self.spi_sync(device.slaveID, TxBuffer, cmd, size)
@@ -214,7 +211,7 @@ class MngProgFlash():
         txBuffer = [0] * 32
         cmd = bytearray(4)
         cmd[0] = 0x9F
-        #cmd[1] = 0x1
+        # cmd[1] = 0x1
         rxBuffer = self.SPITransaction(device, txBuffer, cmd, 12)
         id = ((rxBuffer[0] & 0xFF000000) >> 24) | ((rxBuffer[0] & 0xFF0000) >> 8) | ((rxBuffer[0] & 0xFF00) << 8)
         return id
@@ -341,7 +338,7 @@ class MngProgFlash():
             self.FlashDevice_writePage(device, address + i * page_size, page_size,
                                        buffer[i * page_size / 4:i * page_size / 4 + page_size / 4])
 
-    ########### BITSTREAM MANAGE METHODS SECTION ####################################
+    # ########## BITSTREAM MANAGE METHODS SECTION ####################################
 
     def loadBitstream(self, filename, sectorSize):
         print ("Open Bistream file %s" % (filename))
@@ -380,7 +377,7 @@ class MngProgFlash():
         f.write(data[0:bitstreamSize])
         f.close()
 
-    def firmwareProgram(self, flashdeviceindedx, bitstreamFilename, address, dumpFilename=None, erase_all=False,
+    def firmwareProgram(self, flashdeviceindedx, bitstreamFilename, address, dumpFilename = None, erase_all=False,
                         add_len=False):
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
@@ -389,7 +386,7 @@ class MngProgFlash():
         sectorOffset = address / sectorSize
 
         memblock1, bitstreamSize, size = self.loadBitstream(bitstreamFilename, sectorSize)
-        if add_len == True:
+        if add_len is True:
             print("Prepending bitsream size in flash writing")
             lght = bytearray(4)
             lght[0] = (size & 0xff000000) >> 24
@@ -414,15 +411,15 @@ class MngProgFlash():
         j = 0
         ec = 0
 
-        if erase_all == False:
-            print ("Starting Erase from sector %d" % (sector_num))
+        if erase_all is False:
+            print ("Starting Erase from sector %d" % sector_num)
             print("--- ERASING ------------------------------------------------------------------------------------")
             sect = sector_num
-            while (1):
+            while True:
                 print("Sector %03d @ %08X: Erasing" % (sect, sect * sectorSize))
                 self.FlashDevice_erase(device, sect * sectorSize, sectorSize)
                 sect -= 1
-                if (sect == 0):
+                if sect == 0:
                     break
         else:
             print ("Starting Chip Erase ")
@@ -433,7 +430,7 @@ class MngProgFlash():
         print("--- PROGRAMMING ------------------------------------------------------------------------------------")
         sect = 0
         upper_flash = False
-        while (1):
+        while True:
             off = j * sectorSize
             print("Sector %03d @ %08X - bitstream offset %08X: " % (i, i * sectorSize, off))
             # print "E ",
@@ -462,7 +459,7 @@ class MngProgFlash():
                     break
             if c != 0:
                 retry = 2
-                while (retry > 0):
+                while retry > 0:
                     print("Error detected, retring to write sector")
                     print("Sector %03d @ %08X: Erasing" % (i, i * sectorSize))
                     self.FlashDevice_erase(device, i * sectorSize, sectorSize)
@@ -494,10 +491,10 @@ class MngProgFlash():
                 break
 
         print("----------------------------------------------------------------------------------------------------")
-        if self.add4bytemode == True:
+        if self.add4bytemode is True:
             upper_flash = False
             self.FlashDevice_Exit4byteAddMode(device)
-        if (dumpFilename != None):
+        if dumpFilename is not None:
             self.saveBitstream(dumpFilename, bufferD, bitstreamSize)
         return ec
 
@@ -576,9 +573,9 @@ class MngProgFlash():
             j += 1
             i += 1
         print("----------------------------------------------------------------------------------------------------")
-        if self.add4bytemode == True:
+        if self.add4bytemode is True:
             self.FlashDevice_Exit4byteAddMode(device)
-        if (dumpFilename != None):
+        if dumpFilename is not None:
             self.saveBitstream(dumpFilename, bufferD, size)
 
     def DeviceGetInfo(self, flashdeviceindedx):
@@ -608,7 +605,7 @@ class MngProgFlash():
         sectorSize = 64 * 1024
         sectorOffset = address / sectorSize
         sc = data_size / sectorSize
-        if ((sc * sectorSize) != data_size):
+        if (sc * sectorSize) != data_size:
             sc = sc + 1
         s = sc * sectorSize
         tmp = bytearray(s)
@@ -623,12 +620,12 @@ class MngProgFlash():
         j = 0
         sector_num = sc
         sect = 0
-        while (1):
+        while True:
             self.FlashDevice_writesector(device, i * sectorSize,
                                          formatted_bitstream[j * sectorSize / 4:(j * sectorSize / 4 + sectorSize / 4)])
             i = i + 1
             j += 1
             sect += 1
-            if (sect == sector_num):
+            if sect == sector_num:
                 break
 
