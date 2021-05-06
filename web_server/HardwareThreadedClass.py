@@ -206,7 +206,7 @@ class HardwareThreadedDevice(HardwareBaseDevice):
                     pass
                 else:
                     return {
-                        "status": "ERROR",
+                        "status": "BUSY",
                         "info": self._runningCommand.name() + " still running",
                         "command": command,
                         "retvalue": "",
@@ -240,7 +240,7 @@ class HardwareThreadedDevice(HardwareBaseDevice):
                 blocked = True
         if blocked:
             answer = {
-                "status": "ERROR",
+                "status": "BUSY",
                 "info": self._runningCommand.name() + " still running",
                 "attribute": attribute,
                 "value": "",
@@ -265,7 +265,7 @@ class HardwareThreadedDevice(HardwareBaseDevice):
                 blocked = True
         if blocked:
             answer = {
-                "status": "ERROR",
+                "status": "BUSY",
                 "info": self._runningCommand.name() + " still running",
                 "attribute": attribute,
                 "value": "",

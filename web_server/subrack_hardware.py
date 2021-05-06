@@ -1,5 +1,5 @@
 """
-LFAA SPS Subrack control board hardware driver. 
+LFAA SPS Subrack control board hardware driver.
 """
 from HardwareBaseClass import *
 from HardwareThreadedClass import *
@@ -37,22 +37,25 @@ class PowerOnTpmCommand(ThreadedHardwareCommand):
     def thread(self, tpm_id):
         """
         Power on TPMs
-        
-        :param tpm_id: index of TPM to power on (0-7) or list of indexes 
+
+        :param tpm_id: index of TPM to power on (1-8) or list of indexes
         : type tpm_id: str, list(str)
 
         :return: dictionary with HardwareCommand response. List of TPM On status
         :rtype: dict
         """
 
-        if type(tpm_id) == list:
-            for tpm_slot_id in tpm_id:
-                self._hardware.PowerOnTPM(int(tpm_slot_id+1))
-                if self._abort:
-                    break
-        else:
-            tpm_slot_id = int(tpm_id)
-            self._hardware.PowerOnTPM(tpm_slot_id+1)
+        try:
+            if type(tpm_id) == list:
+                for tpm_slot_id in tpm_id:
+                    self._hardware.PowerOnTPM(int(tpm_slot_id))
+                    if self._abort:
+                        break
+            else:
+                tpm_slot_id = int(tpm_id)
+                self._hardware.PowerOnTPM(tpm_slot_id)
+        except SubrackExecFault:
+            pass
         tpm_is_on = self._hardware.GetTPMOnOffVect()
         self._completed = True
         return
@@ -65,21 +68,24 @@ class PowerOffTpmCommand(ThreadedHardwareCommand):
     def thread(self, tpm_id):
         """
         Power off TPMs
-        
-        :param tpm_id: index of TPM to power on (0-7) or list of indexes 
+
+        :param tpm_id: index of TPM to power on (1-8) or list of indexes
         : type tpm_id: str, list(str)
 
         :return: dictionary with HardwareCommand response. List of TPM On status
         :rtype: dict
         """
-        if type(tpm_id) == list:
-            for tpm_slot_id in tpm_id:
-                self._hardware.PowerOffTPM(int(tpm_slot_id+1))
-                if self._abort:
-                    break
-        else:
-            tpm_slot_id = int(tpm_id)
-            self._hardware.PowerOffTPM(tpm_slot_id+1)
+        try:
+            if type(tpm_id) == list:
+                for tpm_slot_id in tpm_id:
+                    self._hardware.PowerOffTPM(int(tpm_slot_id))
+                    if self._abort:
+                        break
+            else:
+                tpm_slot_id = int(tpm_id)
+                self._hardware.PowerOffTPM(tpm_slot_id)
+        except SubrackExecFault:
+            pass
         tpm_is_on = self._hardware.GetTPMOnOffVect()
         self._completed = True
         return
@@ -92,8 +98,8 @@ class IsTpmOnCommand(HardwareCommand):
     def do(self, params):
         """
         Check power status of TPMs
-            
-        :param tpm_id: index of TPM to check (0-7)
+
+        :param tpm_id: index of TPM to check (1-8)
         : type tpm_id: str
 
         :return: dictionary with HardwareCommand response. Integer retvalue
@@ -102,12 +108,17 @@ class IsTpmOnCommand(HardwareCommand):
 
         answer = super().do()
         tpm_slot_id = int(params)
-        tpm_on = self._hardware.GetTPMOnOffVect()
-        if tpm_on & (1 << tpm_slot_id) != 0:
-            retval = 1
+        if tpm_slot_id > 0 & tpm_slot_id <= 8:
+            tpm_on = self._hardware.GetTPMOnOffVect()
+            if tpm_on & (1 << (tpm_slot_id-1)) != 0:
+                retval = 1
+            else:
+                retval = 0
         else:
+            answer['status'] = 'ERROR'
+            answer['info'] = 'TPM ID must be between 1 and 8'
             retval = 0
-        answer["retvalue"] = retval
+        answer['retvalue'] = retval
         return answer
 
 
@@ -118,18 +129,21 @@ class PowerUpCommand(ThreadedHardwareCommand):
     def thread(self, params):
         """
         Power on all TPMs
-        
+
         :param params: unused
         """
 
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
-        for tpm in range(8):
-            if tpm_detected[tpm]:
-                self._hardware.PowerOnTPM(tpm + 1)
-                if self._abort:
-                    break
+        try:
+            for tpm in range(8):
+                if tpm_detected[tpm]:
+                    self._hardware.PowerOnTPM(tpm + 1)
+                    if self._abort:
+                        break
+        except SubrackExecFault:
+            pass
         self._completed = True
-        return 
+        return
 
 
 class PowerDownCommand(ThreadedHardwareCommand):
@@ -139,16 +153,19 @@ class PowerDownCommand(ThreadedHardwareCommand):
     def thread(self, params):
         """
         Power off all TPMs
-        
+
         :param params: unused
         """
 
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
-        for tpm in range(8):
-            if tpm_detected[tpm]:
-                self._hardware.PowerOffTPM(tpm + 1)
-                if self._abort:
-                    break
+        try:
+            for tpm in range(8):
+                if tpm_detected[tpm]:
+                    self._hardware.PowerOffTPM(tpm + 1)
+                    if self._abort:
+                        break
+        except SubrackExecFault:
+            pass
         self._completed = True
         return
 
@@ -156,84 +173,84 @@ class AreTpmsOnCommand(HardwareCommand):
     def do(self, params):
         answer = super().do()
         tpm_on_list = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
-        answer.retvalue = tpm_on_list
+        answer['retvalue'] = tpm_on_list
         return answer
 
 class SetFanMode(HardwareCommand):
-    """ 
-    Set fan mode (manual, auto) 
+    """
+    Set fan mode (manual, auto)
     """
     def do(self, params):
-        """ 
-        :param params: [0]: Fan ID (in range 0-3), [1]: mode [MANUAL|AUTO]
+        """
+        :param params: [0]: Fan ID (in range 1-4), [1]: mode [MANUAL|AUTO]
 
-        :return: dictionary with HardwareCommand response. 
+        :return: dictionary with HardwareCommand response.
         :rtype: dict
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-            answer["status"] = "ERROR"
-            answer["info"] = "Command requres 2 parameters"
+            answer['status'] = 'ERROR'
+            answer['info'] = 'Command requres 2 parameters'
         else:
-            fan_id = int(params[0])+1
+            fan_id = int(params[0])
             fan_mode = params[1]
             if (fan_id >= 1) & (fan_id <= 4):
                 self._hardware.SetFanMode(fan_id, fan_mode)
             else:
                 answer['status'] = 'ERROR'
-                answer['info'] = 'Fan ID must be between 0 and 3'
+                answer['info'] = 'Fan ID must be between 1 and 4'
         return answer
 
 
 class SetFanSpeed(HardwareCommand):
-    """ 
-    Set cabinet fan speed (0-100) 
+    """
+    Set cabinet fan speed (0-100)
     """
     def do(self, params):
-        """ 
-        :param params: [0]: Fan ID (in range 0-3), [1]: speed (percentage)
+        """
+        :param params: [0]: Fan ID (in range 1-4), [1]: speed (percentage)
 
-        :return: dictionary with HardwareCommand response. Retval is actual speed 
+        :return: dictionary with HardwareCommand response. Retval is actual speed
         :rtype: dict
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-            answer["status"] = "ERROR"
-            answer["info"] = "Command requres 2 parameters"
+            answer['status'] = 'ERROR'
+            answer['info'] = 'Command requres 2 parameters'
         else:
-            fan_id = int(params[0])+1
+            fan_id = int(params[0])
             fan_speed = params[1]
             if (fan_id >= 1) & (fan_id <= 4):
                 self._hardware.SetFanSpeed(fan_id, fan_speed)
             else:
                 answer['status'] = 'ERROR'
-                answer['info'] = 'Fan ID must be between 0 and 3'
+                answer['info'] = 'Fan ID must be between 1 and 4'
         return answer
 
 
 class SetPSFanSpeed(HardwareCommand):
-    """ 
-    Set Power Supply fan speed (0-100) 
+    """
+    Set Power Supply fan speed (0-100)
     """
     def do(self, params):
-        """ 
-        :param params: [0]: Fan ID (in range 0-1), [1]: speed (percentage)
+        """
+        :param params: [0]: Fan ID (in range 1-2), [1]: speed (percentage)
 
-        :return: dictionary with HardwareCommand response. Retval is actual speed 
+        :return: dictionary with HardwareCommand response. Retval is actual speed
         :rtype: dict
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-            answer["status"] = "ERROR"
-            answer["info"] = "Command requres 2 parameters"
+            answer['status'] = 'ERROR'
+            answer['info'] = 'Command requres 2 parameters'
         else:
-            fan_id = int(params[0])+1
+            fan_id = int(params[0])
             fan_speed = int(params[1])
             if (fan_id >= 1) & (fan_id <= 2):
                 self._hardware.SetPSFanSpeed(fan_id, fan_speed)
             else:
                 answer['status'] = 'ERROR'
-                answer['info'] = 'Fan ID must be between 0 and 1'
+                answer['info'] = 'Fan ID must be between 1 and 2'
         return answer
 
 
@@ -305,7 +322,7 @@ class FanMode(HardwareAttribute):
         for fan_id in range(4):
             answer = answer + [self._hardware.GetFanMode(fan_id + 1)]
         return answer
-    def write_value(self, mode): 
+    def write_value(self, mode):
         for fan_id in range(4):
             if mode[fan_id] == 0:
                 mode_i = 0
@@ -328,7 +345,7 @@ class FanSpeed(HardwareAttribute):
 
 class TpmTemperatures(HardwareAttribute):
     """
-    TPM bpard temperatures, in celsius. 
+    TPM bpard temperatures, in celsius.
     Returns 8 values, 0.0 for boards not present
     """
     def read_value(self):
@@ -346,7 +363,7 @@ class TpmTemperatures(HardwareAttribute):
 
 class TpmCurrents(HardwareAttribute):
     """
-    TPM board current, in A. 
+    TPM board current, in A.
     Returns 8 values, 0.0 for boards not present
     """
     def read_value(self):
@@ -386,7 +403,7 @@ class TpmPowers(HardwareAttribute):
     def read_value(self):
         """
         :return: 8 values, 0.0 for boards not present
-        :rvalue: list(float\)
+        :rvalue: list(float)
         """
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
@@ -486,14 +503,14 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
         # Add attributes
-        self.add_attribute(BackplaneTemperature("backplane_temperatures", 
+        self.add_attribute(BackplaneTemperature("backplane_temperatures",
             [0]*2, subrack))
         self.add_attribute(BoardTemperature("board_temperatures", [0]*2, subrack))
         self.add_attribute(BoardCurrent("board_current", 0, subrack))
-        self.add_attribute(FanSpeed("subrack_fan_speed", [0]*4, subrack))
-        self.add_attribute(FanSpeedPercent("subrack_fan_speed_percent", 
+        self.add_attribute(FanSpeed("subrack_fan_speeds", [0]*4, subrack))
+        self.add_attribute(FanSpeedPercent("subrack_fan_speeds_percent",
             [0]*4, subrack))
-        self.add_attribute(FanMode( "subrack_fan_mode", 
+        self.add_attribute(FanMode( "subrack_fan_mode",
             [0]*4, subrack)) # , HardwareAttribute.HW_ATTR_RW, 4)) TODO
         self.add_attribute(TpmTemperatures("tpm_temperatures", 0, subrack))
         self.add_attribute(TpmVoltages("tpm_voltages", 0, subrack))

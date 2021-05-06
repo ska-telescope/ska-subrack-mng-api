@@ -1,7 +1,9 @@
+#!/usr/bin/python3
 # Python 3 server example
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from uritools import uricompose, urijoin, urisplit, uriunsplit
 # from urlparse import urlparse, parse_qs
+import logging
 
 from HardwareBaseClass import *
 from subrack_hardware import *
@@ -55,7 +57,7 @@ class MyServer(BaseHTTPRequestHandler):
         # query_components = parse_qs(urlparse(self.path).query)
         query = urisplit(self.path)
         query_components = mangle_dict(query.getquerydict())
-        # print(str(query_components))
+        logger.debug('Receved: '+str(query_components))
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()
@@ -96,14 +98,15 @@ class MyServer(BaseHTTPRequestHandler):
 
         response = json.dumps(query_answer)
         self.wfile.write(bytes(response, "utf-8"))
-
+        logger.debug('Sent: '+response)
 
 hardware = SubrackHardware()
+logging.basicConfig(level=logging.INFO)
+logger=logging.getLogger('webServer')
 
 if __name__ == "__main__":        
 
     hardware.initialize()
-
     webServer = HTTPServer((hostName, serverPort), MyServer)
     print("Server started http://%s:%s" % (hostName, serverPort))
 
