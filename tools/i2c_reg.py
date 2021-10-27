@@ -3,7 +3,7 @@ __author__ = 'Cristian Albanese'
 import sys
 import time
 from optparse import OptionParser
-from management import *
+from subrack_mng_api.management import *
 
 usage_string="usage: %prog [options] [<I2C Device name> <offset>] [<value>] \n"
 usage_hexample="es. %prog EEPROM_MAC_1 0xfa\n"

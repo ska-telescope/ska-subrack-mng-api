@@ -1,6 +1,7 @@
 __author__ = 'Cristian Albanese'
 
 import string
+import subprocess
 from subprocess import Popen, PIPE
 import sys
 import os
@@ -179,15 +180,18 @@ CpldUart_list = []
 
 
 def run(command):
-    running = False
-    process = Popen(command, stdout=PIPE, shell=True)
-    time.sleep(0.1)
-    # while(process.poll() is None):
-    #    running=True
-    #    output = process.stdout.readline()
-    #    print output,
-    output = process.communicate()[0]
-    # print output,
+    if sys.version_info[0]<3:
+        running = False
+        process = Popen(command, stdout=PIPE, shell=True)
+        time.sleep(0.1)
+        # while(process.poll() is None):
+        #    running=True
+        #    output = process.stdout.readline()
+        #    print output,
+        output = process.communicate()[0]
+        # print output,
+    else:
+        output = subprocess.getoutput(command)
     return output
 
 
@@ -371,9 +375,11 @@ class Management():
     def create_regs_list(self, categories):
         cmd = "ls -l " + get_cat(categories)
         regs = str(run(cmd))
-        # print regs
+        #print(regs)
         lines = regs.splitlines()
+        print(len(lines))
         for l in range(0, len(lines)):
+            #print(lines[l])
             if lines[l].find("root") != -1:
                 if categories == "FPGA_FW":
                     FpgaFwVersionReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])

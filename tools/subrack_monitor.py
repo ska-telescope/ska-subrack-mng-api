@@ -313,6 +313,9 @@ parser.add_option("-r", "--remote",
                 action="store_true", dest="remote", default=False,
                 help="connect and send data to client")
 
+parser.add_option("-f", "--pll_cfg_file",
+                dest="pll_cfg_file", default="../subrack_mng_api/pll_subrack_OCXO.txt",
+                help="connect and send data to client")
 
 
 
@@ -341,7 +344,7 @@ def set_logging(level):
 
 
 
-subrack.PllInitialize()
+subrack.PllInitialize(options.pll_cfg_file)
 
 if options.remote:
     HOST = '10.0.10.20'  # Standard loopback interface address (localhost)

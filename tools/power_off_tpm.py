@@ -5,16 +5,9 @@ __author__ = 'Cristian Albanese'
 import sys
 import time
 from optparse import OptionParser
-from subrack_management_board import *
+from subrack_mng_api.subrack_management_board import *
 
-
-
-
-
-print("BACKPLANE FUNCTIONS CHECK")
 subrack=SubrackMngBoard()
-
-
 
 usage_string="usage: %prog [options] \n"
 usage_hexample="(es power off TPM1 and TPM3). %prog --t1 --t3\n" \
@@ -71,7 +64,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
 
-    if options.all==True:
+    if options.all is True:
         for i in range (1,9):
             print("Power Off TPM " + str(i))
             try:
@@ -81,7 +74,7 @@ if __name__ == '__main__':
                 print("power off command failed")
                 logging.error("power off command success")
 
-    if options.tpm1==True:
+    if options.tpm1 is True:
         print("Power Off TPM 1")
         try:
             subrack.PowerOffTPM(1)
@@ -90,7 +83,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm2==True:
+    if options.tpm2 is True:
         print("Power Off TPM 2")
         try:
             subrack.PowerOffTPM(2)
@@ -99,7 +92,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm3==True:
+    if options.tpm3 is True:
         print("Power Off TPM 3")
         try:
             subrack.PowerOffTPM(3)
@@ -108,7 +101,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm4==True:
+    if options.tpm4 is True:
         print("Power Off TPM 4")
         try:
             subrack.PowerOffTPM(4)
@@ -117,7 +110,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm5==True:
+    if options.tpm5 is True:
         print("Power Off TPM 5")
         try:
             subrack.PowerOffTPM(5)
@@ -126,7 +119,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm6==True:
+    if options.tpm6 is True:
         print("Power Off TPM 6")
         try:
             subrack.PowerOffTPM(6)
@@ -135,7 +128,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm7==True:
+    if options.tpm7 is True:
         print("Power Off TPM 7")
         try:
             subrack.PowerOffTPM(7)
@@ -144,7 +137,7 @@ if __name__ == '__main__':
             print("power off command failed")
             logging.error("power off command success")
 
-    if options.tpm8==True:
+    if options.tpm8 is True:
         print("Power Off TPM 8")
         try:
             subrack.PowerOffTPM(8)
