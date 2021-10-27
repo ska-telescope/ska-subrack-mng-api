@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['detect_5fcpu_5fip',['detect_cpu_ip',['../namespacesubrack__mng__api_1_1subrack__management__board.html#a7eaf4ff4845c36e5f05075c733fa4865',1,'subrack_mng_api::subrack_management_board']]],
   ['detect_5fip',['detect_ip',['../namespacesubrack__mng__api_1_1subrack__management__board.html#a1418b968300838741d764049b9ed797c',1,'subrack_mng_api::subrack_management_board']]],
   ['dump_5fcategories',['dump_categories',['../classsubrack__mng__api_1_1management_1_1_management.html#aa425d739351c751c889c22b0bd01746b',1,'subrack_mng_api::management::Management']]],
   ['dump_5ffpga_5fuserreg_5fall',['dump_fpga_userreg_all',['../classsubrack__mng__api_1_1management_1_1_management.html#a073c59feaeaa7de5d4d410119ff6c9bc',1,'subrack_mng_api::management::Management']]],
