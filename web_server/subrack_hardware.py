@@ -34,6 +34,7 @@ class PowerOnTpmCommand(ThreadedHardwareCommand):
     """
     Power On TPM command. Switches on a single or multiple TPM
     """
+
     def thread(self, tpm_id):
         """
         Power on TPMs
@@ -65,6 +66,7 @@ class PowerOffTpmCommand(ThreadedHardwareCommand):
     """
     Power Off TPM command. Switches off a single or multiple TPM
     """
+
     def thread(self, tpm_id):
         """
         Power off TPMs
@@ -95,12 +97,13 @@ class IsTpmOnCommand(HardwareCommand):
     """
     Check TPM power status
     """
+
     def do(self, params):
         """
         Check power status of TPMs
 
-        :param tpm_id: index of TPM to check (1-8)
-        : type tpm_id: str
+        :param params: index of TPM to check (1-8)
+        : type params: str
 
         :return: dictionary with HardwareCommand response. Integer retvalue
         :rtype: dict
@@ -110,15 +113,15 @@ class IsTpmOnCommand(HardwareCommand):
         tpm_slot_id = int(params)
         if tpm_slot_id > 0 & tpm_slot_id <= 8:
             tpm_on = self._hardware.GetTPMOnOffVect()
-            if tpm_on & (1 << (tpm_slot_id-1)) != 0:
+            if tpm_on & (1 << (tpm_slot_id - 1)) != 0:
                 retval = 1
             else:
                 retval = 0
         else:
-            answer['status'] = 'ERROR'
-            answer['info'] = 'TPM ID must be between 1 and 8'
+            answer["status"] = "ERROR"
+            answer["info"] = "TPM ID must be between 1 and 8"
             retval = 0
-        answer['retvalue'] = retval
+        answer["retvalue"] = retval
         return answer
 
 
@@ -126,6 +129,7 @@ class PowerUpCommand(ThreadedHardwareCommand):
     """
     Power on all TPMs
     """
+
     def thread(self, params):
         """
         Power on all TPMs
@@ -150,6 +154,7 @@ class PowerDownCommand(ThreadedHardwareCommand):
     """
     Power off all TPMs
     """
+
     def thread(self, params):
         """
         Power off all TPMs
@@ -169,17 +174,20 @@ class PowerDownCommand(ThreadedHardwareCommand):
         self._completed = True
         return
 
+
 class AreTpmsOnCommand(HardwareCommand):
     def do(self, params):
         answer = super().do()
         tpm_on_list = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
-        answer['retvalue'] = tpm_on_list
+        answer["retvalue"] = tpm_on_list
         return answer
+
 
 class SetFanMode(HardwareCommand):
     """
     Set fan mode (manual, auto)
     """
+
     def do(self, params):
         """
         :param params: [0]: Fan ID (in range 1-4), [1]: mode [MANUAL|AUTO]
@@ -189,16 +197,16 @@ class SetFanMode(HardwareCommand):
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-            answer['status'] = 'ERROR'
-            answer['info'] = 'Command requres 2 parameters'
+            answer["status"] = "ERROR"
+            answer["info"] = "Command requires 2 parameters"
         else:
             fan_id = int(params[0])
             fan_mode = params[1]
             if (fan_id >= 1) & (fan_id <= 4):
                 self._hardware.SetFanMode(fan_id, fan_mode)
             else:
-                answer['status'] = 'ERROR'
-                answer['info'] = 'Fan ID must be between 1 and 4'
+                answer["status"] = "ERROR"
+                answer["info"] = "Fan ID must be between 1 and 4"
         return answer
 
 
@@ -206,6 +214,7 @@ class SetFanSpeed(HardwareCommand):
     """
     Set cabinet fan speed (0-100)
     """
+
     def do(self, params):
         """
         :param params: [0]: Fan ID (in range 1-4), [1]: speed (percentage)
@@ -215,16 +224,16 @@ class SetFanSpeed(HardwareCommand):
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-            answer['status'] = 'ERROR'
-            answer['info'] = 'Command requres 2 parameters'
+            answer["status"] = "ERROR"
+            answer["info"] = "Command requires 2 parameters"
         else:
             fan_id = int(params[0])
             fan_speed = params[1]
             if (fan_id >= 1) & (fan_id <= 4):
                 self._hardware.SetFanSpeed(fan_id, fan_speed)
             else:
-                answer['status'] = 'ERROR'
-                answer['info'] = 'Fan ID must be between 1 and 4'
+                answer["status"] = "ERROR"
+                answer["info"] = "Fan ID must be between 1 and 4"
         return answer
 
 
@@ -232,6 +241,7 @@ class SetPSFanSpeed(HardwareCommand):
     """
     Set Power Supply fan speed (0-100)
     """
+
     def do(self, params):
         """
         :param params: [0]: Fan ID (in range 1-2), [1]: speed (percentage)
@@ -241,16 +251,38 @@ class SetPSFanSpeed(HardwareCommand):
         """
         answer = super().do()
         if (type(params) == list) & (len(params) < 2):
-            answer['status'] = 'ERROR'
-            answer['info'] = 'Command requres 2 parameters'
+            answer["status"] = "ERROR"
+            answer["info"] = "Command requires 2 parameters"
         else:
             fan_id = int(params[0])
             fan_speed = int(params[1])
             if (fan_id >= 1) & (fan_id <= 2):
                 self._hardware.SetPSFanSpeed(fan_id, fan_speed)
             else:
-                answer['status'] = 'ERROR'
-                answer['info'] = 'Fan ID must be between 1 and 2'
+                answer["status"] = "ERROR"
+                answer["info"] = "Fan ID must be between 1 and 2"
+        return answer
+
+
+class TpmInfo(HardwareCommand):
+    """
+    Return info about TPM board present on subrack.
+    """
+
+    def do(self, params):
+        """
+        Info about TPM.
+
+        :param params: index of TPM to check (1-8)
+        : type params: str
+
+        :return: TPM info
+        :rtype: dict
+        """
+        answer = super().do()
+        tpm_slot_id = int(params)
+        tpm_info = self._hardware.GetTPMInfo(tpm_slot_id)
+        answer["retvalue"] = tpm_info
         return answer
 
 
@@ -261,6 +293,7 @@ class BackplaneTemperature(HardwareAttribute):
     """
     Backplane temperature, in celsius
     """
+
     def read_value(self):
         """
         :return: backplane temperature, in celsius, for the two backplane halves
@@ -316,12 +349,6 @@ class FanMode(HardwareAttribute):
             answer = answer + [self._hardware.GetFanMode(fan_id + 1)]
         return answer
 
-class FanMode(HardwareAttribute):
-    def read_value(self):
-        answer = []
-        for fan_id in range(4):
-            answer = answer + [self._hardware.GetFanMode(fan_id + 1)]
-        return answer
     def write_value(self, mode):
         for fan_id in range(4):
             if mode[fan_id] == 0:
@@ -330,6 +357,7 @@ class FanMode(HardwareAttribute):
                 mode_i = 1
             self._hardware.SetFanMode(fan_id + 1, mode_i)
         return self.read_value()
+
 
 class FanSpeed(HardwareAttribute):
     def read_value(self):
@@ -343,21 +371,44 @@ class FanSpeed(HardwareAttribute):
         return answer
 
 
-class TpmTemperatures(HardwareAttribute):
+class TpmMCUTemperatures(HardwareAttribute):
     """
-    TPM bpard temperatures, in celsius.
-    Returns 8 values, 0.0 for boards not present
+    TPM MCU temperatures, in celsius.
+    Returns 8 values, 0.0 for boards not present or powered off
     """
+
     def read_value(self):
         """
-        :return: TPM board temperature, in Celsius
+        :return: TPM MCU temperature, in Celsius
         :rtype: list[float]
         """
         answer = [0.0] * 8
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
             if tpm_detected[tpm]:
-                answer[tpm] = self._hardware.GetTPMTemperature(tpm + 1)
+                answer[tpm] = self._hardware.GetTPMMCUTemperature(tpm + 1)
+        return answer
+
+
+class TpmIPs(HardwareAttribute):
+    """
+    IP address of TPMs present on subrack.
+    Returns 8 IP address, "0" for TPMs not powered off and "-1" for TPMs not present
+    """
+
+    def read_value(self):
+        """
+        :return: TPM IP
+        :rtype: list[str]
+        """
+        answer = ["0"] * 8
+        tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
+        tpm_status = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
+        for tpm in range(8):
+            if tpm_detected[tpm] & tpm_status[tpm]:
+                answer[tpm] = self._hardware.GetTPMIP(tpm + 1)
+            elif tpm_status[tpm]:
+                answer[tpm] = "-1"
         return answer
 
 
@@ -366,6 +417,7 @@ class TpmCurrents(HardwareAttribute):
     TPM board current, in A.
     Returns 8 values, 0.0 for boards not present
     """
+
     def read_value(self):
         """
         :return: 8 values, 0.0 for boards not present
@@ -383,6 +435,7 @@ class TpmVoltages(HardwareAttribute):
     """
     TPM board power supply voltages (V)
     """
+
     def read_value(self):
         """
         :return: 8 values, 0.0 for boards not present
@@ -400,6 +453,7 @@ class TpmPowers(HardwareAttribute):
     """
     TPM board power usage (W)
     """
+
     def read_value(self):
         """
         :return: 8 values, 0.0 for boards not present
@@ -418,7 +472,9 @@ class TpmSupplyFault(HardwareAttribute):
     TPM supply fault status
     Returns 8 bool values, True if board supply fault has been triggered
     """
+
     answer = [0.0] * False
+
     def read_value(self):
         tpm_supply_fault = byte_to_bool_array(self._hardware.GetTPMSupplyFault())
         return tpm_supply_fault
@@ -428,6 +484,7 @@ class TpmOnOffVect(HardwareAttribute):
     """
     TPM board power status
     """
+
     def read_value(self):
         tpm_is_on = byte_to_bool_array(self._hardware.GetTPMOnOffVect())
         return tpm_is_on
@@ -438,6 +495,7 @@ class TpmPresent(HardwareAttribute):
     TPM board presence
     Returns 8 values, True if board present and powered on
     """
+
     def read_value(self):
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         return tpm_detected
@@ -486,11 +544,10 @@ class SubrackHardware(HardwareThreadedDevice):
         # Actual initialization
         subrack.PllInitialize()
         # power on the backplane
-        if subrack.Bkpln.get_bkpln_is_onoff()==0:
+        if subrack.Bkpln.get_bkpln_is_onoff() == 0:
             subrack.Bkpln.power_on_bkpln()
-        if subrack.powermon_cfgd==False:
+        if subrack.powermon_cfgd == False:
             subrack.SubrackInitialConfiguration()
-
 
         # Add Commands
         self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, blocking=True))
@@ -502,19 +559,24 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_command(SetFanMode("set_fan_mode", subrack, 2))
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
+        self.add_command(TpmInfo("tpm_info", subrack, 1))
         # Add attributes
-        self.add_attribute(BackplaneTemperature("backplane_temperatures",
-            [0]*2, subrack))
-        self.add_attribute(BoardTemperature("board_temperatures", [0]*2, subrack))
+        self.add_attribute(
+            BackplaneTemperature("backplane_temperatures", [0] * 2, subrack)
+        )
+        self.add_attribute(BoardTemperature("board_temperatures", [0] * 2, subrack))
         self.add_attribute(BoardCurrent("board_current", 0, subrack))
-        self.add_attribute(FanSpeed("subrack_fan_speeds", [0]*4, subrack))
-        self.add_attribute(FanSpeedPercent("subrack_fan_speeds_percent",
-            [0]*4, subrack))
-        self.add_attribute(FanMode( "subrack_fan_mode",
-            [0]*4, subrack)) # , HardwareAttribute.HW_ATTR_RW, 4)) TODO
-        self.add_attribute(TpmTemperatures("tpm_temperatures", 0, subrack))
+        self.add_attribute(FanSpeed("subrack_fan_speeds", [0] * 4, subrack))
+        self.add_attribute(
+            FanSpeedPercent("subrack_fan_speeds_percent", [0] * 4, subrack)
+        )
+        self.add_attribute(
+            FanMode("subrack_fan_mode", [0] * 4, subrack)
+        )  # , HardwareAttribute.HW_ATTR_RW, 4)) TODO
+        self.add_attribute(TpmMCUTemperatures("tpm_mcu_temperatures", 0, subrack))
         self.add_attribute(TpmVoltages("tpm_voltages", 0, subrack))
         self.add_attribute(TpmCurrents("tpm_currents", 0, subrack))
+        self.add_attribute(TpmIPs("tpm_ips", 0, subrack))
         self.add_attribute(TpmPowers("tpm_powers", 0, subrack))
         self.add_attribute(TpmPresent("tpm_present", 0, subrack))
         self.add_attribute(TpmSupplyFault("tpm_supply_fault", 0, subrack))
