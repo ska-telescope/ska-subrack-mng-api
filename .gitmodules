@@ -1,3 +1,5 @@
 [submodule "pyfabil"]
 	path = pyfabil
 	url = https://bitbucket.org/lessju/pyfabil.git
+	branch = master
+	update = rebase

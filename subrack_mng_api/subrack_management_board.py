@@ -110,7 +110,7 @@ def detect_cpu_ip():
     for r in range(0, len(lines)):
         if str(lines[r]).find("inet") != -1:
             cpu_ip = str(lines[r]).split(" ")[9]
-            print (cpu_ip)
+            #print (cpu_ip)
             found = True
 
     if found is False:
@@ -351,6 +351,33 @@ class SubrackMngBoard():
             if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
                 raise SubrackExecFault("Error:TPM Power off Failed")
         return global_status
+
+    def Get_tpm_alarms_vector(self):
+        """method to get temperature alarm status of all TPMS presents and powered ON
+        :return tpm_temp_alarm_status_vect,tpm_voltage_alarm_status_vect arrays with status of alarms temperature and
+        voltages of each TPM, each field can be 0 OK, 01 Warning, 02 alarm, 03 board Not present or not powered
+        """
+        tpm_temp_alarm_status_vect = []
+        tpm_voltage_alarm_status_vect = []
+        for slot in range (1,9):
+            if self.GetTPMPresent() & (1 << (slot - 1)) != 0:
+                if self.GetTPMOnOffVect() & (1 << (slot - 1)) == 0:
+                    tpm_temp_alarm_status_vect.append(0x3)
+                    tpm_voltage_alarm_status_vect.append(0x3)
+                else:
+                    tpm_ip_str = self.tpm_ip_list[slot - 1]
+                    tpm = TPM_1_6()
+                    tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False,
+                                fsample=800e6)
+                    global_status = tpm.get_global_status_alarms()
+                    tpm.disconnect()
+                    tpm_temp_alarm_status_vect.append(global_status["temperature_alm"])
+                    tpm_voltage_alarm_status_vect.append(global_status["voltage_alm"])
+            else:
+                tpm_temp_alarm_status_vect.append(0x3)
+                tpm_voltage_alarm_status_vect.append(0x3)
+        return tpm_temp_alarm_status_vect, tpm_voltage_alarm_status_vect
+
 
     def GetTPMTemperatures(self, tpm_slot_id, forceread=False):
         """method to get temperature of onboard TPM selected board present on subrack
@@ -643,7 +670,8 @@ class SubrackMngBoard():
             self.CpldMng.pll_calib()
             self.CpldMng.pll_ioupdate()
             time.sleep(0.5)
-            rd=hex(self.CpldMng.read_spi(0x3001))
+            #rd=hex(self.CpldMng.read_spi(0x3001))
+            rd = hex(self.CpldMng.pll_read_with_update(0x3001))
             print ("PLL lock reg: %s" % rd)
             if rd != "0x33":
                 print ("ERROR: PLL configuration failed, PLL not locked")
@@ -672,6 +700,33 @@ class SubrackMngBoard():
             if r != "0x33":
                 print ("ERROR: PLL configuration failed, PLL not locked")
         """
+
+    def GetLockedPLL(self):
+        """This method get the status of the PLL Lock
+        :return locked: value of locked status, True PLL is locked, False PLL not locked
+        """
+        #rd = hex(self.CpldMng.read_spi(0x3001))
+        rd = hex(self.CpldMng.pll_read_with_update(0x3001))
+        #print("PLL lock reg: %s" % rd)
+        if rd != "0x33":
+            #print("PLL not locked")
+            return False
+        else:
+            #print("PLL locked")
+            return True
+
+    def GetCPLDLockedPLL(self):
+        """This method get the status of the CPLD internal PLL Lock
+        :return locked: value of locked status, True PLL is locked, False PLL not locked
+        """
+        rd = hex(self.CpldMng.read_register(0xC))
+        #print("PLL CPLD lock reg: %s" % rd)
+        if (int(rd, 16) & 0x1) != 0x1:
+            #print("PLL not locked")
+            return False
+        else:
+            #print("PLL locked")
+            return True
 
     def GetPSVout(self, ps_id):
         """This method get the Vout voltage value of selected Power Supply of subrack
@@ -731,11 +786,15 @@ class SubrackMngBoard():
         """method to get Fan Status Alarm Register of subrack
         :return alarms: OK, WARN, ALARM, WARN-ALARM, of each Fan
         """
+        
+
 
     def GetVoltageAlarm(self):
         """method to get TPM Voltages Power supply Alarm Register of subrack
         :return alarms: status vector, OK, WARN, ALM of each TPM Voltages Alarm, for each board
         """
+
+
     def GetPowerAlarm(self):
         """method to get TPM Power consumption Alarm Register of subrack
         :return alarms: status vector, OK, WARN, ALM of each TPM Voltages Alarm, for each board

@@ -786,7 +786,7 @@ class Management():
         time.sleep(0.01)
         self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
         os.remove("/run/lock/mngfpgai2c.lock")
-        logging.info("End I2C OP")
+        logging.debug("End I2C OP")
         return datarx, 0
 
     def fpgai2c_write8(self, ICadd, reg_add, datatx, i2cbus_id):

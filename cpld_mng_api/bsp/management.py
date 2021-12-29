@@ -406,6 +406,14 @@ class MANAGEMENT:
     def write_spi(self, address, value):
         self.bsp.spi.spi_access("wr", address, value)
 
+    def pll_read_with_update(self, address):
+        self.write_spi(0xf, 0x1)
+        return self.bsp.spi.spi_access("rd", address, 0)
+
+    def pll_write_with_update(self, address, value):
+        self.bsp.spi.spi_access("wr", address, value)
+        self.write_spi(0xf, 0x1)
+
     def pll_ldcfg(self,cfg_filename):
         cfgfile = open(cfg_filename, "r")
         cfglines = cfgfile.readlines()

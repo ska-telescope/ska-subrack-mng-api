@@ -1,5 +1,8 @@
 var NAVTREEINDEX1 =
 {
+"namespacesubrack__mng__api_1_1subrack__management__board.html":[1,0,0,3],
+"namespacesubrack__mng__api_1_1subrack__management__board.html":[2,0,0,3],
+"pages.html":[],
 "subrack__management__board_8py.html":[3,0,0,4],
 "subrack__management__board_8py.html#a04428f40381e2b41af58e1b64eac39f2":[3,0,0,4,15],
 "subrack__management__board_8py.html#a1418b968300838741d764049b9ed797c":[3,0,0,4,8],
