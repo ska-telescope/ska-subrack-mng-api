@@ -353,7 +353,7 @@ class SubrackMngBoard():
         return global_status
 
     def Get_tpm_alarms_vector(self):
-        """method to get temperature alarm status of all TPMS presents and powered ON
+        """method to get temperature and voltage alarm status of all TPMS presents and powered ON
         :return tpm_temp_alarm_status_vect,tpm_voltage_alarm_status_vect arrays with status of alarms temperature and
         voltages of each TPM, each field can be 0 OK, 01 Warning, 02 alarm, 03 board Not present or not powered
         """
@@ -431,6 +431,32 @@ class SubrackMngBoard():
             if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
                 raise SubrackExecFault("Error:TPM Power off Failed")
         return temp_board_f, temp_fpga1_f, temp_fpga2_f
+
+    def Get_TPM_temperature_vector(self):
+        """method to get temperature of all TPMS presents and powered ON
+        :return tpm_temp_board_vect, tpm_temp_fpga1_vect, tpm_temp_fpga2_vect arrays with temperature of each TPM, each
+        field can be a temperature value or -256  board Not present or not powered
+        """
+        tpm_temp_board_vect = []
+        tpm_temp_fpga1_vect = []
+        tpm_temp_fpga2_vect = []
+        for slot in range (1,9):
+            if self.GetTPMPresent() & (1 << (slot - 1)) != 0:
+                if self.GetTPMOnOffVect() & (1 << (slot - 1)) == 0:
+                    tpm_temp_board_vect.append(-256)
+                    tpm_temp_fpga1_vect.append(-256)
+                    tpm_temp_fpga2_vect.append(-256)
+                else:
+                    temp_board_f, temp_fpga1_f, temp_fpga2_f = self.GetTPMTemperatures(slot)
+                    tpm_temp_board_vect.append(temp_board_f)
+                    tpm_temp_fpga1_vect.append(temp_fpga1_f)
+                    tpm_temp_fpga2_vect.append(temp_fpga2_f)
+            else:
+                tpm_temp_board_vect.append(-256)
+                tpm_temp_fpga1_vect.append(-256)
+                tpm_temp_fpga2_vect.append(-256)
+        return tpm_temp_board_vect, tpm_temp_fpga1_vect, tpm_temp_fpga2_vect
+
 
     def GetTPMMCUTemperature(self, tpm_slot_id, forceread=False):
         """method to get temperature of MCU on TPM selected board present on subrack

@@ -5,6 +5,7 @@ var classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board =
     [ "close", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#a3cdd34daf24d4ae841a2f0dfee213ef7", null ],
     [ "get_subrack_cpu_cpld_ip", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#a10908ea02320b83fd2ec8b106e94b752", null ],
     [ "Get_tpm_alarms_vector", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#a966ba581299327eb947028013822b117", null ],
+    [ "Get_TPM_temperature_vector", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#ac0fe42a4d44da74705ee00ed861abe09", null ],
     [ "GetCPLDLockedPLL", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#a9e2e4fcf4b67ed052d2b53de557b2fb3", null ],
     [ "GetFanAlarm", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#a12de69f29b2cc7e8cecd2f03fb9313b3", null ],
     [ "GetFanMode", "classsubrack__mng__api_1_1subrack__management__board_1_1_subrack_mng_board.html#a1922995ee993637d8764c31f42a4b67d", null ],
