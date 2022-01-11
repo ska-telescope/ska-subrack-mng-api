@@ -29,7 +29,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "____init_____8py.html",
-"namespacesubrack__mng__api_1_1management.html"
+"namespacesubrack__mng__api_1_1emulator__classes_1_1def4emulation.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

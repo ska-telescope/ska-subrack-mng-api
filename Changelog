@@ -23,3 +23,5 @@
 - implemented automatic IP assignement of TPM boards
 - porting to python3
 - changed setup installation scripts
+- add read temperature of all TPMs
+- add read alarms of all TPMs

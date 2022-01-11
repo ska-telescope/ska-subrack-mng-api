@@ -536,6 +536,77 @@ class PSVoltage(HardwareAttribute):
         ]
         return fan_speed
 
+class TPM_Add_List(HardwareAttribute):
+    """
+    TPM IP Address Will Be Assigned.
+    Returns 8 IP address, address will be assigned to each TPM in subrack slots
+    """
+    def read_value(self):
+        ip_add_list = self._hardware.GetTPM_Add_List()
+        return ip_add_list
+
+class TPM_Temperature_Alarms(HardwareAttribute):
+    """
+    TPMs Temperature alarm status
+    Returns 8 temeprature alarms
+    """
+    def read_value(self):
+        temp_alms = self._hardware.Get_tpm_alarms_vector()[0]
+        return temp_alms
+
+class TPM_Voltage_Alarms(HardwareAttribute):
+    """
+    TPMs Voltage alarm status
+    Returns 8 voltage alarms
+    """
+    def read_value(self):
+        voltage_alms = self._hardware.Get_tpm_alarms_vector()[1]
+        return voltage_alms
+
+class CPLD_PLL_Locked(HardwareAttribute):
+    """
+    Subrack CPLD PLL Lock status
+    Returns status of CPLD internal PLL lock
+    """
+    def read_value(self):
+        cpld_pll_lock = self._hardware.GetCPLDLockedPLL()
+        return cpld_pll_lock
+
+class Subrack_PLL_Locked(HardwareAttribute):
+    """
+    Subrack PLL Lock status
+    Returns status of Subrack PLL lock
+    """
+    def read_value(self):
+        cpld_pll_lock = self._hardware.GetLockedPLL()
+        return cpld_pll_lock
+
+class Subrack_Timestamp(HardwareAttribute):
+    """
+    Subrack Time in timestamp
+    Returns Time of Subrack in timrstamp format
+    """
+    def read_value(self):
+        tstamp = self._hardware.Get_Subrack_TimeTS()
+        return tstamp
+
+class API_Version(HardwareAttribute):
+    """
+    API version
+    Returns version of API
+    """
+    def read_value(self):
+        version = self._hardware.Get_API_version()
+        return version
+
+class TPM_Temperatures(HardwareAttribute):
+    """
+    TPMs Temperature vectors
+    Returns 8 TPMBoard temepratures , 8 TPM FPGA1 temperatures, 8 TPM FPGA2 temperatures
+    """
+    def read_value(self):
+        board_temps, fpga1_temps,fpga2_temps = self._hardware.Get_TPM_temperature_vector()
+        return board_temps, fpga1_temps,fpga2_temps
 
 class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
@@ -585,6 +656,14 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_attribute(PSCurrent("power_supply_currents", 0, subrack))
         self.add_attribute(PSPower("power_supply_powers", 0, subrack))
         self.add_attribute(PSVoltage("power_supply_voltages", 0, subrack))
+        self.add_attribute(TPM_Add_List("assigned_tpm_ip_adds", 0, subrack))
+        self.add_attribute(TPM_Temperature_Alarms("tpms_temp_alarms", 0, subrack))
+        self.add_attribute(TPM_Voltage_Alarms("tpms_voltage_alarms", 0, subrack))
+        self.add_attribute(CPLD_PLL_Locked("cpld_pll_locked", 0, subrack))
+        self.add_attribute(Subrack_PLL_Locked("subrack_pll_locked", 0, subrack))
+        self.add_attribute(TPM_Temperatures("tpms_temperatures", 0, subrack))
+        self.add_attribute(API_Version("api_version", 0, subrack))
+        self.add_attribute(Subrack_Timestamp("subrack_timestamp", 0, subrack))
 
     def execute_command(self, command, params=None):
         try:

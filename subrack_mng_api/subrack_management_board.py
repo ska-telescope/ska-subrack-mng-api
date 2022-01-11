@@ -4,9 +4,11 @@ from subprocess import Popen, PIPE
 import sys
 import os
 import time
-from datetime import datetime
+import calendar
+import datetime
 from subrack_mng_api.management import *
 from subrack_mng_api.backplane import *
+from subrack_mng_api.version import *
 import logging
 from pyfabil.base.definitions import *
 from pyfabil.base.utils import ip2long
@@ -76,9 +78,10 @@ TPM_CPLD_REGFILE_BA=0x30000000
 
 subrack_slot_config_file="/etc/SKA/subrack_slot.conf"
 
-PLL_CFG_FILE = "pll_subrack_OCXO.txt"
+PLL_CFG_FILE = "../cpld_mng_api/pll_subrack_OCXO.txt"
 
-
+def dt_to_timestamp(d):
+    return calendar.timegm(d.timetuple())
 
 def detect_ip(tpm_slot_id):
     try:
@@ -213,12 +216,29 @@ class SubrackMngBoard():
         self.CpldMng.write_register(address, value)
 
     #  ##TPM GET/SET INFO METHODS
+    def Get_API_version(self):
+        """ method to get the Version of the API
+        :return string with API version
+        """
+        return get_version()
+
+    def Get_Subrack_TimeTS(self):
+        """ method to get the subrack Time in timestamp format
+        :return time in timestamp format
+        """
+        tstamp = dt_to_timestamp(datetime.utcnow())
+        return tstamp
+
     def GetTPM_Add_List(self):
+        """ method to get the IP address will be assigned to each TPM board present on subrack
+        :return list of IP address will be assigned assigned
+        """
         if len(self.tpm_ip_list) == 8:
             print("TPM address will be assigned:")
             for i in range(0, 8):
                 # tpm_add = (tpm_ip_add_h | (cpu_ip_l + 6 + i))
                 print("slot %d -> %s" % (i, self.tpm_ip_list[i]))
+            return self.tpm_ip_list
         else:
             print("Error TPM IP list")
             raise SubrackExecFault("Error:TPM IP Add List Incomplete")
@@ -355,15 +375,15 @@ class SubrackMngBoard():
     def Get_tpm_alarms_vector(self):
         """method to get temperature and voltage alarm status of all TPMS presents and powered ON
         :return tpm_temp_alarm_status_vect,tpm_voltage_alarm_status_vect arrays with status of alarms temperature and
-        voltages of each TPM, each field can be 0 OK, 01 Warning, 02 alarm, 03 board Not present or not powered
+        voltages of each TPM, each field can be 0 OK, 01 Warning, 02 alarm, 03 warning then alarm, 04 board Not present or not powered
         """
         tpm_temp_alarm_status_vect = []
         tpm_voltage_alarm_status_vect = []
         for slot in range (1,9):
             if self.GetTPMPresent() & (1 << (slot - 1)) != 0:
                 if self.GetTPMOnOffVect() & (1 << (slot - 1)) == 0:
-                    tpm_temp_alarm_status_vect.append(0x3)
-                    tpm_voltage_alarm_status_vect.append(0x3)
+                    tpm_temp_alarm_status_vect.append(0x4)
+                    tpm_voltage_alarm_status_vect.append(0x4)
                 else:
                     tpm_ip_str = self.tpm_ip_list[slot - 1]
                     tpm = TPM_1_6()
@@ -374,8 +394,8 @@ class SubrackMngBoard():
                     tpm_temp_alarm_status_vect.append(global_status["temperature_alm"])
                     tpm_voltage_alarm_status_vect.append(global_status["voltage_alm"])
             else:
-                tpm_temp_alarm_status_vect.append(0x3)
-                tpm_voltage_alarm_status_vect.append(0x3)
+                tpm_temp_alarm_status_vect.append(0x4)
+                tpm_voltage_alarm_status_vect.append(0x4)
         return tpm_temp_alarm_status_vect, tpm_voltage_alarm_status_vect
 
 
