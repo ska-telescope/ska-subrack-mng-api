@@ -264,7 +264,7 @@ if (fw_ver & 0xffff) < 0x0009:
 set_SFP(2)
 while (1):
 	get_port_cfg(9, 2)
-	print hex(read22(2, 9, 0x1f))
+	print(hex(read22(2, 9, 0x1f)))
 	time.sleep(1)
 	exit(0)
 exit(0)

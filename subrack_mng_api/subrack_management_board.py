@@ -316,6 +316,16 @@ class SubrackMngBoard:
         else:
             raise SubrackInvalidCmd("Impossible to get Voltage Value, TPM is not present")
 
+    #GetTPMTemperature
+    #@brief method to get temperature of selected tpm (providing subrack index slot of tpm)
+    #@param[in]: subrack slot index for selected TPM, accepted value 1-8
+    def GetTPMVoltage(self,tpm_slot_id,force=True):
+        if self.GetTPM()&(1<<(tpm_slot_id-1))!=0 or force:
+            temperature=20.0 # this is a dummy value, temperature is not measured yet
+            return temperature
+        else:
+            raise SubrackInvalidCmd("Impossible to get Voltage Value, TPM is not present")
+
     #GetSubrackTemperatures
     #@brief method to get temperatures from sensors placed on backplane and subrack-management boards
     #return temp_mng1 temperature value of management sensor 1
