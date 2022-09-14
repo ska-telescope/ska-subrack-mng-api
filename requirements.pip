@@ -1,0 +1,38 @@
+ipython
+h5py
+pyyaml
+lockfile
+scapy
+numpy
+gitpython
+pytz
+configparser
+future
+astropy
+matplotlib
+scipy
+mongoengine
+pymongo
+slacker
+singleton_decorator
+tabulate
+psutil
+console_progressbar
+lxml
+geocoder
+parse
+visa
+netifaces
+
+Cython
+#future
+#parse
+uritools
+#pip install psutil
+terminaltables
+#pip install ipython==5.5.0
+#numpy
+#pip install lxml
+#pip install enum34
+#matplotlib
+#pip install scipypip list

@@ -608,6 +608,15 @@ class TPM_Temperatures(HardwareAttribute):
         board_temps, fpga1_temps,fpga2_temps = self._hardware.Get_TPM_temperature_vector()
         return board_temps, fpga1_temps,fpga2_temps
 
+class ups_status(HardwareAttribute) :
+    """
+    UPS board status
+    Returns UPS Board Status: ups_status = {"alarm":False,"warning":False,"charging":False}
+    """
+    def read_value(self):
+        ups_status = self._hardware.GetUPSStatus()
+        return ups_status
+
 class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
         subrack = SubrackMngBoard(simulation=emulation)
