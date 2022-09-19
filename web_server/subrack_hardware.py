@@ -357,7 +357,8 @@ class TpmTemperatures(HardwareAttribute):
         tpm_detected = byte_to_bool_array(self._hardware.GetTPMPresent())
         for tpm in range(8):
             if tpm_detected[tpm]:
-                answer[tpm] = self._hardware.GetTPMTemperature(tpm + 1)
+                answer[tpm] = 0.0  # GetTPMTemperature not implemented
+                #answer[tpm] = self._hardware.GetTPMTemperature(tpm + 1)
         return answer
 
 
