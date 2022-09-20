@@ -195,7 +195,14 @@ class HardwareThreadedDevice(HardwareBaseDevice):
 
         :return: dictionary for json answer
         """
-        if command in self.command_dict.keys():
+        if command is None: 
+            answer = {
+                "status": "ERROR",
+                "info": "Command not specified",
+                "command": command,
+                "retvalue": "",
+            }
+        elif command in self.command_dict.keys():
             cmdObj = self.command_dict[command]
             blocked = False
             if not (self._runningCommand is None):
@@ -219,7 +226,7 @@ class HardwareThreadedDevice(HardwareBaseDevice):
         else:
             answer = {
                 "status": "ERROR",
-                "info": "Command " + str(command) + "not implemented",
+                "info": "Command " + str(command) + " not implemented",
                 "command": command,
                 "retvalue": "",
             }

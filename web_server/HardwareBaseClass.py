@@ -138,12 +138,10 @@ class HardwareAttribute:
             info = "Wrong number of values for attribute " + self._name
 
         if value is None:
-            status = "ERROR"
-            info = self._lasterr
+            self._lasterr = info
         else:
             self._value = value
             status = "OK"
-            info = ""
         answer = {
             "status": status,
             "info": info,
@@ -257,7 +255,14 @@ class HardwareBaseDevice:
 
         :return: dictionary for json answer
         """
-        if command in self.command_dict.keys():
+        if command is None:
+            answer = {
+                "status": "ERROR",
+                "info": "Command not specified",
+                "command": command,
+                "retvalue": "",
+            }
+        elif command in self.command_dict.keys():
             answer = self.command_dict[command].do(params)
         else:
             answer = {
@@ -278,7 +283,14 @@ class HardwareBaseDevice:
 
         :return: dictionary for json answer
         """
-        if attribute in self.attribute_dict.keys():
+        if attribute is None:
+            answer = {
+                "status": "ERROR",
+                "info": "attribute not specified",
+                "attribute": attribute,
+                "retvalue": "",
+            }
+        elif attribute in self.attribute_dict.keys():
             answer = self.attribute_dict[attribute].write(values)
         else:
             answer = {
@@ -298,8 +310,14 @@ class HardwareBaseDevice:
 
         :return: dictionary for json answer
         """
-
-        if attribute in self.attribute_dict.keys():
+        if attribute is None:
+            answer = {
+                "status": "ERROR",
+                "info": "attribute not specified",
+                "attribute": attribute,
+                "retvalue": "",
+            }
+        elif attribute in self.attribute_dict.keys():
             answer = self.attribute_dict[attribute].read()
         else:
             answer = {
