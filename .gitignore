@@ -1,17 +1,3 @@
-*.swp
-*~
-*.sav
-*.old
-*.new
-*.ori
-*.out
-*.fts
-*.csv
-*.pyc
-*.png
-*.gif
-*.md5
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -35,7 +21,6 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-venv_py3/
 *.egg-info/
 .installed.cfg
 *.egg

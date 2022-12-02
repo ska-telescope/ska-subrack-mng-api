@@ -3,7 +3,7 @@ __author__ = 'Cristian Albanese'
 import sys
 import time
 from optparse import OptionParser
-from management import *
+from subrack_mng_api.management import *
 
 usage_string="usage: %prog [options] [<register_category>.<register/bitfield name>] [<value>]\n"
 usage_hexample="es. %prog FPGA_FW.FirmwareVersion\nes. %prog UserReg.UserReg0 0x12345678\n"

@@ -114,9 +114,6 @@ $(document).ready(function(){initNavTree('classsubrack__mng__api_1_1management_1
 <div class="title">subrack_mng_api.management.Management Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-
-<p><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html" title="Management Class This class contain methods to permit access to all registers connected to the manage...">Management</a> Class This class contain methods to permit access to all registers connected to the management CPU (iMX6) mapped in filesystem.  
- <a href="classsubrack__mng__api_1_1management_1_1_management.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -127,7 +124,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae6282f87e403e86603afd7e68632ecf0"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#ae6282f87e403e86603afd7e68632ecf0">create_all_regs_list</a> (self)</td></tr>
 <tr class="memdesc:ae6282f87e403e86603afd7e68632ecf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">create_all_regs_list This method permit to fill all categories register lists (&lt;category_name&gt;_list variable)  <a href="#ae6282f87e403e86603afd7e68632ecf0">More...</a><br /></td></tr>
 <tr class="separator:ae6282f87e403e86603afd7e68632ecf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34b25d72d6f55cac2b2ed593f34e82c6"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a34b25d72d6f55cac2b2ed593f34e82c6">create_regs_list</a> (self, categories)</td></tr>
+<tr class="memitem:a34b25d72d6f55cac2b2ed593f34e82c6"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a34b25d72d6f55cac2b2ed593f34e82c6">create_regs_list</a> (self, <a class="el" href="namespacesubrack__mng__api_1_1management.html#a32efbdb3a5b485cd07c80be797e53dbb">categories</a>)</td></tr>
 <tr class="memdesc:a34b25d72d6f55cac2b2ed593f34e82c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">create_regs_list This method permit to fill selected categories register lists (&lt;category_name&gt;_list variable)  <a href="#a34b25d72d6f55cac2b2ed593f34e82c6">More...</a><br /></td></tr>
 <tr class="separator:a34b25d72d6f55cac2b2ed593f34e82c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa425d739351c751c889c22b0bd01746b"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#aa425d739351c751c889c22b0bd01746b">dump_categories</a> (self)</td></tr>
@@ -172,6 +169,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab8b2cf57cb509081f3c83e4f76d8d060"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#ab8b2cf57cb509081f3c83e4f76d8d060">dump_onewire_regs_all</a> (self)</td></tr>
 <tr class="memdesc:ab8b2cf57cb509081f3c83e4f76d8d060"><td class="mdescLeft">&#160;</td><td class="mdescRight">dump_onewire_regs_all This method print all OneWire Registers values  <a href="#ab8b2cf57cb509081f3c83e4f76d8d060">More...</a><br /></td></tr>
 <tr class="separator:ab8b2cf57cb509081f3c83e4f76d8d060"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee5283eff641b1a1f33e9134c725c419"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#aee5283eff641b1a1f33e9134c725c419">get_cpld_actual_ip</a> (self)</td></tr>
+<tr class="separator:aee5283eff641b1a1f33e9134c725c419"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa631d01c1a342cbb8baf601f22287a71"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#aa631d01c1a342cbb8baf601f22287a71">get_fram_reg</a> (self, name)</td></tr>
 <tr class="memdesc:aa631d01c1a342cbb8baf601f22287a71"><td class="mdescLeft">&#160;</td><td class="mdescRight">get_fram_reg This method return selected FPGA Ram register value  <a href="#aa631d01c1a342cbb8baf601f22287a71">More...</a><br /></td></tr>
 <tr class="separator:aa631d01c1a342cbb8baf601f22287a71"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -191,10 +190,26 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa0062da6ef431a8b48716bed31a0db6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18487caf188a839f92fdaf3d36c68436"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a18487caf188a839f92fdaf3d36c68436">fpgai2c_read8</a> (self, ICadd, reg_add, i2cbus_id)</td></tr>
 <tr class="separator:a18487caf188a839f92fdaf3d36c68436"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2cc86fa194710b0ecc80eb0c6a4b9c8"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#ab2cc86fa194710b0ecc80eb0c6a4b9c8">fpgai2c_write16</a> (self, ICadd, reg_add, datatx, i2cbus_id)</td></tr>
+<tr class="separator:ab2cc86fa194710b0ecc80eb0c6a4b9c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a511bf7e54dfe9b529a25a3a84a64a07b"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a511bf7e54dfe9b529a25a3a84a64a07b">fpgai2c_read16</a> (self, ICadd, reg_add, i2cbus_id)</td></tr>
 <tr class="separator:a511bf7e54dfe9b529a25a3a84a64a07b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03f3c494ddf1294bd1470d6fbc031f38"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a03f3c494ddf1294bd1470d6fbc031f38">GetMngTemp</a> (self, sens_id)</td></tr>
 <tr class="separator:a03f3c494ddf1294bd1470d6fbc031f38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f74e0b8540a5f5f1dde04e58bb784b7"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a6f74e0b8540a5f5f1dde04e58bb784b7">uart2mcu_write</a> (self, data_w)</td></tr>
+<tr class="separator:a6f74e0b8540a5f5f1dde04e58bb784b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47c6b19b631cb2e26441f57a51b4ab35"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a47c6b19b631cb2e26441f57a51b4ab35">uart2mcu_write_then_read</a> (self, data_w, lenr=None)</td></tr>
+<tr class="separator:a47c6b19b631cb2e26441f57a51b4ab35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a01767dfea62b64a18c7d433eefb156e3"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a01767dfea62b64a18c7d433eefb156e3">uart2mcu_write_single</a> (self, data_w)</td></tr>
+<tr class="separator:a01767dfea62b64a18c7d433eefb156e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b4999b810550dd080b6737dba69cc91"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a4b4999b810550dd080b6737dba69cc91">uart2mcu_read</a> (self)</td></tr>
+<tr class="separator:a4b4999b810550dd080b6737dba69cc91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5076c35d53727d4fb9fbf3670c9385aa"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a5076c35d53727d4fb9fbf3670c9385aa">uart2mcu_read_buff</a> (self)</td></tr>
+<tr class="separator:a5076c35d53727d4fb9fbf3670c9385aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a978032f40c3743c5c04f45f2b02093e6"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a978032f40c3743c5c04f45f2b02093e6">uart2mcu_havedata</a> (self)</td></tr>
+<tr class="separator:a978032f40c3743c5c04f45f2b02093e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79ba64483c3be96a3d67ed29085a0db4"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a79ba64483c3be96a3d67ed29085a0db4">start_mcu_sam_ba_monitor</a> (self)</td></tr>
+<tr class="separator:a79ba64483c3be96a3d67ed29085a0db4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92970d9901e0885e781f20164ae49f52"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a92970d9901e0885e781f20164ae49f52">OneWire_Set_CLK</a> (self, clkvalue)</td></tr>
 <tr class="separator:a92970d9901e0885e781f20164ae49f52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79aa4acbbc1d3e81bd5794a72f1883da"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a79aa4acbbc1d3e81bd5794a72f1883da">OneWire_Get_CLK</a> (self)</td></tr>
@@ -227,6 +242,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:afc57c4a7a2da96106d122f99b2d9b455"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#afc57c4a7a2da96106d122f99b2d9b455">mcuuart</a></td></tr>
+<tr class="separator:afc57c4a7a2da96106d122f99b2d9b455"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6184075805b2a7a54790ea7dcfa87893"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#a6184075805b2a7a54790ea7dcfa87893">data</a></td></tr>
 <tr class="separator:a6184075805b2a7a54790ea7dcfa87893"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad819ccc1ec3bf06777d929998bf19af0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html#ad819ccc1ec3bf06777d929998bf19af0">simulation</a></td></tr>
@@ -235,9 +252,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a2ced7b5727b04346279440c5832e6730"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="classsubrack__mng__api_1_1management_1_1_management.html" title="Management Class This class contain methods to permit access to all registers connected to the manage...">Management</a> Class This class contain methods to permit access to all registers connected to the management CPU (iMX6) mapped in filesystem. </p>
-
-<p>Definition at line <a class="el" href="management_8py_source.html#l00266">266</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<div class="textblock">
+<p>Definition at line <a class="el" href="management_8py_source.html#l00299">299</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a4d8d2398c05d787452caee9580e75976"></a>
 <div class="memitem">
@@ -263,7 +279,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00267">267</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00300">300</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -281,7 +297,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00288">288</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00322">322</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -300,7 +316,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l01080">1080</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01302">1302</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -320,7 +336,7 @@ Public Attributes</h2></td></tr>
 
 <p>create_all_regs_list This method permit to fill all categories register lists (&lt;category_name&gt;_list variable) </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00294">294</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00328">328</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -356,7 +372,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00335">335</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00375">375</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -376,7 +392,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_categories This method permit to print all available registers categories </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00373">373</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00422">422</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -396,7 +412,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_fpga_userreg_all This method print all FPGA User Registers values </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00493">493</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00540">540</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -416,7 +432,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_fram_regs_all This method print all FPGA Ram Registers values </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00529">529</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00576">576</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -436,7 +452,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_housekeeping_flags_all This method print all HouseKeeping registers/flags values </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00486">486</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00533">533</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -456,7 +472,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_mcu_regs_all This method print all MCU Registers values </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00515">515</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00562">562</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -476,7 +492,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_onewire_regs_all This method print all OneWire Registers values </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00537">537</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00584">584</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -496,7 +512,7 @@ Public Attributes</h2></td></tr>
 
 <p>dump_userled_all This method print all FPGA User Leds values </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00500">500</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00547">547</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -560,7 +576,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00612">612</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00675">675</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -600,7 +616,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00804">804</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00866">866</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -640,7 +656,53 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00753">753</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00814">814</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ab2cc86fa194710b0ecc80eb0c6a4b9c8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.fpgai2c_write16 </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>ICadd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>reg_add</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>datatx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>i2cbus_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00839">839</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -686,7 +748,25 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00731">731</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00792">792</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aee5283eff641b1a1f33e9134c725c419"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.get_cpld_actual_ip </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00593">593</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -706,7 +786,7 @@ Public Attributes</h2></td></tr>
 
 <p>get_fpga_fw_version This method return the FPGA Fw version, version buid year and build date return version: version of FW return builddate: date and hour of FW build return buildyear: year of FW build </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00454">454</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00501">501</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -742,7 +822,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00547">547</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00609">609</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -778,7 +858,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00466">466</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00513">513</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -814,7 +894,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00509">509</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00556">556</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -834,7 +914,7 @@ Public Attributes</h2></td></tr>
 
 <p>get_polling_time This method return the devices polling time period of MCU in ms return regval: polling time in ms </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00479">479</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00526">526</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -862,7 +942,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00832">832</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00894">894</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -882,7 +962,7 @@ Public Attributes</h2></td></tr>
 
 <p>list_i2c_devadd This method print all name and addresses devices connected to I2C bus accessible from CPU </p>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00554">554</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00615">615</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -900,7 +980,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00870">870</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01098">1098</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -918,7 +998,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00850">850</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01079">1079</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -936,7 +1016,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l01047">1047</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01270">1270</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -964,7 +1044,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00928">928</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01154">1154</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -982,7 +1062,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00893">893</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01120">1120</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1010,7 +1090,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00912">912</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01138">1138</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1028,7 +1108,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00937">937</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01163">1163</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1072,7 +1152,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00971">971</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01195">1195</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1090,7 +1170,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00855">855</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01083">1083</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1118,7 +1198,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00921">921</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01147">1147</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1146,7 +1226,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00846">846</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01075">1075</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1164,7 +1244,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00947">947</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01173">1173</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1192,7 +1272,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00876">876</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l01104">1104</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1228,7 +1308,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00382">382</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00431">431</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1285,7 +1365,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00566">566</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00628">628</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1321,7 +1401,169 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00473">473</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00520">520</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a79ba64483c3be96a3d67ed29085a0db4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.start_mcu_sam_ba_monitor </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l01053">1053</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a978032f40c3743c5c04f45f2b02093e6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.uart2mcu_havedata </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l01043">1043</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4b4999b810550dd080b6737dba69cc91"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.uart2mcu_read </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00997">997</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a5076c35d53727d4fb9fbf3670c9385aa"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.uart2mcu_read_buff </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l01024">1024</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a6f74e0b8540a5f5f1dde04e58bb784b7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.uart2mcu_write </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>data_w</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00912">912</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a01767dfea62b64a18c7d433eefb156e3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.uart2mcu_write_single </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>data_w</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00973">973</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a47c6b19b631cb2e26441f57a51b4ab35"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">def subrack_mng_api.management.Management.uart2mcu_write_then_read </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>self</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>data_w</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>lenr</em> = <code>None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00932">932</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1364,7 +1606,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00419">419</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00468">468</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1427,7 +1669,7 @@ Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00588">588</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00650">650</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1442,7 +1684,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00268">268</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00302">302</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1456,7 +1698,21 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00443">443</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00492">492</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="afc57c4a7a2da96106d122f99b2d9b455"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subrack_mng_api.management.Management.mcuuart</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="management_8py_source.html#l00301">301</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>
@@ -1470,7 +1726,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="management_8py_source.html#l00269">269</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
+<p>Definition at line <a class="el" href="management_8py_source.html#l00303">303</a> of file <a class="el" href="management_8py_source.html">management.py</a>.</p>
 
 </div>
 </div>

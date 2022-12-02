@@ -16,3 +16,12 @@
 ## version 2.0.3
 - add cpld_mng_api: api to access on board CPLD via ETH
 - aligned API to manage HW Revision 1.2 board
+
+## version 2.0.4
+- crated tools folder with utils scripts
+- add pyfabil as submodule
+- implemented automatic IP assignement of TPM boards
+- porting to python3
+- changed setup installation scripts
+- add read temperature of all TPMs
+- add read alarms of all TPMs

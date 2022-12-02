@@ -6,15 +6,13 @@ from .management_bsp import MANAGEMENT_BSP
 from .management_flash import MngProgFlash
 from .management_mcu_uart import MngMcuUart
 from .management_spi import MANAGEMENT_SPI
-# from tpm_spi import TPM_SPI
-# from enum import Enum
-from pyfabil.base.definitions import *
 import zlib
 import binascii
 
 sys.path.append("../")
 import cpld_mng_api.netproto.rmp as rmp
 
+MAX_PLL_REG_ADD = 0x3a3c
 
 def hexstring2ascii(hexstring, xor=0):
     """ Convert a hexstring to an ASCII-String. If you like to XOR it, give the
@@ -354,7 +352,7 @@ class MANAGEMENT:
         :return: Values
         """
 
-        if type(register) in [int, long]:
+        if type(register) in [int, int]:
             return self.rmp.rd32(register + offset, n)
         else:
             self.checkLoad()
@@ -380,7 +378,7 @@ class MANAGEMENT:
         :param offset: Memory address offset to write to
         :param device: Device/node can be explicitly specified
         """
-        if type(register) in [int, long]:
+        if type(register) in [int, int]:
             self.rmp.wr32(register + offset, values)
         else:
             self.checkLoad()
@@ -407,6 +405,51 @@ class MANAGEMENT:
 
     def write_spi(self, address, value):
         self.bsp.spi.spi_access("wr", address, value)
+
+    def pll_read_with_update(self, address):
+        self.write_spi(0xf, 0x1)
+        return self.bsp.spi.spi_access("rd", address, 0)
+
+    def pll_write_with_update(self, address, value):
+        self.bsp.spi.spi_access("wr", address, value)
+        self.write_spi(0xf, 0x1)
+
+    def pll_ldcfg(self,cfg_filename):
+        cfgfile = open(cfg_filename, "r")
+        cfglines = cfgfile.readlines()
+        cfgfile.close()
+        opnum = len(cfglines)
+        print ("Writing PLL configuration...")
+        for i in range(1, opnum):
+            address = cfglines[i].split(",")[0]
+            value = cfglines[i].split(",")[1].splitlines()[0]
+            self.write_spi(int(address, 16), int(value, 16))
+        self.write_spi(0xf, 0x1)
+
+    def pll_dumpcfg(self,cfg_filename):
+        cfgfile = open(cfg_filename, "w")
+        print ("Reading PLL configuration...")
+        cfgfile.write("Address,Data\n")
+        for address in range(0, MAX_PLL_REG_ADD):
+            data = self.read_spi(address)
+            haddress = hex(address)
+            hdata = hex(data)
+            haddress = haddress[2:].zfill(4)
+            hdata = hdata[2:].zfill(2)
+            cfgfile.write("0x" + haddress.upper() + "," + "0x" + hdata.upper() + "\n")
+
+    def pll_calib(self):
+        print ("Calibrating PLL...")
+        self.write_spi(0x2000, 0x0)
+        self.write_spi(0xf, 0x1)
+        self.write_spi(0x2000, 0x2)
+        self.write_spi(0xf, 0x1)
+        self.write_spi(0x2000, 0x0)
+        self.write_spi(0xf, 0x1)
+
+    def pll_ioupdate(self):
+        self.write_spi(0xf, 0x1)
+        print ("PLL IO Updated ")
 
     def disconnect(self):
         self.rmp.CloseNetwork()
