@@ -13,3 +13,6 @@
  - moved emulation classes function in api classes
  - removed emulation classes files
  
+## version 2.0.3
+- add cpld_mng_api: api to access on board CPLD via ETH
+- aligned API to manage HW Revision 1.2 board

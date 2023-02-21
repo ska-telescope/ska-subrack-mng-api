@@ -16,6 +16,8 @@ class BackplaneInvalidParameter(Exception):
 
 
 power_supply_i2c_offset=[0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
+
+
 #mng=MngBoard()
 ### Backplane Board Class
 #This class contain methods to permit access to major functionality
@@ -29,6 +31,33 @@ class Backplane():
         self.data = []
 
     ######BACKPLANE TPM POWER CONTROL FUNCTIONS
+
+    ###power_on_bkpln
+    #This method Power On the Bacplane Board providing supply to the TPMs Powercontrol devices
+    ##@param[in] onoff: select the operation: 1 power on, 0 power off
+    def power_on_bkpln(self):
+        self.mng.write("CtrlRegs.BkplOnOff",1)
+        rdval=self.mng.read("CtrlRegs.BkplOnOff")
+        if rdval!=1:
+            print("Error during operation: Expected %d, Read %d" %(1,rdval))
+
+    ###power_off_bkpln
+    #This method Power Off the Bacplane Board providing supply to the TPMs Powercontrol devices
+    ##@param[in] onoff: select the operation: 1 power on, 0 power off
+    def power_off_bkpln(self):
+        self.mng.write("CtrlRegs.BkplOnOff",0)
+        rdval=self.mng.read("CtrlRegs.BkplOnOff")
+        if rdval!=0:
+            print("Error during operation: Expected %d, Read %d" %(0,rdval))
+
+
+    ###get_bkpln_is_onoff
+    #This method return the status of the Power On/Off registers for the Backplane Board power on,off
+    #return onoff: status of backplane board, 0 Pwered Off, 1 Powered On
+    def get_bkpln_is_onoff(self):
+        rdval=self.mng.read("CtrlRegs.BkplOnOff")
+        return rdval
+
 
     ###reset_pwr_fault_reg
     #This method reset the Bacplane TMP Power Controller fault register
@@ -126,6 +155,8 @@ class Backplane():
             print("power, "+str(pwr))
         return pwr
 
+
+
     ###get_voltage_tpm
     #This method return the selected TPM board power control voltage value provided to TPM board
     #@param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
@@ -188,6 +219,7 @@ class Backplane():
             status=1
             return status
         else:
+            self.reset_pwr_fault_reg(tpm_id)
             i2c_add=0x80+power_supply_i2c_offset[tpm_id-1]
             data,status=self.mng.fpgai2c_read8(i2c_add,0x11,FPGA_I2CBUS.i2c2)
             datatowr=int(data)|(cfg<<5)
