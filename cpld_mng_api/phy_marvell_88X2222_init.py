@@ -65,7 +65,7 @@ def read22(mux, phy_adr, register):
 	wr(ba + 0, 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
 	wr(ba + 4, register)
 	value = rd(ba + 0x08) & 0xffff
-	print("read22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
+	#print("read22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
 	return value
 
 
@@ -131,10 +131,15 @@ port_control_reg = {'name': "Port Control", 'offset': 0x4, 'fields': [
 	["PortState", 0, 0x3],
 ]}
 
+debug_reg = {'name': "Debug Register", 'offset': 0x1f, 'fields': [
+	["RxGood", 0, 0xff],
+	["RxBad", 8, 0xff],
+]}
 
-def read_and_decode(port, reg_def, mdio_mux=2):
+
+def read_and_decode(port, reg_def, mdio_mux=2, field = None):
 	reg_value = read22(mdio_mux, port, reg_def['offset'])
-	decode_register(port, reg_def, reg_value)
+	decode_register(port, reg_def, reg_value, field)
 
 
 def write22_reg(port, reg_def, reg_value):
@@ -151,10 +156,16 @@ def set_field(port, reg_def, field_name, field_value):
 	write22(2, port, reg_def['offset'], reg_value)
 
 
-def decode_register(port, reg_def, reg_value):
-	print("=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ===")
-	for field in reg_def['fields']:
-		print(field[0] + ": " + str(reg_value >> field[1] & field[2]))
+def decode_register(port, reg_def, reg_value, field = None):
+	if field is None:
+		print("=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ===")
+	for _field in reg_def['fields']:
+		if field is None:
+			print(_field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
+		else:
+			if field == _field[0]:
+				return reg_value >> _field[1] & _field[2]
+				# print("=== P" + str(port) + _field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
 
 
 def get_port_cfg(port, mdio_mux=2):
@@ -261,10 +272,11 @@ if (fw_ver & 0xffff) < 0x0009:
 # 		print(hex(read22(switch_mdio, 9, 0x1f)))
 #	time.sleep(1)
 
+"""
 set_SFP(2)
 while (1):
 	get_port_cfg(9, 2)
-	print hex(read22(2, 9, 0x1f))
+	print(hex(read22(2, 9, 0x1f)))
 	time.sleep(1)
 	exit(0)
 exit(0)
@@ -288,6 +300,7 @@ else:
 
 write45(mdio_mux, 0, 31, 0xF404, 0x4000)
 time.sleep(0.100)
+"""
 
 print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
 print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
@@ -302,9 +315,39 @@ print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
 print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 # 31,0xf403
 
-# /*10GR - XAUI mode*/
-for port in {0}:
+
+def read_wis(mdio_mux=3):
+	WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xffff
+	WIS_Device_Identifier_2 = read45(mdio_mux, 0, 2, 0x0003) & 0xffff
+
+	print("WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1))
+	print("WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2))
+	if WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0f15:
+		print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver")
+	elif WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0d99:
+		print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP")
+	else:
+		print("Unknown PHY")
+
+
+def cfg_10g(port=0,mdio_mux=3):
+	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
+	# mgdPDStatePowerUp()
+	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
+	# 31,0xf403
+
+	# /*10GR - XAUI mode*/
+
 	print("=== PORT " + str(port) + " ===")
+	write45(mdio_mux, 0, 31, 0xF404, 0x4000)
 	write45(mdio_mux, port, 31, 0xf002, 0x7173)
 	write45(mdio_mux, port, 30, 0xb841, 0xe000)
 	write45(mdio_mux, port, 30, 0x9041, 0x03fe)
@@ -341,4 +384,78 @@ for port in {0}:
 	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 tpm_inst.disconnect()
 
+def get_switch_status():
+	ports=[
+	{'name' : 'CPU',    'mdio_mux' : 0, 'port' : 0},# MCU U4-P0
+	{'name' : 'CPLD',   'mdio_mux' : 2, 'port' : 0},# CPLD U5-P0
+	{'name' : 'SLOT-1', 'mdio_mux' : 0, 'port' : 0},# SLOT-1 U4-P1
+	{'name' : 'SLOT-2', 'mdio_mux' : 0, 'port' : 0},# SLOT-2 U4-P2
+	{'name' : 'SLOT-3', 'mdio_mux' : 0, 'port' : 0},# SLOT-3 U4-P3
+	{'name' : 'SLOT-4', 'mdio_mux' : 0, 'port' : 0},# SLOT-4 U4-P4
+	{'name' : 'SLOT-5', 'mdio_mux' : 0, 'port' : 0},# SLOT-5 U4-P5
+	{'name' : 'SLOT-6', 'mdio_mux' : 0, 'port' : 0},# SLOT-6 U4-P6
+	{'name' : 'SLOT-7', 'mdio_mux' : 0, 'port' : 0},# SLOT-7 U4-P7
+	{'name' : 'SLOT-8', 'mdio_mux' : 0, 'port' : 0},# SLOT-8 U4-P8
+	{'name' : 'P1',     'mdio_mux' : 2, 'port' : 9},# U53 U5-P9
+	{'name' : 'P2',     'mdio_mux' : 0, 'port' : 9},# U52 U4-P9
+	{'name' : 'P3',     'mdio_mux' : 2, 'port' : 5},# J8-B U5-P5
+	{'name' : 'P4',     'mdio_mux' : 2, 'port' : 6},# J8-A U5-P6
+	]
+	status={}
+	for port in ports:
+		_status={}
+		if port['mdio_mux'] == 2:
+			reg_value = read22(port['mdio_mux'], port['port'], port_status_reg['offset'])
+			_status['link'] = decode_register(port, port_status_reg, reg_value, 'Link')
+			if _status['link'] == 1:
+				_speed=decode_register(port, port_status_reg, reg_value, 'Speed')
+				_duplex=decode_register(port, port_status_reg, reg_value, 'Duplex')
+				if _speed == 0:
+					_status['speed']="10"
+				elif _speed == 1:
+					_status['speed']="100"
+				elif _speed == 2:
+					_status['speed']="1000"
+				else:
+					_status['speed']="10G"
 
+				if _duplex == 0:
+					_status['speed']+=" HD"
+				else:
+					_status['speed']+=" FD"
+
+				reg_value = read22(port['mdio_mux'], port['port'], debug_reg['offset'])
+				_status['rxGood'] = decode_register(port, debug_reg, reg_value, 'RxGood')
+				_status['rxBad'] = decode_register(port, debug_reg, reg_value, 'RxBad')
+			else:
+				_status['speed'] = ""
+				_status['rxGood'] = ""
+				_status['rxBad'] = ""
+		status[port['name']]=_status
+	return status
+
+
+import tabulate
+
+if __name__ == "__main__":
+
+	parser = OptionParser(usage="usage: %test_tpm [options]")
+	parser.add_option("--ip", action="store", dest="ip", default="10.0.10.10", help="IP [default: 10.0.10.10]")
+	parser.add_option("--port", action="store", dest="port", type="int", default="10000", help="Port [default: 10000]")
+
+	(conf, args) = parser.parse_args(argv[1:])
+
+	# tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
+	mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
+	# decode_register(10, port_status_reg, 0x7fff)
+	# fw_ver = 0
+	fw_ver = mng[0x8]
+	print("Fw ver: " + hex(fw_ver))
+	if (fw_ver & 0xffff) < 0x0009:
+		print("Error, minimum version required 0x0009")
+		exit(1)
+	status=get_switch_status()
+	headers = ["name", "link", "speed","rxGood", "rxBad"]
+	status = [[name, *inner.values()] for name, inner in status.items()]
+	print(tabulate.tabulate(status, headers=headers, tablefmt="pipe"))
+	# read_wis()

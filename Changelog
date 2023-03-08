@@ -25,3 +25,9 @@
 - changed setup installation scripts
 - add read temperature of all TPMs
 - add read alarms of all TPMs
+
+## version 2.0.5
+- add method to get PLL and CPLD_PLL status
+- add method to get TPM temperatures vectors
+- updated pyfabil submodule to manage TPM with BIOS v0.3.1
+- add UPS-Board communication methods

@@ -9,8 +9,9 @@ from .management_spi import MANAGEMENT_SPI
 import zlib
 import binascii
 
+
 sys.path.append("../")
-import cpld_mng_api.netproto.rmp as rmp
+import netproto.rmp as rmp
 
 MAX_PLL_REG_ADD = 0x3a3c
 
@@ -399,6 +400,63 @@ class MANAGEMENT:
                     wdat = wdat << get_shift_from_mask(self.reg_dict[register]['bitmask'])
                     self.rmp.wr32(int(self.reg_dict[register]['address'], 16) + offset, wdat | rd)
                 return
+
+    def get_bios(self):
+        string = "CPLD_"
+        string += hex(self.rmp.rd32(0x8)) + "_" + hex(self.rmp.rd32(0x4) << 32 | self.rmp.rd32(0x0))
+        string += "-MCU_"
+        string += hex(self.rmp.rd32(0x30000)) + "_" + hex(self.rmp.rd32(0x30008) << 32 | self.rmp.rd32(0x30004))
+        final_string = "v?.?.? (%s)" % string
+        """
+        for BIOS_REV in self.BIOS_REV_list:
+            if BIOS_REV[1] == string:
+                final_string = "v%s (%s)" % (BIOS_REV[0], string)
+                break
+        """
+        return final_string
+
+    def get_mac(self):
+        mac = self.bsp.get_field("MAC")
+        mac_str = ""
+        for i in range(0,len(mac)-1):
+            mac_str += '{0:02x}'.format(mac[i])+":"
+        mac_str += '{0:02x}'.format(mac[len(mac)-1])
+        return mac_str
+
+    def get_board_info(self):
+        mng_info = {"ip_address": self.bsp.long2ip(self.rmp.rd32(0x110)),
+                    "netmask": self.bsp.long2ip(self.rmp.rd32(0x114)),
+                    "gateway": self.bsp.long2ip(self.rmp.rd32(0x118)),
+                    "ip_address_eep": self.bsp.get_field("ip_address"),
+                    "netmask_eep": self.bsp.get_field("netmask"),
+                    "gateway_eep": self.bsp.get_field("gateway"),
+                    "MAC": self.get_mac(),
+                    "SN": self.bsp.get_field("SN"),
+                    "PN": self.bsp.get_field("PN"),
+                    "bios": self.get_bios()
+                    }
+        if self.bsp.get_field("BOARD_MODE") == 0x1:
+            mng_info["BOARD_MODE"] = "SUBRACK"
+        elif self.bsp.get_field("BOARD_MODE") == 0x2:
+            mng_info["BOARD_MODE"] = "CABINET"
+        else:
+            mng_info["BOARD_MODE"] = "UNKNOWN"
+
+        location = [self.bsp.get_field("CABINET_LOCATION"),
+                    self.bsp.get_field("SUBRACK_LOCATION"),
+                    self.bsp.get_field("SLOT_LOCATION")]
+        mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
+
+        pcb_rev = self.bsp.get_field("PCB_REV")
+        if pcb_rev == 0xff:
+            pcb_rev_string = ""
+        else:
+            pcb_rev_string = str(pcb_rev)
+
+        hw_rev = self.bsp.get_field("HARDWARE_REV")
+        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
+
+        return mng_info
 
     def read_spi(self, address):
         return self.bsp.spi.spi_access("rd", address, 0)

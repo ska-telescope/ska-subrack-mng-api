@@ -23,13 +23,21 @@ class FlasdhDev():
 
 
 
-
+"""
 FlashDevice_CPLD = FlasdhDev(name="Flash_CPLD",
                              description="winbond,w25q32jv",
                              jedecID=0xef4016,
                              pageSize=256,
                              sectorSize=64 * 1024,
                              sectorCount=64,
+                             slaveID=0x00000000)
+"""
+FlashDevice_CPLD = FlasdhDev(name="Flash_CPLD",
+                             description="winbond,w25q128jv",
+                             jedecID=0xef7018,
+                             pageSize=256,
+                             sectorSize=64 * 1024,
+                             sectorCount=256,
                              slaveID=0x00000000)
 
 
@@ -381,7 +389,7 @@ class MngProgFlash():
         f.close()
 
     def firmwareProgram(self, flashdeviceindedx, bitstreamFilename, address, dumpFilename = None, erase_all=False,
-                        add_len=False):
+                        erase_size=None, add_len=False):
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         sectorSize = device.sectorSize
@@ -402,6 +410,10 @@ class MngProgFlash():
             memblock = memblock1
 
         sector_num = (size // sectorSize)
+        if erase_size != None:
+            sector_erase_num = (erase_size//sectorSize)
+        else:
+            sector_erase_num = sector_num
         end_sector_offset = sector_num + sectorOffset
 
         # Read bitfile and cast as a list of unsigned integers
@@ -425,11 +437,11 @@ class MngProgFlash():
                 if sect == 0:
                     break
         else:
-            print ("Starting Chip Erase ")
+            print("Starting Chip Erase ")
             print("--- ERASING ------------------------------------------------------------------------------------")
             self.FlashDevice_chiperase(device)
 
-        print ("Starting programming from sector %d" % (sectorOffset))
+        print("Starting programming from sector %d" % (sectorOffset))
         print("--- PROGRAMMING ------------------------------------------------------------------------------------")
         sect = 0
         upper_flash = False
@@ -441,7 +453,7 @@ class MngProgFlash():
             c = 0
             # for k in range (0,sectorSize):
             #    bufferO[k]=memblock[k+off]
-            if upper_flash == False and (i * sectorSize) >= 0x1000000:
+            if upper_flash is False and (i * sectorSize) >= 0x1000000:
                 upper_flash = True
                 self.FlashDevice_Enter4byteAddMode(device)
             print("W ",)
@@ -462,6 +474,7 @@ class MngProgFlash():
                     break
             if c != 0:
                 retry = 2
+                counterr = 0
                 while retry > 0:
                     print("Error detected, retring to write sector")
                     print("Sector %03d @ %08X: Erasing" % (i, i * sectorSize))

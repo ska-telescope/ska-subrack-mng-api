@@ -23,6 +23,8 @@ geocoder
 parse
 visa
 netifaces
+art
+
 
 Cython
 #future

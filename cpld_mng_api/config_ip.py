@@ -4,7 +4,7 @@ from bsp.management import *
 from optparse import OptionParser
 from netifaces import AF_INET
 import netifaces as ni
-
+from functools import reduce
 
 CPLD_IP_OFFSET = 0x00010028
 CPLD_NETMASK_OFFSET = 0x0001002c
@@ -22,7 +22,7 @@ def int2ip(value):
 
 def get_mac_from_eep(inst, phy_addr = 0xA0):
     mac=[]
-    for i in range (eep_sec["MAC"]["size"]):
+    for i in range(eep_sec["MAC"]["size"]):
         rdval=inst.bsp.eep_rd8(eep_sec["MAC"]["offset"]+i, phy_addr)
         mac.append(rdval)
     return mac
@@ -170,7 +170,7 @@ if __name__ == "__main__":
             print ("Gateway\t\t" + options.gateway)
         print()
         if options.force==False:
-            if raw_input("Press Y to continue, any other key to exit. ") != "Y":
+            if input("Press Y to continue, any other key to exit. ") != "Y":
                 exit (0)
     #print
     #print "List of available IP addresses:"
@@ -192,16 +192,16 @@ if __name__ == "__main__":
         print ("List of available IP addresses:")
         for i in range(len(ips)):
             print ("[" + str(i) + "] " + ips[i])
-        idx = raw_input("Select the IP address, this selects the output interface of broadcast UCP packets. ")
+        idx = input("Select the IP address, this selects the output interface of broadcast UCP packets. ")
         try:
             idx = int(idx)
         except:
             print ("What are you doing? I have to input a number!")
             sys.exit(1)
         if not idx in range(len(ips)):
-            print ("The specified interface doesn't exist!")
+            print("The specified interface doesn't exist!")
         else:
-            print ("Selected IP: " + ips[idx])
+            print("Selected IP: " + ips[idx])
     else:
         idx = -1
         i = 0
@@ -211,8 +211,8 @@ if __name__ == "__main__":
                 break
             i += 1
         if idx == -1:
-            print ("IP addresses not found: " + options.host_ip)
-            print ("List of available IP addresses:")
+            print("IP addresses not found: " + options.host_ip)
+            print("List of available IP addresses:")
             for i in range(len(ips)):
                 print ("[" + str(i) + "] " + ips[i])
             exit(-1)
@@ -297,7 +297,8 @@ if __name__ == "__main__":
             inst.bsp.i2c_remove_passwd()
 
         if options.hw_rev != "":
-            hw_rev=map(int,options.hw_rev.split("."))
+            #hw_rev=map(int,options.hw_rev.split("."))
+            hw_rev = list(map(int, options.hw_rev.split(".")))
             if len(hw_rev) == 2:
                 hw_rev.append(0)
             if len(hw_rev) != 3:
@@ -310,7 +311,7 @@ if __name__ == "__main__":
             inst.bsp.i2c_remove_passwd()
 
         if options.location != "":
-            location=map(int,options.location.split(":"))
+            location=list(map(int,options.location.split(":")))
             if len(location) != 4:
                 print ("Error - LOCATION (SITE:CABINET:SUBRACK:SLOT)")
                 exit(-1)

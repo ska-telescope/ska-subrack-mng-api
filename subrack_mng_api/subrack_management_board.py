@@ -103,23 +103,29 @@ def detect_ip(tpm_slot_id):
     tpm_board_ip=tpm_ip_part[0]+"."+tpm_ip_part[1]+"."+tpm_ip_part[2]+"."+tpm_new_last
     return tpm_board_ip,subrack_cpu_ip
 
+
 def detect_cpu_ip():
-    cmd = "ifconfig eth0:1"
+    cmd = "ip address"
     ret = run(cmd)
     lines = ret.splitlines()
+    print(lines)
     found = False
     state = 0
     cpu_ip = "255.255.255.255"
     for r in range(0, len(lines)):
         if str(lines[r]).find("inet") != -1:
-            cpu_ip = str(lines[r]).split(" ")[9]
-            #print (cpu_ip)
-            found = True
-
+            print(lines[r])
+            cpu_ip = str(lines[r]).split(" ")[5]
+            print("CPU IP:", str(lines[r]).split(" "))
+            if cpu_ip.find("10.0.10") != -1:
+                cpu_ip = cpu_ip.split("/")[0]
+                found = True
+                break
     if found is False:
         state = -1
         cpu_ip = "255.255.255.255"
     return state, cpu_ip
+
 
 def int2ip(value):
     ip = str((value >> 24) & 0xff)
@@ -827,64 +833,85 @@ class SubrackMngBoard():
             return True
 
     # #UPS SECTION
-    def SetUPSVoltageThresholds(self,warning_level,alarm_level):
+    def SetUPSVoltageAlarmThresholds(self,alarm_level):
         error = 0
         if self.ups_present:
-            if warning_level < 12 and warning_level > 0 and warning_level > alarm_level:
-                self.warning_l=warning_level
-                if alarm_level < 12:
-                    self.alarm_l = alarm_level
-                else:
-                    error += 1
+            if alarm_level < self.warning_l:
+                self.alarm_l = alarm_level
             else:
                 error += 1
-        else:
-            error += 1
+        return error
+
+    def SetUPSVoltageWarningThresholds(self,warning_level):
+        error = 0
+        if self.ups_present:
+            if warning_level > self.alarm_l:
+                self.warning_l = warning_level
+            else:
+                error += 1
         return error
 
     def GetUPSStatus(self):
         if self.ups_present:
-            received=False
-            start = time.time()
+            received = False
+
             timeout = False
             while (received is False) and (timeout is False):
+                start = time.time()
                 receive_data = self.ser.read(32)  # read serial port
+                print("Received Data", receive_data)
                 end = time.time()
-                if end-start >= 5:
+                receive_data = self.ser.read(32)  # read serial port
+                print("Received Data", receive_data)
+                end = time.time()
+                if end - start >= 5:
                     timeout = True
-                if receive_data[0] == "I":
+                if receive_data[0] == 73:
+                    print("Update Ups Charge Regs")
                     self.ups_charge_regs = {
-                        "charger_status": (receive_data[1:3]).encode('hex'),
-                        "charging_curr": (receive_data[4:6]).encode('hex'),
-                        "charging_volt": (receive_data[7:9]).encode('hex'),
-                        "alarm_warning": (receive_data[10:12]).encode('hex'),
-                        "bbu_status": (receive_data[13:15]).encode('hex'),
-                        "bbu_control": (receive_data[16:18]).encode('hex')
+                        "charger_status": int.from_bytes(receive_data[1:3], byteorder='big'),  # .encode('hex'),
+                        "charging_curr": int.from_bytes(receive_data[4:6], byteorder='big'),  # .encode('hex'),
+                        "charging_volt": int.from_bytes(receive_data[7:9], byteorder='big'),  # .encode('hex'),
+                        "alarm_warning": int.from_bytes(receive_data[10:12], byteorder='big'),  # .encode('hex'),
+                        "bbu_status": int.from_bytes(receive_data[13:15], byteorder='big'),  # .encode('hex'),
+                        "bbu_control": int.from_bytes(receive_data[16:18], byteorder='big')  # .encode('hex')
                     }
                     received = True
-                    #print(charge_regs)
-                if receive_data[19] == "A":
-                    self.ups_adc_values = {
-                        "power_in": round((int((receive_data[20:22]).encode('hex'), 16) * 15.24 * 0.8), 2),
-                        "vin_sht": round((int((receive_data[23:25]).encode('hex'), 16) * 15.24 * 0.8), 2),
-                        "vin": round((int((receive_data[26:28]).encode('hex'), 16) * 15.24 * 0.8), 2),
-                        "man_5v0": round((int((receive_data[29:31]).encode('hex'), 16) * 0.8 * 15.24), 2)
-                    }
-                    #print(adc_vals)
-            if timeout is False:
-                if self.ups_adc_values["vin"] <= self.warning_l:
-                    if self.ups_adc_values["vin"] <= self.alarm_l:
-                        self.ups_status["alarm"] = True
+                    print(self.ups_charge_regs)
+                    if receive_data[19] == 65:
+                        print("Update Ups ADC Values")
+                        self.ups_adc_values = {
+                            "power_in": round((int.from_bytes(receive_data[20:22], byteorder='big') * 15.24 * 0.8), 2),
+                            "vin_sht": round((int.from_bytes(receive_data[23:25], byteorder='big') * 15.24 * 0.8), 2),
+                            "vin": round((int.from_bytes(receive_data[26:28], byteorder='big') * 15.24 * 0.8), 2),
+                            "man_5v0": round((int.from_bytes(receive_data[29:31], byteorder='big') * 0.8 * 15.24), 2)
+                        }
+                        received = True
+                        print(self.ups_adc_values)
+                if timeout is False:
+                    if self.ups_adc_values["vin"] < (self.warning_l*1000):
                         self.ups_status["warning"] = True
                     else:
+                        self.ups_status["warning"] = False
+                    if self.ups_adc_values["vin"] < (self.alarm_l * 1000):
+                        self.ups_status["alarm"] = True
+                    else:
                         self.ups_status["alarm"] = False
-                        self.ups_status["warning"] = True
-                if self.ups_charge_regs["bbu_status"] == 0x1c:
-                    self.ups_status["charging"] = True
+                        """
+                        if self.ups_adc_values["vin"] <= self.alarm_l*1000:
+                            self.ups_status["alarm"] = True
+                            self.ups_status["warning"] = True
+                        else:
+                            self.ups_status["alarm"] = False
+                            self.ups_status["warning"] = True
+                        """
+                    if self.ups_charge_regs["charger_status"] == 0xc010:
+                        self.ups_status["charging"] = True
+                    else:
+                        self.ups_status["charging"] = False
                 else:
-                    self.ups_status["charging"] = False
-        return self.ups_status
-
+                    print("TIMEOUT")
+            return self.ups_status
 
     # #POWER SUPPLIES SECTION
     def GetPSVout(self, ps_id):
