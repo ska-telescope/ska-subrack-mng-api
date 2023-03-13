@@ -312,9 +312,8 @@ parser.add_option("-e", "--emulation",
 parser.add_option("-r", "--remote",
                 action="store_true", dest="remote", default=False,
                 help="connect and send data to client")
-
 parser.add_option("-f", "--pll_cfg_file",
-                dest="pll_cfg_file", default="../subrack_mng_api/pll_subrack_OCXO.txt",
+                dest="pll_cfg_file", default="../cpld_mng_api/pll_subrack_OCXO.txt",
                 help="connect and send data to client")
 
 
