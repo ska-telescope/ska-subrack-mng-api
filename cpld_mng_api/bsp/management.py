@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 # import netproto.rmp as rmp
@@ -10,7 +11,7 @@ import zlib
 import binascii
 
 
-sys.path.append("../")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 import netproto.rmp as rmp
 
 MAX_PLL_REG_ADD = 0x3a3c
