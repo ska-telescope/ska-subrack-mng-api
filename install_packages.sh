@@ -15,6 +15,7 @@ cd pyfabil
 python setup.py install
 pwd
 cd ../
+pip install git+https://gitlab.com/sanitaseg/itpm-bios.git
 python setup.py install
 #pip install matplotlib
 #pip install scipypip list
