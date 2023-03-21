@@ -442,6 +442,7 @@ class MANAGEMENT:
             mng_info["BOARD_MODE"] = "CABINET"
         else:
             mng_info["BOARD_MODE"] = "UNKNOWN"
+            # print("Board Mode Read value ", self.bsp.get_field("BOARD_MODE"))
 
         location = [self.bsp.get_field("CABINET_LOCATION"),
                     self.bsp.get_field("SUBRACK_LOCATION"),
