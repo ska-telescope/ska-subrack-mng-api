@@ -22,6 +22,7 @@ import logging
 reverseTPM = True
 
 tpmison = [0, 0, 0, 0, 0, 0, 0, 0]
+tpmison_old = [0, 0, 0, 0, 0, 0, 0, 0]
 rpmfan = ['0', '0', '0', '0']
 pwm_perc = ['0', '0', '0', '0']
 tpm_v_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Vin (V)"]
@@ -30,9 +31,15 @@ tpm_p_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "
 tpm_dummy = ["","","","","","","","",""]
 tpm_a_max_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Imax (A)"]
 tpm_p_max_reg = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pmax (W)"]
+tpm_t_mcu = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pmax (W)"]
+tpm_t_board = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pmax (W)"]
+tpm_t_fpga1 = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pmax (W)"]
+tpm_t_fpga2 = ["%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "%5.2f"%0, "Pmax (W)"]
 temps = [0, 0, 0, 0, 0]
-tpm_board_temp=[0,0,0,0,0,0,0,0]
-tpm_mcu_temp=[0,0,0,0,0,0,0,0]
+tpm_board_temp=[0,0,0,0,0,0,0,0,'board (°C)']
+tpm_mcu_temp=[0,0,0,0,0,0,0,0,'MCU (°C)']
+tpm_fpga1_temp=[0,0,0,0,0,0,0,0,'fpga1 (°C)']
+tpm_fpga2_temp=[0,0,0,0,0,0,0,0,'fpga2 (°C)']
 psu_volt=[0,0,"","Vout (V)"]
 psu_curr=[0,0,"","Iout (A)"]
 psu_dummy=["","","","",]
@@ -42,10 +49,12 @@ psu_index=["PSU 1","PSU 2","TOT","MEAS"]
 
 
 
-table_index = ['Board 1', 'Board 2', 'Board 3', 'Board 4', 'Board 5', 'Board 6', 'Board 7', 'Board 8']
-table_index_pow = ['Board 1', 'Board 2', 'Board 3', 'Board 4', 'Board 5', 'Board 6', 'Board 7', 'Board 8',"MEAS"]
+table_index = ['SLOT-1', 'SLOT-2', 'SLOT-3', 'SLOT-4', 'SLOT-5', 'SLOT-6', 'SLOT-7', 'SLOT-8']
+table_index_pow = ['SLOT-1', 'SLOT-2', 'SLOT-3', 'SLOT-4', 'SLOT-5', 'SLOT-6', 'SLOT-7', 'SLOT-8',"Measure"]
 present_i = []
 present = []
+present_row = []
+tpmison_row = []
 ip_assigned=[False,False,False,False,False,False,False,False]
 present_done = False
 
@@ -142,6 +151,9 @@ def partial_reverse(list_, from_, to):
 def presentdata():
     global present
     global tpmison
+    global tpmison_old
+    global present_row
+    global tpmison_row
     present_i = subrack.GetTPMPresent()
     # Put present in a list
     present = [int(x) for x in '{:08b}'.format(present_i)]
@@ -154,7 +166,26 @@ def presentdata():
    #print tpmison
     # Reverse list (bit field 0 as tpm 1)
     tpmison.reverse()
-
+    present_row=[]
+    tpmison_row=[]
+    for i in range(8):
+        if tpmison[i] == 1 and tpmison_old[i] == 0:
+            if subrack.TPM_instances_list[i] == 0:
+                tpm_ip_str = subrack.tpm_ip_list[i]
+                time.sleep(5)
+                subrack.TPM_instances_list[i] = TPM_1_6()
+                subrack.TPM_instances_list[i].connect(ip=tpm_ip_str, port=10000, initialise=False,
+                                                               simulation=False, enable_ada=False, fsample=800e6)
+                subrack.TPM_instances_list[i].load_plugin("Tpm_1_6_Mcu")
+        elif tpmison[i] == 0 and tpmison_old[i] == 1:
+            if subrack.TPM_instances_list[i] != 0:
+                del subrack.TPM_instances_list[i]
+                subrack.TPM_instances_list[i]  = 0
+        present_row.append(present[i])
+        tpmison_row.append(tpmison[i])
+    present_row.append("PRESENT")
+    tpmison_row.append("ON")
+    tpmison_old=tpmison
 
 def tab_present():
     table_present = [
@@ -169,7 +200,7 @@ def tab_present():
 
 
 def fandata():
-    for i in range (0,4):
+    for i in range(4):
         try:
             #subrack.SetFanMode(i+1, 0)
             rpmfan[i],pwm_perc[i]=subrack.GetFanSpeed(i+1)
@@ -189,33 +220,41 @@ def tab_fandata():
 
 def voltagedata():
     presentdata()
-    for i in range (1,9):
-        if present[i-1]!=0:
-            _volt = subrack.GetTPMVoltage(i)
-            _curr = subrack.GetTPMCurrent(i)
+    for i in range(8):
+        if present[i]!=0:
+            _volt = subrack.GetTPMVoltage(i+1)
+            _curr = subrack.GetTPMCurrent(i+1)
             _pow = _volt*_curr
-            tpm_v_reg[i-1] = "%5.2f"%_volt
-            tpm_a_reg[i-1] = "%5.2f"%_curr
-            tpm_p_reg[i-1] = "%5.2f"%_pow
-            if _pow>float(tpm_p_max_reg[i-1]):
-                tpm_a_max_reg[i-1] = "%5.2f"%_curr
-                tpm_p_max_reg[i-1] = "%5.2f"%_pow
+            tpm_v_reg[i] = "%5.2f"%_volt
+            tpm_a_reg[i] = "%5.2f"%_curr
+            tpm_p_reg[i] = "%5.2f"%_pow
+            if _pow>float(tpm_p_max_reg[i]):
+                tpm_a_max_reg[i] = "%5.2f"%_curr
+                tpm_p_max_reg[i] = "%5.2f"%_pow
         else:
-            tpm_v_reg[i-1] = "%5.2f"%0
-            tpm_a_reg[i-1] = "%5.2f"%0
-            tpm_p_reg[i-1] = "%5.2f"%0
-            tpm_a_max_reg[i-1] = "%5.2f"%0
-            tpm_p_max_reg[i-1] = "%5.2f"%0
+            tpm_v_reg[i] = "%5.2f"%0
+            tpm_a_reg[i] = "%5.2f"%0
+            tpm_p_reg[i] = "%5.2f"%0
+            tpm_a_max_reg[i] = "%5.2f"%0
+            tpm_p_max_reg[i] = "%5.2f"%0
 
-def tab_voltagedata():
+def tab_tpm():
     table_tpmpow = [
         table_index_pow,
+        present_row,
+        tpmison_row,
+        tpm_dummy,
         tpm_v_reg,
         tpm_a_reg,
         tpm_p_reg,
         tpm_dummy,
         tpm_a_max_reg,
         tpm_p_max_reg,
+        tpm_dummy,
+        tpm_mcu_temp,
+        tpm_board_temp,
+        tpm_fpga1_temp,
+        tpm_fpga2_temp,
     ]
     tabletpmpow = terminaltables.AsciiTable(table_tpmpow)
     tabletpmpow.title = "Board Powers (Voltage, Current, Power)"
@@ -247,29 +286,24 @@ def tab_tempdata():
 
 def tpmtempdata():
     presentdata()
-    for i in range (0,8):
+    for i in range(8):
+        tpm_mcu_temp[i] = ""
+        tpm_board_temp[i] = ""
+        tpm_fpga1_temp[i] = ""
+        tpm_fpga2_temp[i] = ""
         if (present[i] and tpmison[i])==1:
-            #print "i %d present[i] %d tpmison[i] %d (present[i] and tpmison[i]) %d " %(i, present[i],tpmison[i],(present[i] and tpmison[i]) )
-            tpm_board_temp[i]=subrack.GetTPMTemperature(i+1,forceread=True)
-            tpm_mcu_temp[i]=subrack.GetTPMMCUTemperature(i+1,forceread=True)
-        else:
-            tpm_board_temp[i]=0
-            tpm_mcu_temp[i]=0
-
-
-def tab_tpmtempdata():
-    table_tpmtmp = [
-        table_index,
-        tpm_board_temp,
-        tpm_mcu_temp
-    ]
-    tabletpmtmp = terminaltables.AsciiTable(table_tpmtmp)
-    tabletpmtmp.title = "TPM Temperatures, board sensor & mcu sensor (Deg)"
-    print(tabletpmtmp.table)
+            try:
+                [_mcu, _board, _fpga1, _fpga2 ] = subrack.GetTPMTemperatures(i+1)
+                tpm_mcu_temp[i] = _mcu
+                tpm_board_temp[i] = _board if _board != 0 else ""
+                tpm_fpga1_temp[i] = _fpga1 if _fpga1 != 0 else ""
+                tpm_fpga2_temp[i] = _fpga2 if _fpga2 != 0 else ""
+            except:
+                pass
 
 def psudata():
     psu_pow[2]=0
-    for i in range (0,2):
+    for i in range(2):
         _volt=subrack.GetPSVout(i+1)
         _curr=subrack.GetPSIout(i+1)
         _pow=_volt*_curr
@@ -315,6 +349,9 @@ parser.add_option("-r", "--remote",
 parser.add_option("-f", "--pll_cfg_file",
                 dest="pll_cfg_file", default="../cpld_mng_api/pll_subrack_OCXO.txt",
                 help="connect and send data to client")
+parser.add_option("-k", "--skip_init",
+                action="store_true", dest="skip_init", default=False,
+                help="connect and send data to client")
 
 
 
@@ -342,8 +379,8 @@ def set_logging(level):
 #set_logging("DEBUG")
 
 
-
-subrack.PllInitialize(options.pll_cfg_file)
+if not options.skip_init:
+    subrack.PllInitialize(options.pll_cfg_file)
 
 if options.remote:
     HOST = '10.0.10.20'  # Standard loopback interface address (localhost)
@@ -392,11 +429,10 @@ if options.remote:
                 #   - TPM Power 8
                 client.sendall(msg)
                 logging.info("AQUIRE Request Answered")
-                tab_present()
-                tab_voltagedata()
+                #tab_present()
+                tab_tpm()
                 tab_fandata()
                 tab_tempdata()
-                #tab_tpmtempdata()
                 tab_psudata()
 
     except KeyboardInterrupt:
@@ -410,12 +446,12 @@ elif options.show_measure:
             tempdata()
             psudata()
             time.sleep(0.05)
-        #tpmtempdata()
-        tab_present()
-        tab_voltagedata()
+        tpmtempdata()
+        #clear()
+        #tab_present()
+        tab_tpm()
         tab_fandata()
         tab_tempdata()
-        #tab_tpmtempdata()
         tab_psudata()
 else:
     set_logging("INFO")
