@@ -257,7 +257,7 @@ def tab_tpm():
         tpm_fpga2_temp,
     ]
     tabletpmpow = terminaltables.AsciiTable(table_tpmpow)
-    tabletpmpow.title = "Board Powers (Voltage, Current, Power)"
+    tabletpmpow.title = "TPM Data"
     print(tabletpmpow.table)
 
 def tempdata():
@@ -305,14 +305,19 @@ def psudata():
     psu_pow[2]=0
     for i in range(2):
         _volt=subrack.GetPSVout(i+1)
-        _curr=subrack.GetPSIout(i+1)
-        _pow=_volt*_curr
-        psu_volt[i]="%6.2f"%_volt
-        psu_curr[i]="%6.2f"%_curr
-        psu_pow[i]="%6.2f"%_pow
-        psu_pow[2]+=_pow
-        if _pow > float(psu_pow_max[i]):
-            psu_pow_max[i] = psu_pow[i]
+        psu_volt[i]="-"
+        psu_curr[i]="-"
+        psu_pow[i]="-"
+        if _volt is not None:
+            _curr=subrack.GetPSIout(i+1)
+            if _curr is not None:
+                _pow=_volt*_curr
+                psu_volt[i]="%6.2f"%_volt
+                psu_curr[i]="%6.2f"%_curr
+                psu_pow[i]="%6.2f"%_pow
+                psu_pow[2]+=_pow
+                if _pow > float(psu_pow_max[i]):
+                    psu_pow_max[i] = psu_pow[i]
     if psu_pow[2] > float(psu_pow_max[2]):
         psu_pow_max[2] = "%6.2f"%psu_pow[2]
     psu_pow[2]="%6.2f"%psu_pow[2]
@@ -447,7 +452,7 @@ elif options.show_measure:
             psudata()
             time.sleep(0.05)
         tpmtempdata()
-        #clear()
+        clear()
         #tab_present()
         tab_tpm()
         tab_fandata()

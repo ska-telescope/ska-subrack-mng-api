@@ -446,7 +446,7 @@ class SubrackMngBoard():
         :param forceread: force the operation even if no TPM is present in selected slot
         :return tpm_board_temperature,tpm_fpga0_temp, tpm_fpga1_temp(if fpga is not programmed return fpga_temp =0)
         """
-        print("GetTPMTemperatures %d"%tpm_slot_id)
+        # print("GetTPMTemperatures %d"%tpm_slot_id)
         prev_onoff = 0
         pres_tpm = self.GetTPMPresent()
         #print("TPM Present: %x" %pres_tpm)
@@ -483,18 +483,14 @@ class SubrackMngBoard():
         temp_fpga1_f = 0
         temp_fpga2_f = 0
         if tpm != 0:
-            print("GetTPMTemperatures 1")
             temp_mcu_f = tpm.tpm_monitor[0].get_mcu_temperature()
             temp_board_f = tpm.tpm_monitor[0].get_temperature()
             if tpm.is_programmed():
                 if self.tpm_plugin_loaded[tpm_slot_id-1] is False:
-                    print("GetTPMTemperatures 2")
                     tpm.load_plugin("TpmSysmon", device=Device.FPGA_1)
                     tpm.load_plugin("TpmSysmon", device=Device.FPGA_2)
                     self.tpm_plugin_loaded[tpm_slot_id - 1] = True
-                    print("GetTPMTemperatures 3")
                 else:
-                    print("GetTPMTemperatures 4")
                     temp_fpga1_f = tpm.tpm_sysmon[0].get_fpga_temperature()
                     temp_fpga2_f = tpm.tpm_sysmon[1].get_fpga_temperature()
             temp_fpga1_f = round(temp_fpga1_f, 2)
@@ -503,7 +499,6 @@ class SubrackMngBoard():
             if prev_onoff == 0:
                 if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
                     raise SubrackExecFault("Error:TPM Power off Failed")
-            print("GetTPMTemperatures 5")
         return temp_mcu_f, temp_board_f, temp_fpga1_f, temp_fpga2_f
 
 
