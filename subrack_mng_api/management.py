@@ -62,7 +62,7 @@ FpgaI2CReg_names = [
 # FirmwareBuildHigh  FirmwareBuildLow   FirmwareVersion
 FpgaFwVersion_p = "/sys/bus/platform/devices/8000000.skamngfpga/parameters/"  # file system path to FPGA FW Version Regs
 
-UserReg_p = "/sys/bus/platform/devices/8000a00.skamnguserreg/parameters/"  # file system path to FPGA User Regs
+UserReg_p = "/sys/bus/platform/devices/8000f00.skamnguserreg/parameters/"  # file system path to FPGA User Regs
 UserReg_names = [
     "UserReg0",
     "UserReg1",
@@ -152,15 +152,7 @@ CpldUart_names = [
     "Status"
 ]
 
-OneWireRegs_p = "/sys/bus/platform/devices/80b0000.skamngmonewireregs/parameters/"  # file system path to ONEWIRE Regs
-OneWirwRegs_names = [
-    "Command1WM",
-    "Data1WM",
-    "Int1WM",
-    "IntEn1WM",
-    "Clock1WM",
-    "Mux1WM"
-]
+
 
 FramRegs_p = "/sys/bus/platform/devices/8090000.skamngframregs/parameters/"  # fpgaram register
 
@@ -173,7 +165,6 @@ HKeepRegs_list = []
 EthRegs_list = []
 UserReg_list = []
 FramRegs_list = []
-OneWire_list = []
 LockRegs_list = []
 CtrlRegs_list = []
 CpldUart_list = []
@@ -216,8 +207,6 @@ def get_cat(name):
         categ = FpgaI2C_p
     elif cat == "Lock":
         categ = LockRegs_p
-    elif cat == "ONEWIRE":
-        categ = OneWireRegs_p
     elif cat == "CtrlRegs":
         categ = CtrlRegs_p
     elif cat == "CpldUart":
@@ -252,8 +241,6 @@ def translate_reg(name):
         categ = FpgaI2C_p
     elif cat == "Lock":
         categ = LockRegs_p
-    elif cat == "ONEWIRE":
-        categ = OneWireRegs_p
     elif cat == "CtrlRegs":
         categ = CtrlRegs_p
     elif cat == "CpldUart":
@@ -349,8 +336,6 @@ class Management():
                         FramRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                     elif categories[i] == "Lock":
                         LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "ONEWIRE":
-                        OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                     elif categories[i] == "CtrlRegs":
                         CtrlRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                     elif categories[i] == "CpldUart":
@@ -364,7 +349,6 @@ class Management():
         print("EthRegs_list:", EthRegs_list)
         print("FramRegs_list:", FramRegs_list)
         print("LockRegs_list:", LockRegs_list)
-        print("OneWireRegs_list:", OneWire_list)
         print("CtrlRegs_list:", CtrlRegs_list)
         print("CpldUart_list:", CpldUart_list)
 
@@ -397,8 +381,6 @@ class Management():
                     FramRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                 elif categories == "Lock":
                     LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "ONEWIRE":
-                    OneWire_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                 elif categories == "CtrlRegs":
                     CtrlRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
                 elif categories == "CpldUart":
@@ -412,7 +394,6 @@ class Management():
         print("EthRegs_list:", EthRegs_list)
         print("FramRegs_list:", FramRegs_list)
         print("LockRegs_list:", LockRegs_list)
-        print("OneWireRegs_list:", OneWire_list)
         print("CtrlRegs_list:", CtrlRegs_list)
         print("CpldUart_list:", CpldUart_list)
 
@@ -551,8 +532,8 @@ class Management():
         patterns = [0x0, 0xffffffff, 0x5555aaaa, 0xaaaa5555]
         for i in range(0, iteration):
             for k in range(0, len(patterns)):
-                self.write("UserRegs.UserReg0", patterns[k])
-                rd_data = self.read("UserRegs.UserReg0")
+                self.write("UserReg.UserReg0", patterns[k])
+                rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
                     errors = k+1
                     return errors
@@ -594,14 +575,6 @@ class Management():
         for i in range(0, len(FramRegs_list)):
             reg_value = self.read("Fram." + FramRegs_list[i])
             print(FramRegs_list[i] + " = " + str('%.2f' % (reg_value)))
-
-    ###dump_onewire_regs_all
-    # This method print all OneWire Registers values
-    def dump_onewire_regs_all(self):
-        self.create_regs_list("ONEWIRE")
-        for i in range(0, len(OneWire_list)):
-            reg_value = self.read("ONEWIRE." + OneWire_list[i])
-            print(OneWire_list[i] + " = " + hex(reg_value & 0xff))
 
     # get_cpld_actual_ip
     # This method retrieve the IP Adddress assigned to CPLD on board
@@ -1086,234 +1059,6 @@ class Management():
                     op_status = 1
                     break
         return op_status
-
-    # One Wire Section methods
-    def OneWire_Set_CLK(self, clkvalue):
-        print("Setting OneWire CLK... ")
-        self.write("ONEWIRE.Clock1WM", clkvalue)
-
-    def OneWire_Get_CLK(self):
-        clk = self.read("ONEWIRE.Clock1WM")
-        print("OneWire CLK Reg: %x " % (int(clk) & 0xf))
-
-    def OneWire_ResetCmd(self):
-        self.write("ONEWIRE.Command1WM", 0x1)
-        dt = datetime.now()
-        starttime = dt.microsecond
-        while (1):
-            dt = datetime.now()
-            timenow = dt.microsecond
-            if (timenow - starttime) > 10000000:
-                print("Error Timeout")
-                return -1
-            else:
-                result = self.read("ONEWIRE.Int1WM")
-                if (result & 0x1) == 0x1:
-                    return 0
-
-    def OneWire_AccelerateModeCmd(self):
-        self.write("ONEWIRE.Command1WM", 0x2)
-        dt = datetime.now()
-        starttime = dt.microsecond
-        time.sleep(0.01)
-
-    def OneWire_WriteByte(self, wr_data):
-        # print "wrdata " + str(wr_data)
-        self.write("ONEWIRE.Data1WM", wr_data)
-        dt = datetime.now()
-        starttime = dt.microsecond
-        while True:
-            dt = datetime.now()
-            timenow = dt.microsecond
-            if (timenow - starttime) > 10000000:
-                print("Error Timeout")
-                return -1
-            else:
-                result = self.read("ONEWIRE.Int1WM")
-                if (result & 0xC) == 0xC:
-                    return 0
-
-    def OneWire_ReadByte(self):
-        if (self.OneWire_WriteByte(0xFF)) != 0:
-            print("Read Failed")
-            return -1
-        dt = datetime.now()
-        starttime = dt.microsecond
-        while True:
-            dt = datetime.now()
-            timenow = dt.microsecond
-            if (timenow - starttime) > 10000000:
-                print("Error Timeout")
-                return -1
-            else:
-                result = self.read("ONEWIRE.Int1WM")
-                if (result & 0x10) == 0x10:
-                    result = self.read("ONEWIRE.Data1WM")
-                    return (result & 0xff), 0
-
-    def OneWire_ReadByte_d(self, d):
-        if (self.OneWire_WriteByte(d)) != 0:
-            print("Read Failed")
-            return -1
-        # dt = datetime.now()
-        # starttime=dt.microsecond
-        result = self.read("ONEWIRE.Data1WM")
-        return (result & 0xff), 0
-
-    def OneWire_SelectMux(self, mux):
-        self.write("ONEWIRE.Mux1WM", mux)
-        dt = datetime.now()
-        starttime = dt.microsecond
-        time.sleep(0.01)
-        # print "mux: " + str(mux)
-
-    def OneWire_MatchRom(self, id):
-        idhex = [id[i:i + 2] for i in range(0, len(id), 2)]
-        # print idhex
-        self.OneWire_WriteByte(0x55)
-        for i in range(0, 8):
-            self.OneWire_WriteByte(int(idhex[i], 16))
-            # print i
-        return 0
-
-    def OneWire_ReadScratchpad(self):
-        paddata = []
-        # print "Read scratch pad"
-        self.OneWire_WriteByte(0xBE)
-        for i in range(0, 9):
-            data, status = self.OneWire_ReadByte_d(0xff)
-            paddata.append(data)
-        # print paddata
-        return paddata
-
-    def OneWire_StartConversion(self):
-        self.OneWire_SelectMux(0x08)  # all boards
-        temp = []
-        self.OneWire_ResetCmd()
-        self.OneWire_WriteByte(0xCC)
-        # match_rom(dev_id_codes)
-
-        self.OneWire_WriteByte(0x44)
-        # time.sleep(0.5)
-        # while(1):
-        #     data,status=Mng.OneWire_ReadByte_d(0x0)
-        #     if data!=0:
-        #         break
-        #     else:
-        #         time.sleep(0.001)
-        time.sleep(1.25)
-
-    ###OneWire_ReadTemperature
-    # This method implements a read temperature from selected onewire device on selected TPM
-    # @param[in] mux: id of iTPM board where onewire devices is
-    # @param[in] id: univoque id of selected onewire device
-    # @param[out] temp_f: float value of temperature in Celsius degree
-    def OneWire_ReadTemperature(self, mux, id):
-        global lasttemp
-        # Convert ID string to [hex] byte array
-        idhex = id.decode("hex")
-        # print "Entered"
-        # Select Mux
-        self.OneWire_SelectMux(mux)
-        # print "Mux selected"
-        # Bus reset
-        self.OneWire_ResetCmd()
-        # Select IC (Match ROM)
-        self.OneWire_MatchRom(id)
-        # print "Mux: " + str(mux) + " - id: " + str(id)
-        # time.sleep(0.5)
-        # print "Rom Matched"
-        # Read Temp
-        temp = self.OneWire_ReadScratchpad()
-        # print temp
-        # print "Len of sctrachpad: %d" %(len(temp))
-        temp_msb = int(temp[1])  # Sign byte + lsbit
-        temp_lsb = int(temp[0])  # Temp data plus lsb
-
-        temp_tot = int((temp_msb << 8) + temp_lsb)
-
-        # print "temptot: " + str(temp_tot)
-        # time.sleep(1)
-
-        temp_f = float(0.0)
-
-        if (temp_tot >= 0x800):  # Negative Temp
-            if (temp_tot & 0x0001):
-                temp_f += 0.06250
-            if (temp_tot & 0x0002):
-                temp_f += 0.12500
-            if (temp_tot & 0x0004):
-                temp_f += 0.25000
-            if (temp_tot & 0x0008):
-                temp_f += 0.50000
-            temp_tot = (temp_tot >> 4) & 0x00FF
-            temp_tot -= 0x0001
-            temp_tot = ~temp_tot
-            temp_f = temp_f - float(temp_tot & 0xFF)
-        else:  # Posiive Temp
-            temp_f += (temp_tot >> 4) & 0x0FF
-            if (temp_tot & 0x0001):
-                temp_f += 0.06250
-            if (temp_tot & 0x0002):
-                temp_f += 0.12500
-            if (temp_tot & 0x0004):
-                temp_f += 0.25000
-            if (temp_tot & 0x0008):
-                temp_f += 0.50000
-
-        if temp_msb <= 0x80:
-            temp_lsb = temp_lsb / 2
-        temp_msb = temp_msb & 0x80
-        if temp_msb >= 0x80:
-            temp_lsb = (~temp_lsb) + 1  # twos complement
-        if temp_msb >= 0x80:
-            temp_lsb = (temp_lsb / 2)  # shift to get whole degree
-        if temp_msb >= 0x80:
-            temp_lsb = ((-1) * temp_lsb)  # add sign bit
-
-        # Check Bug 60
-        if temp_f == 59.875:
-            if temp_f > (lasttemp + 3):
-                temp_f = lasttemp
-            elif temp_f < (lasttemp - 3):
-                temp_f = lasttemp
-
-        lasttemp = temp_f;
-
-        # print "Temperature read in C: %f" % temp_f
-        return temp_f
-
-    def OneWire_LoadIDs(self):
-        w, h = 8, 3
-        dev_table = [[0 for x in range(h)] for y in range(w)]
-
-        w_it = 0
-        h_it = 0
-
-        # print dev_table
-
-        filepath = 'boards-1wire-ids.txt'
-        with open(filepath) as fp:
-            # print "File Opened"
-            line = fp.readline()
-            # print "Read Line"
-            while line:
-                if line[0] != "#":
-                    # print "Not a comment" + str(w_it) + " " + str(h_it)
-                    dev_table[w_it][h_it] = line.rstrip()
-                    h_it += 1
-                    if h_it == 3:
-                        h_it = 0
-                        w_it += 1
-                    if w_it == 8:
-                        fp.close()
-                        return dev_table
-                    else:
-                        line = fp.readline()
-                else:
-                    # print "Comment" + str(line[0])
-                    # time.sleep(1)
-                    line = fp.readline()
 
     def close(self):
         self.__del__()
