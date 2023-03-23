@@ -535,6 +535,7 @@ class Management():
                 self.write("UserReg.UserReg0", patterns[k])
                 rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
+                    print("test_eim_access: ERROR, iteration %d, expected %x, read %x" % (i, patterns[k], rd_data))
                     errors = k+1
                     return errors
         return errors
