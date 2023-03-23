@@ -532,8 +532,8 @@ class Management():
         patterns = [0x0, 0xffffffff, 0x5555aaaa, 0xaaaa5555]
         for i in range(0, iteration):
             for k in range(0, len(patterns)):
-                self.write("UserRegs.UserReg0", patterns[k])
-                rd_data = self.read("UserRegs.UserReg0")
+                self.write("UserReg.UserReg0", patterns[k])
+                rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
                     errors = k+1
                     return errors
