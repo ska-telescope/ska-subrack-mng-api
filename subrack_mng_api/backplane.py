@@ -388,6 +388,9 @@ class Backplane():
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return v: vout value
     def get_ps_vout(self, ps_id):
+        status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Vout")
+        if status == 255:
+            return 0
         vout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vout")
         v = float(vout*pow(2, -9))
         v = round(v, 3)
@@ -398,6 +401,9 @@ class Backplane():
     # return i: iout value
     # return status: status of operation
     def get_ps_iout(self, ps_id):
+        status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Iout")
+        if status == 255:
+            return 0
         iout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iout")
         i = float((iout & 0x7FF)*pow(2, -3))
         i = round(i, 3)
