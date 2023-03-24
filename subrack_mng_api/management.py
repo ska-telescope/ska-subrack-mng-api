@@ -439,7 +439,11 @@ class Management():
                 value = 0  # self.lastError = res
             if print_debug:
                 print("Read: " + name + ", " + hex(value))
-            return int(value)
+            rv = int(value)
+            if rv < 0:
+                return rv + (1 << 32)
+            else:
+                return rv
 
     ###write
     # This method implements write
@@ -533,7 +537,7 @@ class Management():
         for i in range(0, iteration):
             for k in range(0, len(patterns)):
                 self.write("UserReg.UserReg0", patterns[k])
-                rd_data = self.read("UserReg.UserReg0")
+                rd_data = int(self.read("UserReg.UserReg0"),16)
                 if rd_data != patterns[k]:
                     print("test_eim_access: ERROR, iteration %d, expected %x, read %x" % (i, patterns[k], rd_data))
                     errors = k+1
