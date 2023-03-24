@@ -357,11 +357,21 @@ parser.add_option("-f", "--pll_cfg_file",
 parser.add_option("-k", "--skip_init",
                 action="store_true", dest="skip_init", default=False,
                 help="connect and send data to client")
+parser.add_option("-p", "--pyro", action="store_true")
 
 
 
 
 (options, args) = parser.parse_args()
+
+if options.pyro:
+    import Pyro4
+    Pyro4.Daemon.serveSimple(
+            {
+                SubrackMngBoard: "subrack",
+                Management: "management",
+            },
+            ns = False,host="10.0.10.19",port=1234)
 
 subrack=SubrackMngBoard(simulation=options.emulation)
 #do_block = False

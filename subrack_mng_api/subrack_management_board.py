@@ -19,8 +19,7 @@ sys.path.append("../")
 import cpld_mng_api.bsp.management as cpld_mng
 
 from optparse import OptionParser
-
-
+import Pyro4
 
 TPMInfo_t={
 "ip_address":       "",
@@ -108,15 +107,15 @@ def detect_cpu_ip():
     cmd = "ip address"
     ret = run(cmd)
     lines = ret.splitlines()
-    # print(lines)
+    print(lines)
     found = False
     state = 0
     cpu_ip = "255.255.255.255"
     for r in range(0, len(lines)):
         if str(lines[r]).find("inet") != -1:
-            # print(lines[r])
+            print(lines[r])
             cpu_ip = str(lines[r]).split(" ")[5]
-            # print("CPU IP:", str(lines[r]).split(" "))
+            print("CPU IP:", str(lines[r]).split(" "))
             if cpu_ip.find("10.0.10") != -1:
                 cpu_ip = cpu_ip.split("/")[0]
                 found = True
@@ -147,6 +146,7 @@ def ipstr2hex(ip):
 
 # ##Subrack Management Board Class
 # This class implements methods to manage and to monitor the subrack management board
+@Pyro4.expose
 class SubrackMngBoard():
     def __init__(self, **kwargs):
         self._simulation = kwargs.get("simulation")

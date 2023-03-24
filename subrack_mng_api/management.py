@@ -11,6 +11,7 @@ from datetime import datetime
 import random
 import logging
 from subrack_mng_api.emulator_classes.def4emulation import *
+import Pyro4
 
 lasttemp = 59.875
 
@@ -283,8 +284,9 @@ class mcu2cplduartbuff():
 ### Management Class
 # This class contain methods to permit access to all registers connected to the
 # management CPU (iMX6) mapped in filesystem
+@Pyro4.expose
 class Management():
-    def __init__(self, simulation):
+    def __init__(self, simulation = False):
         self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
@@ -439,11 +441,7 @@ class Management():
                 value = 0  # self.lastError = res
             if print_debug:
                 print("Read: " + name + ", " + hex(value))
-            rv = int(value)
-            if rv < 0:
-                return rv + (1 << 32)
-            else:
-                return rv
+            return int(value)
 
     ###write
     # This method implements write
@@ -539,7 +537,6 @@ class Management():
                 self.write("UserReg.UserReg0", patterns[k])
                 rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
-                    print("test_eim_access: ERROR, iteration %d, expected %x, read %x" % (i, patterns[k], rd_data))
                     errors = k+1
                     return errors
         return errors
