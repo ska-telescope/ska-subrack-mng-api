@@ -108,7 +108,7 @@ def detect_cpu_ip():
     cmd = "ip address"
     ret = run(cmd)
     lines = ret.splitlines()
-    print(lines)
+    # print(lines)
     found = False
     state = 0
     cpu_ip = "255.255.255.255"
@@ -116,7 +116,7 @@ def detect_cpu_ip():
         if str(lines[r]).find("inet") != -1:
             # print(lines[r])
             cpu_ip = str(lines[r]).split(" ")[5]
-            print("CPU IP:", str(lines[r]).split(" "))
+            # print("CPU IP:", str(lines[r]).split(" "))
             if cpu_ip.find("10.0.10") != -1:
                 cpu_ip = cpu_ip.split("/")[0]
                 found = True

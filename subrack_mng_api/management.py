@@ -537,7 +537,7 @@ class Management():
         for i in range(0, iteration):
             for k in range(0, len(patterns)):
                 self.write("UserReg.UserReg0", patterns[k])
-                rd_data = int(self.read("UserReg.UserReg0"),16)
+                rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
                     print("test_eim_access: ERROR, iteration %d, expected %x, read %x" % (i, patterns[k], rd_data))
                     errors = k+1
