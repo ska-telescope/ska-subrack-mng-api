@@ -19,7 +19,7 @@ sys.path.append("../")
 import cpld_mng_api.bsp.management as cpld_mng
 
 from optparse import OptionParser
-import Pyro4
+import Pyro5.api
 
 TPMInfo_t={
 "ip_address":       "",
@@ -146,7 +146,7 @@ def ipstr2hex(ip):
 
 # ##Subrack Management Board Class
 # This class implements methods to manage and to monitor the subrack management board
-@Pyro4.expose
+@Pyro5.api.expose
 class SubrackMngBoard():
     def __init__(self, **kwargs):
         self._simulation = kwargs.get("simulation")

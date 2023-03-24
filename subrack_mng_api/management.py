@@ -11,7 +11,7 @@ from datetime import datetime
 import random
 import logging
 from subrack_mng_api.emulator_classes.def4emulation import *
-import Pyro4
+import Pyro5.api
 
 lasttemp = 59.875
 
@@ -284,7 +284,7 @@ class mcu2cplduartbuff():
 ### Management Class
 # This class contain methods to permit access to all registers connected to the
 # management CPU (iMX6) mapped in filesystem
-@Pyro4.expose
+@Pyro5.api.expose
 class Management():
     def __init__(self, simulation = False):
         self.mcuuart = mcu2cplduartbuff()

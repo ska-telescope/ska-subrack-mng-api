@@ -365,8 +365,8 @@ parser.add_option("-p", "--pyro", action="store_true")
 (options, args) = parser.parse_args()
 
 if options.pyro:
-    import Pyro4
-    Pyro4.Daemon.serveSimple(
+    import Pyro5.api
+    Pyro5.api.Daemon.serveSimple(
             {
                 SubrackMngBoard: "subrack",
                 Management: "management",
