@@ -17,6 +17,18 @@ class BackplaneInvalidParameter(Exception):
 
 power_supply_i2c_offset = [0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
 
+def twos_comp(val, bits):
+    """compute the 2's complement of int value val"""
+    if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
+        val = val - (1 << bits)        # compute negative value
+    return val
+
+#Decode/encode Linear data format => X=Y*2^N
+def _decodePMBus(message):
+    messageN = message >> 11
+    messageY = message & 0b0000011111111111
+    message = messageY*(2.0**(twos_comp(messageN, 5))) #calculate real values (everything but VOUT works)
+    return message
 
 # mng=MngBoard()
 # ## Backplane Board Class
@@ -27,6 +39,12 @@ class Backplane():
         self.data = []
         self.mng = Management_b
         self.simulation = simulation
+        self.ps_vout_mode=[]
+        self.ps_vout_n=[]
+        for i in range(2):
+            vout,status=self.get_ps_vout_mode(i+1)
+            self.ps_vout_mode.append(vout)
+            self.ps_vout_n.append(twos_comp(self.ps_vout_mode[i],5))
 
     def __del__(self):
         self.data = []
@@ -384,6 +402,11 @@ class Backplane():
         status_reg, status = self.mng.fpgai2c_read8(i2c_add, 0x78, FPGA_I2CBUS.i2c3)
         return status_reg, status
 
+    def get_ps_vout_mode(self, ps_id):
+        i2c_add = 0xb0+((ps_id-1)*2)
+        vout_mode, status = self.mng.fpgai2c_read8(i2c_add, 0x20, FPGA_I2CBUS.i2c3)
+        return vout_mode, status
+
     # This method get the selected power supply vout value evaluated on read from vout register
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return v: vout value
@@ -392,7 +415,7 @@ class Backplane():
         if status == 255:
             return 0
         vout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vout")
-        v = float(vout*pow(2, -9))
+        v = float(vout*pow(2, self.ps_vout_n[ps_id-1]))
         v = round(v, 3)
         return v
 
@@ -405,7 +428,7 @@ class Backplane():
         if status == 255:
             return 0
         iout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iout")
-        i = float((iout & 0x7FF)*pow(2, -3))
+        i = _decodePMBus(iout)
         i = round(i, 3)
         return i
 
