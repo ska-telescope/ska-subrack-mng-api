@@ -15,7 +15,7 @@ from pyfabil.base.utils import ip2long
 from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
-sys.path.append("../")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 import cpld_mng_api.bsp.management as cpld_mng
 
 from optparse import OptionParser
@@ -77,7 +77,7 @@ TPM_CPLD_REGFILE_BA=0x30000000
 
 subrack_slot_config_file="/etc/SKA/subrack_slot.conf"
 
-PLL_CFG_FILE = "../cpld_mng_api/pll_subrack_OCXO.txt"
+PLL_CFG_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__),"../cpld_mng_api/pll_subrack_OCXO.txt"))
 
 def dt_to_timestamp(d):
     return calendar.timegm(d.timetuple())

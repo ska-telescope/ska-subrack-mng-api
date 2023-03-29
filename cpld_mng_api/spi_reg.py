@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 import config.manager as config_man
 from bsp.management import *
 from optparse import OptionParser
@@ -19,5 +19,3 @@ if __name__ == "__main__":
         print ("Error. Wrong number of parameters")
 
 inst.disconnect()
-
-
