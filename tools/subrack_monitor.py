@@ -371,7 +371,7 @@ if options.pyro:
                 SubrackMngBoard: "subrack",
                 Management: "management",
             },
-            ns = False,host="10.0.10.19",port=1234)
+            ns = False,host="0.0.0.0",port=1234)
 
 subrack=SubrackMngBoard(simulation=options.emulation)
 #do_block = False
