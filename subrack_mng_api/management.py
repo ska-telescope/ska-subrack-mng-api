@@ -532,7 +532,8 @@ class Management():
     ### test_eim_access
     # This method permit to test the access on EIM bus from CPU
     # @param[in] iteration: number of iteration of the tests pattern are reads and wrtite and verifyed
-    # @return return test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
+    # @return errors: test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
+    # @return i: iterations executed
     def test_eim_access(self, iteration=1000):
         errors = 0
         patterns = [0x0, 0xffffffff, 0x5555aaaa, 0xaaaa5555]
@@ -543,8 +544,8 @@ class Management():
                 if rd_data != patterns[k]:
                     print("test_eim_access: ERROR at iteration i, expected %x, read %x " % (i, patterns[k], rd_data))
                     errors = k+1
-                    return errors
-        return errors
+                    return errors, i
+        return errors, i
 
     ### dump_userled_all
     #This method print all FPGA User Leds  values
