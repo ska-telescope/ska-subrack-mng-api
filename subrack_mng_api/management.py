@@ -41,121 +41,69 @@ class ADTRegs:
     CRITICAL_TEMP_TRIP = 0x04
     TEMPERATURE = 0x05
 
+class FPGA_MdioBUS:
+    CPU = 1
+    CPLD = 2
+
+ethernet_ports=[
+    {'name' : 'CPU',    'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 0},# MCU U4-P0
+    {'name' : 'CPLD',   'mdio_mux' : FPGA_MdioBUS.CPLD, 'port' : 0},# CPLD U5-P0
+    {'name' : 'SLOT-1', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 1},# SLOT-1 U4-P1
+    {'name' : 'SLOT-2', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 2},# SLOT-2 U4-P2
+    {'name' : 'SLOT-3', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 3},# SLOT-3 U4-P3
+    {'name' : 'SLOT-4', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 4},# SLOT-4 U4-P4
+    {'name' : 'SLOT-5', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 5},# SLOT-5 U4-P5
+    {'name' : 'SLOT-6', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 6},# SLOT-6 U4-P6
+    {'name' : 'SLOT-7', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 7},# SLOT-7 U4-P7
+    {'name' : 'SLOT-8', 'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 8},# SLOT-8 U4-P8
+    {'name' : 'P1',     'mdio_mux' : FPGA_MdioBUS.CPLD, 'port' : 9},# U53 U5-P9
+    {'name' : 'P2',     'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 9},# U52 U4-P9
+    {'name' : 'P3',     'mdio_mux' : FPGA_MdioBUS.CPLD, 'port' : 5},# J8-B U5-P5
+    {'name' : 'P4',     'mdio_mux' : FPGA_MdioBUS.CPLD, 'port' : 6},# J8-A U5-P6
+]
 
 TPM_PRESENT_MASK = [0x1, 0x2, 0x4, 0x8, 0x80, 0x40, 0x20, 0x10]
 
 print_debug = False
-categories = ["FPGA_FW", "UserReg", "MCUR", "Led", "HKeep", "ETH", "Fram", "FPGA_I2C", "ONEWIRE", "CtrlRegs",
-              "CpldUart"]
-
-FpgaI2C_p = "/sys/bus/platform/devices/8010000.skamngfpgai2c/parameters/"  # file system path to FPGA I2C Regs
-FpgaI2CReg_names = [
-    "twi_command",
-    "twi_rbyte",
-    "twi_wrbyte",
-    "twi_status",
-    "twi_irq",
-    "twi_irq_en",
-    "twi_wrdata",
-    "twi_rdata"
-]
-
-# FirmwareBuildHigh  FirmwareBuildLow   FirmwareVersion
-FpgaFwVersion_p = "/sys/bus/platform/devices/8000000.skamngfpga/parameters/"  # file system path to FPGA FW Version Regs
-
-UserReg_p = "/sys/bus/platform/devices/8000f00.skamnguserreg/parameters/"  # file system path to FPGA User Regs
-UserReg_names = [
-    "UserReg0",
-    "UserReg1",
-    "UserReg2",
-    "UserReg3"
-]
-
-CtrlRegs_p = "/sys/bus/platform/devices/8000900.skamngctrlregs/parameters/"  # file system path to CTRL Regs
-CtrlRegs_names = [
-    "McuReset",
-    "McuPollingTime",
-    "EIMHadd",
-    "BkplOnOff"
-]
-
-MCURegs_p = "/sys/bus/platform/devices/8030000.skamngmcuregs/parameters/"  # file system path to MCU Regs Mirrored in FPGA
-MCUReg_names = [
-    "McuFWBuildVersion",
-    "McuFWBuildTime",
-    "McuFWBuildDate",
-    "GPReg0",
-    "GPReg1",
-    "GPReg2",
-    "GPReg3",
-    "VoltageSOC",
-    "VoltageARM",
-    "VoltageDDR",
-    "Voltage2V5",
-    "Voltage1V0",
-    "Voltage1V1",
-    "VoltageVCORE",
-    "Voltage1V5",
-    "Voltage3V3",
-    "Voltage5V",
-    "Voltage3V",
-    "Voltage2V8",
-    "BuckRegTemp",
-    "MCUTemp"
-]
-
-UserLed_p = "/sys/bus/platform/devices/8000400.skamngled/parameters/"  # file system path to FPGA User Led Control Regs
-UserLedReg_names = [
-    "Led_Tpm_A",
-    "Led_Tpm_K",
-    "Led_User_A",
-    "Led_User_K"
-]
-
-HKeepRegs_p = "/sys/bus/platform/devices/8000500.skamnghkregs/parameters/"  # file system path to FPGA House Keeping Regs
-HKeep_flag_names = [
-    "PsntMux",
-    "TPMsPresent",
-    "PPSMux",
-    "HKTempReg",
-    "TempAlarm2",
-    "TempAlarm1",
-    "HKVoltagesReg",
-    "PowerGoodBuck2",
-    "PowerGood1V5",
-    "ResetOutputBuck1",
-    "PowerGoodBuck1",
-    "PowerGoodStepDown",
-    "IRQBuck1",
-    "HSwapCtrlPowerinAlert",
-    "HKFanReg",
-    "FanAAlert",
-    "FanBAlert",
-    "TPMAAlert",
-    "TPMBAlert",
-    "TPMFanAlert",
-]
-
-EthRegs_p = "/sys/bus/platform/devices/8000100.skamngethregs/parameters/"  # file system path to FPGA ETH Regs
-
-LockRegs_p = "/sys/bus/platform/devices/80c0000.skamnglockregs/parameters/"  # file system path to FPGA LOCK Regs
-LockRegs_names = [
-    "MCULock",
-    "UCPLock",
-    "CPULock"
-]
-
-CpldUart_p = "/sys/bus/platform/devices/8070000.skamngcplduartregs/parameters/"  # file system path to CPLDUART Regs
-CpldUart_names = [
-    "Rnw",
-    "TxData",
-    "RxData",
-    "Status"
-]
-
-
-
-FramRegs_p = "/sys/bus/platform/devices/8090000.skamngframregs/parameters/"  # fpgaram register
+devices='/sys/bus/platform/devices/'
+categories = {
+    "FPGA_FW" : {
+        'path' : '8000000.skamngfpga',
+        },
+    "UserReg" : {
+        'path' : '8000f00.skamnguserreg',
+        },
+    "MCUR" : {
+        'path' : '8030000.skamngmcuregs',
+        },
+    "Led" : {
+        'path' : '8000400.skamngled',
+        },
+    "HKeep" : {
+        'path' : '8000500.skamnghkregs',
+        },
+    "ETH" : {
+        'path' : '8000100.skamngethregs',
+        },
+    "Fram" : {
+        'path' : '8090000.skamngframregs',
+        },
+    "FPGA_I2C" : {
+        'path' : '8010000.skamngfpgai2c',
+        },
+    "Lock" : {
+        'path' : '80c0000.skamnglockregs',
+        },
+    "CtrlRegs" : {
+        'path' : '8000900.skamngctrlregs',
+        },
+    "CpldUart" : {
+        'path' : '8070000.skamngcplduartregs',
+        },
+    "Mdio" : {
+        'path' : '8060000.skamngmdio',
+        },
+    }
 
 Error_p = "ERROR"
 
@@ -190,28 +138,8 @@ def run(command):
 def get_cat(name):
     # cat=name[0:(string.find(name,"."))]
     cat = name
-    if cat == "FPGA_FW":
-        categ = FpgaFwVersion_p
-    elif cat == "UserReg":
-        categ = UserReg_p
-    elif cat == "MCUR":
-        categ = MCURegs_p
-    elif cat == "Led":
-        categ = UserLed_p
-    elif cat == "HKeep":
-        categ = HKeepRegs_p
-    elif cat == "ETH":
-        categ = EthRegs_p
-    elif cat == "Fram":
-        categ = FramRegs_p
-    elif cat == "FPGA_I2C":
-        categ = FpgaI2C_p
-    elif cat == "Lock":
-        categ = LockRegs_p
-    elif cat == "CtrlRegs":
-        categ = CtrlRegs_p
-    elif cat == "CpldUart":
-        categ = CpldUart_p
+    if cat in categories:
+        categ=os.path.join(devices,categories[name]['path'],'parameters/')
     else:
         categ = Error_p
     if print_debug:
@@ -224,34 +152,14 @@ def get_cat(name):
 def translate_reg(name):
     # cat=name[0:(string.find(name,"."))]
     cat = name[0:name.find(".")]
-    if cat == "FPGA_FW":
-        categ = FpgaFwVersion_p
-    elif cat == "UserReg":
-        categ = UserReg_p
-    elif cat == "MCUR":
-        categ = MCURegs_p
-    elif cat == "Led":
-        categ = UserLed_p
-    elif cat == "HKeep":
-        categ = HKeepRegs_p
-    elif cat == "ETH":
-        categ = EthRegs_p
-    elif cat == "Fram":
-        categ = FramRegs_p
-    elif cat == "FPGA_I2C":
-        categ = FpgaI2C_p
-    elif cat == "Lock":
-        categ = LockRegs_p
-    elif cat == "CtrlRegs":
-        categ = CtrlRegs_p
-    elif cat == "CpldUart":
-        categ = CpldUart_p
+    if cat in categories:
+        categ=os.path.join(devices,categories[cat]['path'],'parameters/')
     else:
         categ = Error_p
     if print_debug:
-        print("from get_cat: name " + name)
-        print("from get_cat: cat " + cat)
-        print("from get_cat: category " + categ)
+        print("from translate_reg: name " + name)
+        print("from translate_reg: cat " + cat)
+        print("from translate_reg: category " + categ)
     # return categ+name[(string.find(name,"."))+1:]
     return categ + name[name.find(".") + 1:]
 
@@ -307,6 +215,7 @@ class Management():
             run(cmd)
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
+            self.create_all_regs_list()
 
     def __del__(self):
         self.data = []
@@ -315,96 +224,26 @@ class Management():
     # This method permit to fill all categories
     # register lists (<category_name>_list variable)
     def create_all_regs_list(self):
-        for i in range(0, len(categories)):
-            cmd = "ls -l " + get_cat(categories[i])
+        for key,value in categories.items():
+            cmd = "ls -l " + get_cat(key)
             regs = str(run(cmd))
             # print regs
             lines = regs.splitlines()
+            value['list']=[]
             for l in range(0, len(lines)):
                 if lines[l].find("root") != -1:
-                    if categories[i] == "FPGA_FW":
-                        FpgaFwVersionReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "UserReg":
-                        UserReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "MCUR":
-                        MCUReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "Led":
-                        UserLedReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "HKeep":
-                        HKeepRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "ETH":
-                        EthRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "Fram":
-                        FramRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "Lock":
-                        LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "CtrlRegs":
-                        CtrlRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                    elif categories[i] == "CpldUart":
-                        CpldUart_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-
-        print("FpgaFwVersionReg_list:", FpgaFwVersionReg_list)
-        print("UserReg_list:", UserReg_list)
-        print("MCUReg_list:", MCUReg_list)
-        print("UserLedReg_list:", UserLedReg_list)
-        print("HKeepRegs_list:", HKeepRegs_list)
-        print("EthRegs_list:", EthRegs_list)
-        print("FramRegs_list:", FramRegs_list)
-        print("LockRegs_list:", LockRegs_list)
-        print("CtrlRegs_list:", CtrlRegs_list)
-        print("CpldUart_list:", CpldUart_list)
-
-    ###create_regs_list
-    # This method permit to fill selected categories
-    # register lists (<category_name>_list variable)
-    # @param[in] categories: categories name
-    def create_regs_list(self, categories):
-        cmd = "ls -l " + get_cat(categories)
-        regs = str(run(cmd))
-        #print(regs)
-        lines = regs.splitlines()
-        print(len(lines))
-        for l in range(0, len(lines)):
-            #print(lines[l])
-            if lines[l].find("root") != -1:
-                if categories == "FPGA_FW":
-                    FpgaFwVersionReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "UserReg":
-                    UserReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "MCUR":
-                    MCUReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "Led":
-                    UserLedReg_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "HKeep":
-                    HKeepRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "ETH":
-                    EthRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "Fram":
-                    FramRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "Lock":
-                    LockRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "CtrlRegs":
-                    CtrlRegs_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-                elif categories == "CpldUart":
-                    CpldUart_list.append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
-
-        print("FpgaFwVersionReg_list:", FpgaFwVersionReg_list)
-        print("UserReg_list:", UserReg_list)
-        print("MCUReg_list:", MCUReg_list)
-        print("UserLedReg_list:", UserLedReg_list)
-        print("HKeepRegs_list:", HKeepRegs_list)
-        print("EthRegs_list:", EthRegs_list)
-        print("FramRegs_list:", FramRegs_list)
-        print("LockRegs_list:", LockRegs_list)
-        print("CtrlRegs_list:", CtrlRegs_list)
-        print("CpldUart_list:", CpldUart_list)
+                    value['list'].append(lines[l].split(" ")[len(lines[l].split(" ")) - 1])
+            # print(key,"_list:",value['list'])
 
     ###dump_categories
     # This method permit to print
     # all available registers categories
     def dump_categories(self):
-        for i in range(0, len(categories)):
-            print(categories[i])
+        result=[]
+        for key in categories.items():
+            result.append(key)
+            print(key)
+        return result
 
     ###read
     # This method implements read
@@ -441,11 +280,7 @@ class Management():
                 value = 0  # self.lastError = res
             if print_debug:
                 print("Read: " + name + ", " + hex(value))
-            read_val = int(value)
-            if read_val < 0:
-                read_val = read_val + (1 << 32)
-            return read_val
-
+            return int(value)
 
     ###write
     # This method implements write
@@ -515,25 +350,30 @@ class Management():
         print("Actual polling time: " + str('%.2f' % (polltime)) + " ms")
         return polltime
 
-    ### dump_housekeeping_flags_all
-    # This method print all HouseKeeping registers/flags values
-    def dump_housekeeping_flags_all(self):
-        for i in range(0, len(HKeep_flag_names)):
-            flag_value = self.read("HKeep." + HKeep_flag_names[i])
-            print(HKeep_flag_names[i] + " = " + hex(flag_value & 0xffffffff))
-
-    ### dump_fpga_userreg_all
-    # This method print all FPGA User Registers  values
-    def dump_fpga_userreg_all(self):
-        for i in range(0, len(UserReg_names)):
-            flag_value = self.read("UserReg." + UserReg_names[i])
-            print(UserReg_names[i] + " = " + hex(flag_value & 0xffffffff))
+    def dump_registers(self,key=None):
+        result={}
+        if key is None:
+            for key,category in categories.items():
+                result[key]={}
+                for reg in category['list']:
+                    reg_name=key+"."+reg
+                    value = self.read(reg_name)
+                    print(reg_name + " = " + hex(value & 0xffffffff) + "(%d)"%value)
+                    result[key][reg]=value
+        else:
+            category=categories[key]
+            result[key]={}
+            for reg in category['list']:
+                reg_name=key+"."+reg
+                value = self.read(reg_name)
+                print(reg_name + " = " + hex(value & 0xffffffff) + "(%d)"%value)
+                result[key][reg]=value
+        return result
 
     ### test_eim_access
     # This method permit to test the access on EIM bus from CPU
     # @param[in] iteration: number of iteration of the tests pattern are reads and wrtite and verifyed
-    # @return errors: test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
-    # @return i: iterations executed
+    # @return return test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
     def test_eim_access(self, iteration=1000):
         errors = 0
         patterns = [0x0, 0xffffffff, 0x5555aaaa, 0xaaaa5555]
@@ -542,17 +382,9 @@ class Management():
                 self.write("UserReg.UserReg0", patterns[k])
                 rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
-                    print("test_eim_access: ERROR at iteration i, expected %x, read %x " % (i, patterns[k], rd_data))
                     errors = k+1
-                    return errors, i
-        return errors, i
-
-    ### dump_userled_all
-    #This method print all FPGA User Leds  values
-    def dump_userled_all(self):
-        for i in range(0, len(UserLedReg_names)):
-            flag_value = self.read("Led." + UserLedReg_names[i])
-            print(UserLedReg_names[i] + " = " + hex(flag_value & 0xffffffff))
+                    return errors
+        return errors
 
     ### get_mcu_reg
     # This method return selected MCU register value
@@ -565,24 +397,19 @@ class Management():
     ### dump_mcu_regs_all
     # This method print all MCU Registers values
     def dump_mcu_regs_all(self):
-        for i in range(0, len(MCUReg_names)):
-            reg_value = self.read("MCUR." + MCUReg_names[i])
+        cat=categories['MCUR']
+        for reg in cat['list']:
+            i=0
+            reg_name="MCUR."+name
+            reg_value = self.read(reg_name)
             if (i > 6 and i < 19):
-                print(MCUReg_names[i] + " = " + str('%.2f' % (float(reg_value) / 1000)))
-            elif (i >= 19 and i < (len(MCUReg_names) - 1)):
-                print(MCUReg_names[i] + " = " + str('%.2f' % (reg_value)))
-            elif (i == (len(MCUReg_names) - 1)):
-                print(MCUReg_names[i] + " = " + str('%.2f' % (float(reg_value) / 10)))
+                print(reg_name + " = " + str('%.2f' % (float(reg_value) / 1000)))
+            elif (i >= 19 and i < (len(cat['list']) - 1)):
+                print(reg_name + " = " + str('%.2f' % (reg_value)))
+            elif (i == (len(cat['list']) - 1)):
+                print(reg_name + " = " + str('%.2f' % (float(reg_value) / 10)))
             else:
-                print(MCUReg_names[i] + " = " + hex(reg_value & 0xffffffff))
-
-    ### dump_fram_regs_all
-    # This method print all FPGA Ram Registers values
-    def dump_fram_regs_all(self):
-        self.create_regs_list("Fram")
-        for i in range(0, len(FramRegs_list)):
-            reg_value = self.read("Fram." + FramRegs_list[i])
-            print(FramRegs_list[i] + " = " + str('%.2f' % (reg_value)))
+                print(reg_name + " = " + hex(reg_value & 0xffffffff))
 
     # get_cpld_actual_ip
     # This method retrieve the IP Adddress assigned to CPLD on board
@@ -887,6 +714,46 @@ class Management():
                 # datar=((data&0xff00)>>8)|((data&0x00ff)<<8)
                 datar = data
             return datar, status
+
+    def mdio_read22(self, mux, phy_adr, register):
+        self.write("Mdio.CFG_REG0", 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
+        self.write("Mdio.ADR_REG1", register)
+        value = self.read("Mdio.RAW_REG2") & 0xffff
+        return value
+
+    def mdio_write22(self, mux, phy_adr, register, value):
+        self.write("Mdio.CFG_REG0", 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
+        self.write("Mdio.ADR_REG1", register)
+        self.write("Mdio.RAW_REG2", value)
+
+    def set_SFP(self,mdio_mux=FPGA_MdioBUS.CPLD):
+    	# /* Set Ports in 1000Base-X
+    	self.mdio_write22(mdio_mux, 9, 0x0, 0x9)
+    	# /* P9
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0xF054)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x400c)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0xF054)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x4000)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+    	# /*Start configuring ports for traffic
+    	# /*Clear power down bit and reset SERDES P9
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x2000)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0xa040)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+    	# /*Fix 1000Base-X AN advertisement
+    	# /*write45 4.2004.5 to 1
+    	# /* ADDR 0x09
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x2004)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x20)
+    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+    	# /*Enable Forwarding on ports:
+    	self.mdio_write22(mdio_mux, 9, 4, 0x007F)
+    	# get_port_cfg(9, mdio_mux)
 
     def GetMngTemp(self, sens_id):
         if sens_id < 1 or sens_id > 2:

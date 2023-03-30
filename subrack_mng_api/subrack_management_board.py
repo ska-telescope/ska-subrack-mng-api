@@ -149,12 +149,15 @@ def ipstr2hex(ip):
 @Pyro5.api.expose
 class SubrackMngBoard():
     def __init__(self, **kwargs):
+        print("SubrackMngBoard init ...")
         self._simulation = kwargs.get("simulation")
         self.data = []
+        print("Mng creating..")
         self.Mng = Management(self._simulation)
+        print("Bkpln creating..")
         self.Bkpln = Backplane(self.Mng, self._simulation)
         ipstr = self.Mng.get_cpld_actual_ip()
-        # print("MANAGEMENT creating..")
+        print("CpldMng creating..")
         self.CpldMng = cpld_mng.MANAGEMENT(ip=ipstr, port="10000", timeout=10)
         # print("MANAGEMENT created")
         self.mode = 0
@@ -175,10 +178,15 @@ class SubrackMngBoard():
         self.__detect_ups()
         self.ups_charge_regs = []
         self.ups_adc_values = []
+        print("SubrackMngBoard init done!")
 
     def __del__(self):
         self.data = []
 
+    def Initialize(self):
+        print("SUBRACK initialize start ...")
+        self.Mng.set_SFP()
+        print("SUBRACK initialize done.")
     """
     def mng_eth_cpld_read(self,add):
         cmd="../cpld_mng_api/reg.py --ip " + self.ipstr + " " + hex(add)
@@ -991,3 +999,14 @@ class SubrackMngBoard():
 
     def close(self):
         self.__del__()
+
+if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option("-e", "--emulation", action="store_true", help="enable emulation mode")
+    parser.add_option("-i", "--init", action="store_true", help="performe initialize, required after power up")
+    (options, args) = parser.parse_args()
+    print("SubrackMngBoard init ...")
+    subrack=SubrackMngBoard(simulation=False)
+    if options.init:
+        print("SubrackMngBoard Initialize ...")
+        subrack.Initialize()
