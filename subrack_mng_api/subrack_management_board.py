@@ -166,7 +166,7 @@ class SubrackMngBoard():
         self.powermon_cfgd = False
         self.tpm_ip_list = []
         self.cpu_ip = ""
-        self.__pupolate_tpm_ip_list()
+        self.__populate_tpm_ip_list()
         self.TPM_instances_list = [0, 0, 0, 0, 0, 0, 0, 0]
         self.tpm_plugin_loaded = [False, False, False, False, False, False, False]
         self.__startup()
@@ -237,7 +237,7 @@ class SubrackMngBoard():
             print("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
 
-    def __pupolate_tpm_ip_list(self):
+    def __populate_tpm_ip_list(self):
         state, cpu_ip = detect_cpu_ip()
         if state != -1:
             self.cpu_ip = cpu_ip
