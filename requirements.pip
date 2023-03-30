@@ -38,3 +38,5 @@ terminaltables
 #pip install enum34
 #matplotlib
 #pip install scipypip list
+Pyro5
+netifaces
