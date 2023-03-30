@@ -528,6 +528,7 @@ class Management():
                     else:
                         os.remove("/run/lock/mngfpgai2c.lock")
         if timeout:
+            print("fpgai2c_op - TIMEOUT")
             return 0xff, -1
         else:
             fo = open("/run/lock/mngfpgai2c.lock", "w")
