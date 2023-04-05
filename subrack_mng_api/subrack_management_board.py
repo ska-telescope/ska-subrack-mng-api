@@ -780,7 +780,7 @@ class SubrackMngBoard():
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return auto_mode
 
-    def PllInitialize(self, internal_source = False, pll_cfg_file=None):
+    def PllInitialize(self, source_internal = False, pll_cfg_file=None):
         """This method initialize the PLL"""
         if self._simulation is False:
             subrack.CpldMng.write_register(0x300,0)
@@ -788,7 +788,7 @@ class SubrackMngBoard():
             if pll_cfg_file is not None:
                 self.CpldMng.pll_ldcfg(pll_cfg_file)
             else:
-                if internal_source:
+                if source_internal:
                     exp_rd = 0x03
                     self.Mng.write('HKeep.PPSMux',3)
                     self.CpldMng.pll_ldcfg(PLL_CFG_FILE_INTERNAL)
