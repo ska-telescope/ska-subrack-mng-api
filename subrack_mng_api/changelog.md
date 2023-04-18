@@ -30,4 +30,15 @@
 - implemented automatic IP assignement of TPM boards
 - porting to python3
 - changed setup installation scripts
- 
+
+## version 2.0.5
+- add method to get PLL and CPLD_PLL status
+- add method to get TPM temperatures vectors
+- updated pyfabil submodule to manage TPM with BIOS v0.3.1
+- add UPS-Board communication methods
+
+## version 2.0.6
+- imported Pyro5 libraries to export class over eth
+- changed categories to dictionary  
+- add main to sbrack_management_board to execute initialization of subrack
+- add test_eim_access mtehod
