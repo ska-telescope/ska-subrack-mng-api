@@ -78,6 +78,7 @@ TPM_CPLD_REGFILE_BA=0x30000000
 subrack_slot_config_file="/etc/SKA/subrack_slot.conf"
 
 PLL_CFG_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__),"../cpld_mng_api/pll_subrack_OCXO.txt"))
+PLL_CFG_FILE_INTERNAL = os.path.abspath(os.path.join(os.path.dirname(__file__),"../cpld_mng_api/pll_subrack_OCXO_generate_internal.txt"))
 
 def dt_to_timestamp(d):
     return calendar.timegm(d.timetuple())
@@ -166,7 +167,7 @@ class SubrackMngBoard():
         self.powermon_cfgd = False
         self.tpm_ip_list = []
         self.cpu_ip = ""
-        self.__pupolate_tpm_ip_list()
+        self.__populate_tpm_ip_list()
         self.TPM_instances_list = [0, 0, 0, 0, 0, 0, 0, 0]
         self.tpm_plugin_loaded = [False, False, False, False, False, False, False]
         self.__startup()
@@ -183,9 +184,10 @@ class SubrackMngBoard():
     def __del__(self):
         self.data = []
 
-    def Initialize(self):
+    def Initialize(self,pll_source_internal=False):
         print("SUBRACK initialize start ...")
         self.Mng.set_SFP()
+        self.PllInitialize(source_internal=pll_source_internal)
         print("SUBRACK initialize done.")
     """
     def mng_eth_cpld_read(self,add):
@@ -237,7 +239,7 @@ class SubrackMngBoard():
             print("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
 
-    def __pupolate_tpm_ip_list(self):
+    def __populate_tpm_ip_list(self):
         state, cpu_ip = detect_cpu_ip()
         if state != -1:
             self.cpu_ip = cpu_ip
@@ -778,21 +780,30 @@ class SubrackMngBoard():
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return auto_mode
 
-    def PllInitialize(self, pll_cfg_file=None):
+    def PllInitialize(self, source_internal = False, pll_cfg_file=None):
         """This method initialize the PLL"""
         if self._simulation is False:
+            subrack.CpldMng.write_register(0x300,0)
+            subrack.CpldMng.write_register(0x300,1)
             if pll_cfg_file is not None:
                 self.CpldMng.pll_ldcfg(pll_cfg_file)
             else:
-                self.CpldMng.pll_ldcfg(PLL_CFG_FILE)
+                if source_internal:
+                    exp_rd = 0x03
+                    self.Mng.write('HKeep.PPSMux',3)
+                    self.CpldMng.pll_ldcfg(PLL_CFG_FILE_INTERNAL)
+                else:
+                    exp_rd = 0x33
+                    self.Mng.write('HKeep.PPSMux',0)
+                    self.CpldMng.pll_ldcfg(PLL_CFG_FILE)
             self.CpldMng.pll_calib()
             self.CpldMng.pll_ioupdate()
             time.sleep(0.5)
             #rd=hex(self.CpldMng.read_spi(0x3001))
-            rd = hex(self.CpldMng.pll_read_with_update(0x3001))
-            print ("PLL lock reg: %s" % rd)
-            if rd != "0x33":
-                print ("ERROR: PLL configuration failed, PLL not locked")
+            rd = self.CpldMng.pll_read_with_update(0x3001)
+            print ("PLL lock reg (0x3001): 0x%x" % rd)
+            if rd != exp_rd:
+                print ("ERROR: PLL configuration failed, PLL not locked (expected value 0x%x)"%exp_rd)
             # raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
         else:
             r = "0x33"
@@ -1000,13 +1011,37 @@ class SubrackMngBoard():
     def close(self):
         self.__del__()
 
+    # def SetLed(self, id, status):
+    #     m = {'a':0x8,'b':0x04,'c':0x2,'d':0x1}
+    #     value_A=self.Mng.read('Led.Led_User_A')
+    #     value_K=self.Mng.read('Led.Led_User_K')
+    #     # print("m ",format(m[id],'#06b'))
+    #     # print("n ",format(~(m[id])&0xf,'#06b'))
+    #     # print("r ",format(value_A,'#06b'))
+    #     # print("r ",format(value_K,'#06b'))
+    #     value_A &= ~(m[id])&0xf
+    #     value_K &= ~(m[id])&0xf
+    #     if status == "green":
+    #         value_A |= m[id];
+    #     elif status == "red":
+    #         value_K |= m[id];
+    #     # print("w ",format(value_A,'#06b'))
+    #     # print("w ",format(value_K,'#06b'))
+    #     self.Mng.write('Led.Led_User_A',value_A)
+    #     self.Mng.write('Led.Led_User_K',value_K)
+    #     value_A=self.Mng.read('Led.Led_User_A')
+    #     value_K=self.Mng.read('Led.Led_User_K')
+    #     # print("r ",format(value_A,'#06b'))
+    #     # print("r ",format(value_K,'#06b'))
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-e", "--emulation", action="store_true", help="enable emulation mode")
     parser.add_option("-i", "--init", action="store_true", help="performe initialize, required after power up")
+    parser.add_option("-s", "--pll_source_internal", action="store_true", help="Enable internal source for PPS and REF")
     (options, args) = parser.parse_args()
     print("SubrackMngBoard init ...")
     subrack=SubrackMngBoard(simulation=False)
     if options.init:
         print("SubrackMngBoard Initialize ...")
-        subrack.Initialize()
+        subrack.Initialize(pll_source_internal=options.pll_source_internal)

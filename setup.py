@@ -6,7 +6,7 @@ setup(
     version=get_version(),
     packages=['subrack_mng_api', 'subrack_mng_api.emulator_classes', 'cpld_mng_api', 'cpld_mng_api.netproto',
               'cpld_mng_api.bsp', 'web_server', 'tools'],
-    package_data={'cpld_mng_api': ["pll_subrack_OCXO.txt"]},
+    package_data={'cpld_mng_api': ["pll_subrack_OCXO.txt","pll_subrack_OCXO_generate_internal.txt"]},
     url='',
     license='GPLv3',
     author='Cristian Albanese',
