@@ -783,8 +783,8 @@ class SubrackMngBoard():
     def PllInitialize(self, source_internal = False, pll_cfg_file=None):
         """This method initialize the PLL"""
         if self._simulation is False:
-            subrack.CpldMng.write_register(0x300,0)
-            subrack.CpldMng.write_register(0x300,1)
+            self.CpldMng.write_register(0x300,0)
+            self.CpldMng.write_register(0x300,1)
             if pll_cfg_file is not None:
                 self.CpldMng.pll_ldcfg(pll_cfg_file)
             else:
