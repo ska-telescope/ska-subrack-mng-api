@@ -62,6 +62,24 @@ ethernet_ports=[
     {'name' : 'P4',     'mdio_mux' : FPGA_MdioBUS.CPLD, 'port' : 6},# J8-A U5-P6
 ]
 
+
+smm_i2c_devices=[
+    {'name': "ADT7408_1", "ICadd": 0x30 , "i2cbus_id": FPGA_I2CBUS.i2c1, "bus_size":2, "ref_add":0x6,
+     "ref_val":0x11d4, "op_check":"ro", "access":"CPLD"},
+    {'name': "ADT7408_2", "ICadd": 0x32, "i2cbus_id": FPGA_I2CBUS.i2c1, "bus_size": 2, "ref_add": 0x6,
+     "ref_val": 0x11d4, "op_check": "ro", "access":"CPLD"},
+    {'name': "LTC3676", "ICadd": 0x78, "i2cbus_id": FPGA_I2CBUS.i2c1, "bus_size": 1, "ref_add": 0x14,
+     "ref_val": 0xa5, "res_val":0x0, "op_check": "rw", "access":"CPLD"},
+    {'name': "LTC4281", "ICadd": 0x88, "i2cbus_id": FPGA_I2CBUS.i2c1, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val":0x0, "op_check": "rw", "access":"CPLD"},
+    {'name': "EEPROM_MAC_1", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c1, "bus_size": 1, "ref_add": 0x7f,
+     "ref_val": 0xa5, "res_val":0xFF, "op_check": "rw", "access":"CPU"},
+    {'name': "EEPROM_MAC_2", "ICadd": 0xA2, "i2cbus_id": FPGA_I2CBUS.i2c1, "bus_size": 1, "ref_add": 0x7f,
+     "ref_val": 0xa5, "res_val":0xFF,"op_check": "rw", "access":"CPU"},
+]
+
+
+
 TPM_PRESENT_MASK = [0x1, 0x2, 0x4, 0x8, 0x80, 0x40, 0x20, 0x10]
 
 print_debug = False
@@ -456,12 +474,12 @@ class Management():
         while (1):
             if (self.read("MCUR.GPReg3") == 0x12c0dead):
                 break
-        cmd = "i2cget -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + size_type
+        cmd = "sudo i2cget -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + size_type
         value = run(cmd)
         print(value)
         cmd = "echo 1 > /sys/class/gpio/gpio134/value"
         run(cmd)
-        return value
+        return int(value,16)
 
     ###write_i2c
     # This method implements write on i2c bus directly from CPU
@@ -478,7 +496,7 @@ class Management():
         while (1):
             if (self.read("MCUR.GPReg3") == 0x12c0dead):
                 break
-        cmd = "i2c_set -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + hex(
+        cmd = "sudo i2cset -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + hex(
             data) + " " + size_type
         value = run(cmd)
         print(value)
@@ -716,6 +734,138 @@ class Management():
                 datar = data
             return datar, status
 
+    def check_i2c_management_devices_access(self):
+        result = []
+        wr_op_passed = False
+        for i in range(0, len(smm_i2c_devices)):
+            print("Device: %s" %smm_i2c_devices[i]["name"])
+            if smm_i2c_devices[i]["access"] == "CPLD":
+                if smm_i2c_devices[i]["op_check"] == "ro":
+                    retval=0
+                    if smm_i2c_devices[i]["bus_size"] == 2:
+                        retval,state = self.fpgai2c_read16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                                   smm_i2c_devices[i]["i2cbus_id"])
+                    else:
+                        retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                                     smm_i2c_devices[i]["i2cbus_id"])
+                    if retval != smm_i2c_devices[i]["ref_val"]:
+                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                    retval, smm_i2c_devices[i]["ref_val"]))
+                    else:
+                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                    retval, smm_i2c_devices[i]["ref_val"]))
+                if smm_i2c_devices[i]["op_check"] == "rw":
+                    retval=0
+                    if smm_i2c_devices[i]["bus_size"] == 2:
+                        print("Writing16...")
+                        self.fpgai2c_write16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                            smm_i2c_devices[i]["ref_val"],smm_i2c_devices[i]["i2cbus_id"])
+                        print("reading16...")
+                        retval,state = self.fpgai2c_read16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                                   smm_i2c_devices[i]["i2cbus_id"])
+
+                    else:
+                        print("Writing8...")
+                        self.fpgai2c_write8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                             smm_i2c_devices[i]["ref_val"], smm_i2c_devices[i]["i2cbus_id"])
+                        print("reading8...")
+                        retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                                     smm_i2c_devices[i]["i2cbus_id"])
+                    if retval != smm_i2c_devices[i]["ref_val"]:
+                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                        retval,
+                                                                                        smm_i2c_devices[i]["ref_val"]))
+                    else:
+
+                        wr_op_passed = True
+                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                        retval,
+                                                                                        smm_i2c_devices[i]["ref_val"]))
+                    if wr_op_passed == True:
+                        print("Restoring value")
+                        if smm_i2c_devices[i]["bus_size"] == 2:
+                            self.fpgai2c_write16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                                smm_i2c_devices[i]["res_val"],smm_i2c_devices[i]["i2cbus_id"])
+                        else:
+                            self.fpgai2c_write8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
+                                                 smm_i2c_devices[i]["res_val"], smm_i2c_devices[i]["i2cbus_id"])
+            else:
+                if smm_i2c_devices[i]["op_check"] == "ro":
+                    retval = 0
+                    if smm_i2c_devices[i]["bus_size"] == 2:
+                        retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
+                                               smm_i2c_devices[i]["ref_add"],"w")
+                    else:
+                        retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
+                                                      smm_i2c_devices[i]["ref_add"],"b")
+                    if retval != smm_i2c_devices[i]["ref_val"]:
+                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                        retval,
+                                                                                        smm_i2c_devices[i]["ref_val"]))
+                    else:
+                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                        retval,
+                                                                                        smm_i2c_devices[i]["ref_val"]))
+                if smm_i2c_devices[i]["op_check"] == "rw":
+                    retval = 0
+                    if smm_i2c_devices[i]["bus_size"] == 2:
+                        print("Writing16...")
+                        self.write_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
+                                               smm_i2c_devices[i]["ref_add"],"w",smm_i2c_devices[i]["ref_val"])
+                        print("reading16...")
+                        retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
+                                               smm_i2c_devices[i]["ref_add"],"w")
+                    else:
+                        print("Writing8...")
+                        self.write_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
+                                               smm_i2c_devices[i]["ref_add"],"b",smm_i2c_devices[i]["ref_val"])
+                        print("reading8...")
+                        retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
+                                               smm_i2c_devices[i]["ref_add"],"b")
+                    if retval != smm_i2c_devices[i]["ref_val"]:
+                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                        retval,
+                                                                                        smm_i2c_devices[i]["ref_val"]))
+                    else:
+
+                        wr_op_passed = True
+                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                                       "expected": smm_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                                                                                        retval,
+                                                                                        smm_i2c_devices[i]["ref_val"]))
+                    if wr_op_passed == True:
+                        print("Restoring value")
+                        if smm_i2c_devices[i]["bus_size"] == 2:
+                            self.write_i2c(smm_i2c_devices[i]["i2cbus_id"], smm_i2c_devices[i]["ICadd"] >> 1,
+                                           smm_i2c_devices[i]["ref_add"], "w", smm_i2c_devices[i]["res_val"])
+                        else:
+                            self.write_i2c(smm_i2c_devices[i]["i2cbus_id"], smm_i2c_devices[i]["ICadd"] >> 1,
+                                           smm_i2c_devices[i]["ref_add"], "b", smm_i2c_devices[i]["res_val"])
+        return result
+
     def mdio_read22(self, mux, phy_adr, register):
         self.write("Mdio.CFG_REG0", 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
         self.write("Mdio.ADR_REG1", register)
@@ -726,6 +876,10 @@ class Management():
         self.write("Mdio.CFG_REG0", 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
         self.write("Mdio.ADR_REG1", register)
         self.write("Mdio.RAW_REG2", value)
+
+
+
+
 
     def set_SFP(self,mdio_mux=FPGA_MdioBUS.CPLD):
     	# /* Set Ports in 1000Base-X
