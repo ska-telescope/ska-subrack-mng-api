@@ -749,13 +749,13 @@ class Management():
                         retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                                      smm_i2c_devices[i]["i2cbus_id"])
                     if retval != smm_i2c_devices[i]["ref_val"]:
-                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                     retval, smm_i2c_devices[i]["ref_val"]))
                     else:
-                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
@@ -778,7 +778,7 @@ class Management():
                         retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                                      smm_i2c_devices[i]["i2cbus_id"])
                     if retval != smm_i2c_devices[i]["ref_val"]:
-                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
@@ -787,7 +787,7 @@ class Management():
                     else:
 
                         wr_op_passed = True
-                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
@@ -811,14 +811,14 @@ class Management():
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                       smm_i2c_devices[i]["ref_add"],"b")
                     if retval != smm_i2c_devices[i]["ref_val"]:
-                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                     else:
-                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
@@ -841,7 +841,7 @@ class Management():
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"b")
                     if retval != smm_i2c_devices[i]["ref_val"]:
-                        result.append({smm_i2c_devices[i]["name"]: "FAILED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
@@ -850,7 +850,7 @@ class Management():
                     else:
 
                         wr_op_passed = True
-                        result.append({smm_i2c_devices[i]["name"]: "PASSED",
+                        result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
