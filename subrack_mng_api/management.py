@@ -298,7 +298,11 @@ class Management():
                 value = 0  # self.lastError = res
             if print_debug:
                 print("Read: " + name + ", " + hex(value))
-            return int(value)
+            read_val = int(value)
+            if read_val < 0:
+                read_val = read_val + (1 << 32)
+            return read_val
+
 
     ###write
     # This method implements write
