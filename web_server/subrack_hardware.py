@@ -621,8 +621,6 @@ class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
         subrack = SubrackMngBoard(simulation=emulation)
         self.subrack = subrack
-        # Actual initialization
-        subrack.PllInitialize()
         # power on the backplane
         if subrack.Bkpln.get_bkpln_is_onoff() == 0:
             subrack.Bkpln.power_on_bkpln()
