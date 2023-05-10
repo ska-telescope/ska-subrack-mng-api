@@ -245,6 +245,9 @@ class Management():
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
             self.create_all_regs_list()
+        self.board_info=self.get_board_info()
+        for key,value in self.board_info.items():
+            logger.info("%s: %s"%(key,value))
 
     def __del__(self):
         self.data = []
@@ -369,9 +372,6 @@ class Management():
         str_date+= "{:02x}".format((builddate&0xff0000)>>16)+"-"
         str_date+= "{:02x}".format((builddate&0xff00)>>8)+":"
         str_date+= "{:02x}".format((builddate&0xff))
-
-        logger.info("Current FPGA FW version: " + str_version)
-        logger.info("Build Date: " + str_date)
         return str_version, str_date
     
     def get_bios(self):

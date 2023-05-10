@@ -51,12 +51,12 @@ class MANAGEMENT_BSP():
         else:
             print("mode: UNKNOWN")
             self.spi = MANAGEMENT_SPI(board, rmp, subrack_pll_cs)
-        self.hw_rev = []
-        hw_rev = self.rmp.rd32(0x124)
-        self.hw_rev.append((hw_rev >> 16) & 0xff)
-        self.hw_rev.append((hw_rev >> 8) & 0xff)
-        self.hw_rev.append((hw_rev >> 0) & 0xff)
-        print("HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2]))
+        # self.hw_rev = []
+        # hw_rev = self.rmp.rd32(0x124)
+        # self.hw_rev.append((hw_rev >> 16) & 0xff)
+        # self.hw_rev.append((hw_rev >> 8) & 0xff)
+        # self.hw_rev.append((hw_rev >> 0) & 0xff)
+        # print("HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2]))
         self.eep_sec = eep_sec
 
 

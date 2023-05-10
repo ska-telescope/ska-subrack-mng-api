@@ -113,8 +113,6 @@ class MANAGEMENT:
             self.board = "MNG"
             # self.board = "KCU105"
 
-        print("")
-        print("Using board", self.board)
         # self.spi = TPM_SPI(self.board, self.rmp)
         self.bsp = MANAGEMENT_BSP(self.board, self.rmp)
         self.spiflash = MngProgFlash(self, self.rmp)
