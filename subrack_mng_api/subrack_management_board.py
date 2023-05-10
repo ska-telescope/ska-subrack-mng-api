@@ -110,15 +110,12 @@ def detect_cpu_ip():
     cmd = "ip address"
     ret = run(cmd)
     lines = ret.splitlines()
-    logger.debug(lines)
     found = False
     state = 0
     cpu_ip = "255.255.255.255"
     for r in range(0, len(lines)):
         if str(lines[r]).find("inet") != -1:
-            logger.debug(lines[r])
             cpu_ip = str(lines[r]).split(" ")[5]
-            logger.debug("CPU IP: %s" % str(lines[r]).split(" "))
             if cpu_ip.find("10.0.10") != -1:
                 cpu_ip = cpu_ip.split("/")[0]
                 found = True
@@ -341,7 +338,7 @@ class SubrackMngBoard():
         else:
             logger.debug("GetTPMIP ERROR: TPM IP address list incomplete")
             raise SubrackExecFault("Error:TPM IP address list incomplete")
-        logging.info("TPM IP ADD of board in slot %d: %s" % (tpm_slot_id, tpm_ip_str))
+        logger.info("TPM IP ADD of board in slot %d: %s" % (tpm_slot_id, tpm_ip_str))
         return tpm_ip_str
 
     def GetTPMInfo(self, tpm_slot_id, forceread=False):
@@ -372,8 +369,8 @@ class SubrackMngBoard():
         tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
         state, cpu_ip = detect_cpu_ip()
         if state != -1:
-            # logging.info("TPM IP: %s, CPU IP: %s" %(tpm_ip,subrack_cpu_ip))
-            logging.info("TPM IP: %s" % tpm_ip_str)
+            # logger.info("TPM IP: %s, CPU IP: %s" %(tpm_ip,subrack_cpu_ip))
+            logger.info("TPM IP: %s" % tpm_ip_str)
             # tpm = TPM_1_6()
             # tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False, fsample=800e6)
             tpm = self.TPM_instances_list[tpm_slot_id -1]
@@ -381,7 +378,7 @@ class SubrackMngBoard():
             if prev_onoff == 0:
                 if self.Bkpln.pwr_off_tpm(tpm_slot_id)!=0:
                     raise SubrackExecFault("Error:TPM Power on Failed")
-            # logging.info(tpm_info)
+            # logger.info(tpm_info)
             return tpm_info
         else:
             logger.debug ("Error in CPU IP detection")
@@ -691,7 +688,7 @@ class SubrackMngBoard():
         :param force: force the operation even if no TPM is present in selected slot
         """
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) == 0:
-            logging.error("ERROR: TPM not present in selected slot")
+            logger.error("ERROR: TPM not present in selected slot")
             if force is True:
                 if self.Bkpln.get_bkpln_is_onoff() == 0:
                     self.Bkpln.power_on_bkpln()
@@ -708,7 +705,7 @@ class SubrackMngBoard():
                     self.SubrackInitialConfiguration()
             if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
                 if self.Bkpln.pwr_on_tpm(tpm_slot_id):
-                    logging.error("Power TPM on slot %d failed" % tpm_slot_id)
+                    logger.error("Power TPM on slot %d failed" % tpm_slot_id)
                     raise SubrackExecFault("ERROR: power on TPM command failed")
                 else:
                     time.sleep(2)
@@ -729,7 +726,7 @@ class SubrackMngBoard():
         :param force: force the operation even if no TPM is present in selected slot
         """
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) == 0:
-            logging.error("ERROR: TPM not present in selected slot")
+            logger.error("ERROR: TPM not present in selected slot")
             if force is True:
                 self.Bkpln.pwr_off_tpm(tpm_slot_id)
             else:
@@ -739,7 +736,7 @@ class SubrackMngBoard():
                 self.TPM_instances_list[tpm_slot_id - 1].disconnect()
                 self.tpm_plugin_loaded[tpm_slot_id -1] = False
                 if self.Bkpln.pwr_off_tpm(tpm_slot_id):
-                    logging.error("Power TPM off slot %d failed" % tpm_slot_id)
+                    logger.error("Power TPM off slot %d failed" % tpm_slot_id)
                     raise SubrackExecFault("ERROR: power off TPM command failed")
 
     def SetFanSpeed(self, fan_id, speed_pwm_perc):
@@ -1045,8 +1042,10 @@ class SubrackMngBoard():
     #     # logger.debug("r ",format(value_K,'#06b'))
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.WARNING)
-    logger=logging.getLogger(os.path.dirname(__file__)+"_main")
+    #logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s:%(levelname)s:%(name)s:%(message)s', datefmt='%m/%d/%Y %H:%M:%S',level=logging.DEBUG)
+    logger=logging.getLogger(os.path.basename(__file__)+"_main")
+
     parser = OptionParser()
     parser.add_option("-e", "--emulation", action="store_true", help="enable emulation mode")
     parser.add_option("-i", "--init", action="store_true", help="performe initialize, required after power up")

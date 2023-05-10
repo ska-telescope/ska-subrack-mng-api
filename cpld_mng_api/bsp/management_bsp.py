@@ -14,7 +14,26 @@ BOARD_MODE = {
 }
 
 
-
+eep_sec = {
+            "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
+            "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
+            "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
+            "SN":           {"offset": 0x20, "size": 16, "name": "SN", "type": "string", "protected": True},
+            "PN":           {"offset": 0x40, "size": 20, "name": "PN", "type": "string", "protected": True},
+            "BOARD_MODE":   {"offset": 0x60, "size": 1, "name": "BOARD_MODE", "type": "uint", "protected": True},
+            # 1 subrack, 2 cabinet
+            "HARDWARE_REV": {"offset": 0x61, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
+            "PCB_REV":      {"offset": 0x64, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
+            "DDR_SIZE_GB":  {"offset": 0x65, "size": 1, "name": "DDR_SIZE_GB", "type": "uint", "protected": True},
+            "CABINET_LOCATION": {"offset": 0x66, "size": 2, "name": "CABINET_LOCATION", "type": "uint",
+                                 "protected": False},
+            "SUBRACK_LOCATION": {"offset": 0x68, "size": 1, "name": "SUBRACK_LOCATION", "type": "uint",
+                                 "protected": False},
+            "SLOT_LOCATION": {"offset": 0x69, "size": 1, "name": "SLOT_LOCATION", "type": "uint",
+                              "protected": False},
+            "MAC": {"offset": 0xFA, "size": 6, "name": "MAC", "type": "bytearray",
+                    "protected": True},  # READ-ONLY
+        }
 
 
 class MANAGEMENT_BSP():
@@ -38,26 +57,7 @@ class MANAGEMENT_BSP():
         self.hw_rev.append((hw_rev >> 8) & 0xff)
         self.hw_rev.append((hw_rev >> 0) & 0xff)
         print("HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2]))
-        self.eep_sec = {
-            "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
-            "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
-            "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
-            "SN":           {"offset": 0x20, "size": 16, "name": "SN", "type": "string", "protected": True},
-            "PN":           {"offset": 0x40, "size": 20, "name": "PN", "type": "string", "protected": True},
-            "BOARD_MODE":   {"offset": 0x60, "size": 1, "name": "BOARD_MODE", "type": "uint", "protected": True},
-            # 1 subrack, 2 cabinet
-            "HARDWARE_REV": {"offset": 0x61, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
-            "PCB_REV":      {"offset": 0x64, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
-            "DDR_SIZE_GB":  {"offset": 0x65, "size": 1, "name": "DDR_SIZE_GB", "type": "uint", "protected": True},
-            "CABINET_LOCATION": {"offset": 0x66, "size": 2, "name": "CABINET_LOCATION", "type": "uint",
-                                 "protected": False},
-            "SUBRACK_LOCATION": {"offset": 0x68, "size": 1, "name": "SUBRACK_LOCATION", "type": "uint",
-                                 "protected": False},
-            "SLOT_LOCATION": {"offset": 0x69, "size": 1, "name": "SLOT_LOCATION", "type": "uint",
-                              "protected": False},
-            "MAC": {"offset": 0xFA, "size": 6, "name": "MAC", "type": "bytearray",
-                    "protected": True},  # READ-ONLY
-        }
+        self.eep_sec = eep_sec
 
 
     def ip2long(self, ip):

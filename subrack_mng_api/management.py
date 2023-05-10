@@ -11,6 +11,10 @@ from datetime import datetime
 import random
 import logging
 from subrack_mng_api.emulator_classes.def4emulation import *
+from cpld_mng_api.bsp.management_bsp import eep_sec
+import socket
+import struct
+
 import Pyro5.api
 
 lasttemp = 59.875
@@ -218,6 +222,10 @@ class Management():
         self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
+        self.eep_sec = eep_sec
+        seq=smm_i2c_devices
+        key="name"
+        self.smm_i2c_devices_dict=dict((d[key], dict(d, index=index)) for (index, d) in enumerate(seq))
         if self.simulation == False:
             self.get_fpga_fw_version()
             # set gpio for I2C control Request
@@ -240,6 +248,12 @@ class Management():
 
     def __del__(self):
         self.data = []
+
+    def long2ip(self, ip):
+        """
+        Convert long to IP string
+        """
+        return socket.inet_ntoa(struct.pack("!I", ip))
 
     ###create_all_regs_list
     # This method permit to fill all categories
@@ -359,6 +373,145 @@ class Management():
         logger.info("Current FPGA FW version: " + str_version)
         logger.info("Build Date: " + str_date)
         return str_version, str_date
+    
+    def get_bios(self):
+        string = "CPLD_"
+        string += hex(self.read("FPGA_FW.FirmwareVersion")) + "_" + hex(self.read("FPGA_FW.FirmwareBuildHigh") << 32 | self.read("FPGA_FW.FirmwareBuildLow"))
+        string += "-MCU_"
+        string += hex(self.read("MCUR.McuFWBuildVersion")) + "_" + hex(self.read("MCUR.McuFWBuildDate") << 32 | self.read("MCUR.McuFWBuildTime"))
+        kernel_release=run("uname -r")
+        #kernel_version=run("uname -v")
+        string += "-KRN_" + kernel_release# + "_" + kernel_version.split(" ")[0]
+        final_string = "v?.?.? (%s)" % string
+        """
+        for BIOS_REV in self.BIOS_REV_list:
+            if BIOS_REV[1] == string:
+                final_string = "v%s (%s)" % (BIOS_REV[0], string)
+                break
+        """
+        return final_string
+
+    def get_field(self, key):
+        if self.eep_sec[key]["type"] == "ip":
+            return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
+        elif self.eep_sec[key]["type"] == "bytearray":
+            arr = bytearray()
+            for offset in range(self.eep_sec[key]["size"]):
+                arr.append(self.eep_rd8(self.eep_sec[key]["offset"]+offset))
+            return arr
+        elif self.eep_sec[key]["type"] == "string":
+            return self.rd_string(self.eep_sec[key])
+        elif self.eep_sec[key]["type"] == "uint":
+            val = 0
+            for offset in range(self.eep_sec[key]["size"]):
+                val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"]+offset)
+            return val
+
+    def eep_rd8(self, offset):
+        dev=self.smm_i2c_devices_dict['EEPROM_MAC_1']
+        return self.read_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b")
+        
+    def eep_rd16(self, offset):
+        rd = 0
+        for n in range(2):
+            rd = rd << 8
+            rd = rd | self.eep_rd8(offset+n)
+        return rd
+
+    def eep_rd32(self, offset):
+        rd = 0
+        for n in range(4):
+            rd = rd << 8
+            rd = rd | self.eep_rd8(offset+n)
+        return rd
+
+    def rd_string(self, partition):
+        return self._rd_string(partition["offset"], partition["size"])
+
+    def _rd_string(self, offset, max_len=16):
+        addr = offset
+        string = ""
+        for i in range(max_len):
+            byte = self.eep_rd8(addr)
+            if byte == ord("\n") or byte == 0xff:
+                break
+            string += chr(byte)
+            addr += 1
+        return string
+
+    def get_mac(self,mac):
+        mac_str = ""
+        for i in range(0,len(mac)-1):
+            mac_str += '{0:02x}'.format(mac[i])+":"
+        mac_str += '{0:02x}'.format(mac[len(mac)-1])
+        return mac_str
+    
+    def get_cpu_mac(self):
+        mac=(self.read("ETH.Mac1_H")<<32)+self.read("ETH.Mac1_L")
+        res=bytearray()
+        for i in range(6):
+            res.append((mac>>8*(5-i))&0xff)
+        return res
+
+    def detect_cpu_ip(self):
+        cmd = "ip -f inet addr show eth0"
+        ret = run(cmd)
+        lines = ret.splitlines()
+        found = False
+        state = 0
+        cpu_ip = None
+        for r in range(0, len(lines)):
+            if str(lines[r]).find("inet") != -1:
+                _cpu_ip = str(lines[r]).split(" ")[5]
+                cpu_ip = _cpu_ip.split("/")[0]
+                netmask = _cpu_ip.split("/")[1]
+                netmask = self.long2ip(~(2**(32-int(netmask))-1) & 0xffffffff)
+                found = True
+                break
+        if found is False:
+            state = -1
+            cpu_ip = None
+        return cpu_ip,netmask
+
+
+    def get_board_info(self):
+        mng_info = {"CPLD_ip_address": self.long2ip(self.read("ETH.IP")),
+                    "CPLD_netmask": self.long2ip(self.read("ETH.Netmask")),
+                    "CPLD_gateway": self.long2ip(self.read("ETH.Gateway")),
+                    "CPLD_ip_address_eep": self.get_field("ip_address"),
+                    "CPLD_netmask_eep": self.get_field("netmask"),
+                    "CPLD_gateway_eep": self.get_field("gateway"),
+                    "CPLD_MAC": self.get_mac(self.get_field("MAC")),
+                    "CPU_ip_address": self.detect_cpu_ip()[0],
+                    "CPU_netmask": self.detect_cpu_ip()[1],
+                    "CPU_MAC": self.get_mac(self.get_cpu_mac()),
+                    "SN": self.get_field("SN"),
+                    "PN": self.get_field("PN"),
+                    "bios": self.get_bios()
+                    }
+        if self.get_field("BOARD_MODE") == 0x1:
+            mng_info["BOARD_MODE"] = "SUBRACK"
+        elif self.get_field("BOARD_MODE") == 0x2:
+            mng_info["BOARD_MODE"] = "CABINET"
+        else:
+            mng_info["BOARD_MODE"] = "UNKNOWN"
+            # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
+
+        location = [self.get_field("CABINET_LOCATION"),
+                    self.get_field("SUBRACK_LOCATION"),
+                    self.get_field("SLOT_LOCATION")]
+        mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
+
+        pcb_rev = self.get_field("PCB_REV")
+        if pcb_rev == 0xff:
+            pcb_rev_string = ""
+        else:
+            pcb_rev_string = str(pcb_rev)
+
+        hw_rev = self.get_field("HARDWARE_REV")
+        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
+
+        return mng_info
 
     ### get_housekeeping_flag
     # This method return selected housekeeping regs/flag
