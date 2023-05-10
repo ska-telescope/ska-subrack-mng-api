@@ -17,6 +17,8 @@ lasttemp = 59.875
 
 I2CDevices = ["ADT7408_1", "ADT7408_2", "EEPROM_MAC_1", "EEPROM_MAC_2", "LTC3676", "LTC4281"]
 
+logger=logging.getLogger(os.path.basename(__file__))
+logger.setLevel(logging.DEBUG)
 
 class FPGA_I2CBUS:
     i2c1 = 0
@@ -161,9 +163,9 @@ def get_cat(name):
     else:
         categ = Error_p
     if print_debug:
-        print("from get_cat: name " + name)
-        print("from get_cat: cat " + cat)
-        print("from get_cat: category " + categ)
+        logger.debug("from get_cat: name " + name)
+        logger.debug("from get_cat: cat " + cat)
+        logger.debug("from get_cat: category " + categ)
     return categ
 
 
@@ -175,9 +177,9 @@ def translate_reg(name):
     else:
         categ = Error_p
     if print_debug:
-        print("from translate_reg: name " + name)
-        print("from translate_reg: cat " + cat)
-        print("from translate_reg: category " + categ)
+        logger.debug("from translate_reg: name " + name)
+        logger.debug("from translate_reg: cat " + cat)
+        logger.debug("from translate_reg: category " + categ)
     # return categ+name[(string.find(name,"."))+1:]
     return categ + name[name.find(".") + 1:]
 
@@ -217,6 +219,7 @@ class Management():
         self.data = []
         self.simulation = simulation
         if self.simulation == False:
+            self.get_fpga_fw_version()
             # set gpio for I2C control Request
             cmd = "ls -l /sys/class/gpio/"
             gpiolist = str(run(cmd))
@@ -289,7 +292,7 @@ class Management():
             reg = translate_reg(name)
             if reg != Error_p:
                 if print_debug:
-                    print("Opening file")
+                    logger.debug("Opening file")
                 fo = open(reg, "r")
                 value = fo.readline()
                 value = value[0:len(value) - 1]
@@ -297,7 +300,7 @@ class Management():
             else:
                 value = 0  # self.lastError = res
             if print_debug:
-                print("Read: " + name + ", " + hex(value))
+                logger.debug("Read: " + name + ", " + hex(value))
             read_val = int(value)
             if read_val < 0:
                 read_val = read_val + (1 << 32)
@@ -323,13 +326,13 @@ class Management():
                 rw_emulator_regs_file("w", reg_category, reg_name, value)
         else:
             if print_debug:
-                print("Write: " + name + ", " + hex(value))
+                logger.debug("Write: " + name + ", " + hex(value))
             reg = translate_reg(name)
             if print_debug:
-                print("register: " + reg)
+                logger.debug("register: " + reg)
             if reg != Error_p:
                 if print_debug:
-                    print("Opening file")
+                    logger.debug("Opening file")
                 fo = open(reg, "w")
                 fo.write(str(value))
                 fo.close()
@@ -344,11 +347,18 @@ class Management():
     # return buildyear: year of FW build
     def get_fpga_fw_version(self):
         version = self.read("FPGA_FW.FirmwareVersion")
+        str_version="0x{:08x}".format(version & 0xffffffff)
         builddate = self.read("FPGA_FW.FirmwareBuildLow")
         buildyear = self.read("FPGA_FW.FirmwareBuildHigh")
-        print("Current FPGA FW version: " + hex(version & 0xffffffff)[2:])
-        print("Build Date: " + hex(buildyear)[2:] + "-" + hex(builddate)[2:])
-        return hex(version), hex(buildyear), hex(builddate)
+        str_date = "{:04x}".format(buildyear&0xffff)+"/"
+        str_date+= "{:02x}".format((builddate&0xff000000)>>24)+"/"
+        str_date+= "{:02x}".format((builddate&0xff0000)>>16)+"-"
+        str_date+= "{:02x}".format((builddate&0xff00)>>8)+":"
+        str_date+= "{:02x}".format((builddate&0xff))
+
+        logger.info("Current FPGA FW version: " + str_version)
+        logger.info("Build Date: " + str_date)
+        return str_version, str_date
 
     ### get_housekeeping_flag
     # This method return selected housekeeping regs/flag
@@ -369,7 +379,7 @@ class Management():
     # return regval: polling time in ms
     def get_polling_time(self):
         polltime = self.read("MCUR.McuPollingTime")
-        print("Actual polling time: " + str('%.2f' % (polltime)) + " ms")
+        logger.info("Actual polling time: " + str('%.2f' % (polltime)) + " ms")
         return polltime
 
     def dump_registers(self,key=None):
@@ -405,7 +415,7 @@ class Management():
                 self.write("UserReg.UserReg0", patterns[k])
                 rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
-                    print("test_eim_access: ERROR at iteration i, expected %x, read %x " % (i, patterns[k], rd_data))
+                    logger.error("test_eim_access: ERROR at iteration i, expected %x, read %x " % (i, patterns[k], rd_data))
                     errors = k+1
                     return errors, i
         return errors, i
@@ -441,14 +451,14 @@ class Management():
     # return ipadd:ipaddress string
     def get_cpld_actual_ip(self):
         ip = self.read("ETH.IP")
-        print ("Read ip: %s" % hex(ip))
+        logger.info("Read ip: %s" % hex(ip))
         ipadd = []
         ipadd.append((ip & 0xff000000) >> 24)
         ipadd.append((ip & 0x00ff0000) >> 16)
         ipadd.append((ip & 0x0000ff00) >> 8)
         ipadd.append((ip & 0x000000ff))
         ipstring = str(ipadd[0]) + "." + str(ipadd[1]) + "." + str(ipadd[2]) + "." + str(ipadd[3])
-        print("ipstring %s" % ipstring)
+        logger.info("ipstring %s" % ipstring)
         return ipstring
 
     ###get_fram_reg
@@ -463,7 +473,7 @@ class Management():
     # This method print all name and addresses devices connected to I2C bus accessible from CPU
     def list_i2c_devadd(self):
         for i in range(0, len(I2CDevices)):
-            print("Device: " + vars(I2CDevAdd).keys()[i + 1] + ", add: " + hex(vars(I2CDevAdd).values()[i + 1]))
+            logger.info("Device: " + vars(I2CDevAdd).keys()[i + 1] + ", add: " + hex(vars(I2CDevAdd).values()[i + 1]))
 
     ###read_i2c
     # This method implements read on i2c bus directly from CPU
@@ -483,7 +493,6 @@ class Management():
                 break
         cmd = "sudo i2cget -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + size_type
         value = run(cmd)
-        print(value)
         cmd = "echo 1 > /sys/class/gpio/gpio134/value"
         run(cmd)
         return int(value,16)
@@ -506,7 +515,6 @@ class Management():
         cmd = "sudo i2cset -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + hex(
             data) + " " + size_type
         value = run(cmd)
-        print(value)
         cmd = "echo 1 > /sys/class/gpio/gpio134/value"
         run(cmd)
         return value
@@ -522,6 +530,7 @@ class Management():
     # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
     # from CPU and MCU
     def fpgai2c_op(self, ICadd, wrbytenum, rdbytenum, datatx, i2cbus_id):
+        logger.debug("I2C OP 0x%x 0x%x 0x%x 0x%x 0x%x" % (ICadd, wrbytenum, rdbytenum, datatx, i2cbus_id))
         MAXRETRY = 100
         ICadd = ICadd >> 1
         thispid = os.getpid()
@@ -541,7 +550,7 @@ class Management():
                     lockedpid = fo.readline()
                     fo.close()
                     delta = time.time()
-                    print("len lockedpid = %d, lockedpid val %s, elapsed time %d" % (
+                    logger.debug("len lockedpid = %d, lockedpid val %s, elapsed time %d" % (
                     len(lockedpid), lockedpid, delta - inittime))
                     if len(lockedpid) != 0:
                         if check_pid(int(lockedpid)) == False:
@@ -553,7 +562,7 @@ class Management():
                     else:
                         os.remove("/run/lock/mngfpgai2c.lock")
         if timeout:
-            print("fpgai2c_op - TIMEOUT")
+            logger.error("fpgai2c_op - TIMEOUT")
             return 0xff, -1
         else:
             fo = open("/run/lock/mngfpgai2c.lock", "w")
@@ -570,7 +579,7 @@ class Management():
             now = time.time()
             if (now - start > 5):
                 os.remove("/run/lock/mngfpgai2c.lock")
-                print("timeout locking cpu")
+                logger.error("timeout locking cpu")
                 return 0xff, -1
         # command=(rdbytenum<<24)|(wrbytenum<<16)|(i2cbus_id)|(ICadd>>1)cat /sy  bus
         # datatx_n=((datatx&0xff)<<24)|((datatx&0xff00>>8)<<24)|((datatx&0xff0000>>16)<<16)|((datatx&0xff000000>>24))
@@ -585,7 +594,7 @@ class Management():
                 break
         self.write("FPGA_I2C.twi_wrdata", datatx)
         if print_debug:
-            print("fpgai2c_op command = " + hex(command))
+            logger.debug("fpgai2c_op command = " + hex(command))
         self.write("FPGA_I2C.twi_command", command)
         time.sleep(0.1)
         retry = 0
@@ -595,7 +604,7 @@ class Management():
                 break
             else:
                 if status == 2 or status == 3:
-                    print("Not Acknowledge detected")
+                    logger.error("Not Acknowledge detected")
                     cmd = "echo 1 > /sys/class/gpio/gpio134/value"
                     run(cmd)
                     time.sleep(0.1)
@@ -606,7 +615,7 @@ class Management():
                     retry = retry + 1
                     time.sleep(0.01)
         if retry == MAXRETRY:
-            print("Maxretry i2c fpga access ")
+            logger.debug("Maxretry i2c fpga access ")
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
             time.sleep(0.1)
@@ -636,7 +645,7 @@ class Management():
         time.sleep(0.01)
         self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
         os.remove("/run/lock/mngfpgai2c.lock")
-        logging.debug("End I2C OP")
+        logger.debug("End I2C OP")
         return datarx, 0
 
     def fpgai2c_write8(self, ICadd, reg_add, datatx, i2cbus_id):
@@ -745,7 +754,7 @@ class Management():
         result = []
         wr_op_passed = False
         for i in range(0, len(smm_i2c_devices)):
-            print("Device: %s" %smm_i2c_devices[i]["name"])
+            logger.info("Device: %s" %smm_i2c_devices[i]["name"])
             if smm_i2c_devices[i]["access"] == "CPLD":
                 if smm_i2c_devices[i]["op_check"] == "ro":
                     retval=0
@@ -759,36 +768,36 @@ class Management():
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                     retval, smm_i2c_devices[i]["ref_val"]))
                     else:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                     retval, smm_i2c_devices[i]["ref_val"]))
                 if smm_i2c_devices[i]["op_check"] == "rw":
                     retval=0
                     if smm_i2c_devices[i]["bus_size"] == 2:
-                        print("Writing16...")
+                        logger.info("Writing16...")
                         self.fpgai2c_write16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                             smm_i2c_devices[i]["ref_val"],smm_i2c_devices[i]["i2cbus_id"])
-                        print("reading16...")
+                        logger.info("reading16...")
                         retval,state = self.fpgai2c_read16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                                    smm_i2c_devices[i]["i2cbus_id"])
 
                     else:
-                        print("Writing8...")
+                        logger.info("Writing8...")
                         self.fpgai2c_write8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                              smm_i2c_devices[i]["ref_val"], smm_i2c_devices[i]["i2cbus_id"])
-                        print("reading8...")
+                        logger.info("reading8...")
                         retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                                      smm_i2c_devices[i]["i2cbus_id"])
                     if retval != smm_i2c_devices[i]["ref_val"]:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                     else:
@@ -797,11 +806,11 @@ class Management():
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                     if wr_op_passed == True:
-                        print("Restoring value")
+                        logger.info("Restoring value")
                         if smm_i2c_devices[i]["bus_size"] == 2:
                             self.fpgai2c_write16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
                                                 smm_i2c_devices[i]["res_val"],smm_i2c_devices[i]["i2cbus_id"])
@@ -821,37 +830,37 @@ class Management():
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                     else:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                 if smm_i2c_devices[i]["op_check"] == "rw":
                     retval = 0
                     if smm_i2c_devices[i]["bus_size"] == 2:
-                        print("Writing16...")
+                        logger.info("Writing16...")
                         self.write_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"w",smm_i2c_devices[i]["ref_val"])
-                        print("reading16...")
+                        logger.info("reading16...")
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"w")
                     else:
-                        print("Writing8...")
+                        logger.info("Writing8...")
                         self.write_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"b",smm_i2c_devices[i]["ref_val"])
-                        print("reading8...")
+                        logger.info("reading8...")
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"b")
                     if retval != smm_i2c_devices[i]["ref_val"]:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                     else:
@@ -860,11 +869,11 @@ class Management():
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
-                        print("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
                                                                                         retval,
                                                                                         smm_i2c_devices[i]["ref_val"]))
                     if wr_op_passed == True:
-                        print("Restoring value")
+                        logger.info("Restoring value")
                         if smm_i2c_devices[i]["bus_size"] == 2:
                             self.write_i2c(smm_i2c_devices[i]["i2cbus_id"], smm_i2c_devices[i]["ICadd"] >> 1,
                                            smm_i2c_devices[i]["ref_add"], "w", smm_i2c_devices[i]["res_val"])
@@ -889,37 +898,38 @@ class Management():
 
 
     def set_SFP(self,mdio_mux=FPGA_MdioBUS.CPLD):
-    	# /* Set Ports in 1000Base-X
-    	self.mdio_write22(mdio_mux, 9, 0x0, 0x9)
-    	# /* P9
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0xF054)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x400c)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0xF054)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x4000)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
-    	# /*Start configuring ports for traffic
-    	# /*Clear power down bit and reset SERDES P9
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x2000)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0xa040)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
-    	# /*Fix 1000Base-X AN advertisement
-    	# /*write45 4.2004.5 to 1
-    	# /* ADDR 0x09
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x2004)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
-    	self.mdio_write22(mdio_mux, 0x1c, 25, 0x20)
-    	self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
-    	# /*Enable Forwarding on ports:
-    	self.mdio_write22(mdio_mux, 9, 4, 0x007F)
-    	# get_port_cfg(9, mdio_mux)
+        logger.info("set_SFP")
+        # /* Set Ports in 1000Base-X
+        self.mdio_write22(mdio_mux, 9, 0x0, 0x9)
+        # /* P9
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0xF054)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0x400c)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0xF054)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0x4000)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+        # /*Start configuring ports for traffic
+        # /*Clear power down bit and reset SERDES P9
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0x2000)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0xa040)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+        # /*Fix 1000Base-X AN advertisement
+        # /*write45 4.2004.5 to 1
+        # /* ADDR 0x09
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0x2004)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8124)
+        self.mdio_write22(mdio_mux, 0x1c, 25, 0x20)
+        self.mdio_write22(mdio_mux, 0x1c, 24, 0x8524)
+        # /*Enable Forwarding on ports:
+        self.mdio_write22(mdio_mux, 9, 4, 0x007F)
+        # get_port_cfg(9, mdio_mux)
 
     def GetMngTemp(self, sens_id):
         if sens_id < 1 or sens_id > 2:
-            print("Error Invalid ID")
+            logger.error("Error Invalid ID")
             return 0
         temperature = self.read("Fram.Adt" + str(sens_id) + "TempValue")
         if (temperature & 0x1000) >> 12 == 1:
@@ -959,12 +969,12 @@ class Management():
         op_status = 0
         start = time.time()
         rxbuff = []
-        print("[uart2mcu_write] time start %.6f" % start)
+        logger.debug("[uart2mcu_write] time start %.6f" % start)
         for i in range(0, len(data_w)):
             self.write("CpldUart.TxData", data_w[i])
             self.write("CpldUart.Rnw", 0)
             now = time.time()
-            print("[uart2mcu_write] time now %.6f" % now)
+            logger.debug("[uart2mcu_write] time now %.6f" % now)
             # if i<len(data_w)-1:
             """
             while (1):
@@ -1032,15 +1042,15 @@ class Management():
             if (self.read("CpldUart.Status") & 0x2) == 0x2:
                 self.write("CpldUart.Rnw", 0x1)
                 rxdata = self.read("CpldUart.RxData")
-                print ("uart2mcu_read")
+                logger.debug("uart2mcu_read")
                 break
             else:
                 now = time.time()
                 if now - start > 30:
-                    print("[uart2mcu_read] time now %d" % now)
+                    logger.debug("[uart2mcu_read] time now %d" % now)
                     op_status = 1
                     break
-        print ("Exit from uart2mcu_read")
+        logger.debug("Exit from uart2mcu_read")
         return rxdata, op_status
 
     # uart2mcu_read_buff
@@ -1077,14 +1087,14 @@ class Management():
     # return rxdata: read data from MCU uart
     # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def start_mcu_sam_ba_monitor(self):
-        print ("Start MCU Monitor")
+        logger.debug("Start MCU Monitor")
         op_status = 0
         self.write("MCUR.GPReg0", 0xb007)
         start = time.time()
         time.sleep(0.2)
         while (1):
             if self.read("MCUR.GPReg0") == 0x5e7:
-                print("MCU Ready for Reset")
+                logger.debug("MCU Ready for Reset")
                 self.write("CtrlRegs.McuReset", 0)
                 time.sleep(0.01)
                 self.write("CtrlRegs.McuReset", 1)

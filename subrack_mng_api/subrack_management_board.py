@@ -36,6 +36,8 @@ TPMInfo_t={
 "MAC":              "",#READ-ONLY
 }
 
+logger=logging.getLogger(os.path.basename(__file__))
+logger.setLevel(logging.DEBUG)
 
 class SubrackInvalidParameter(Exception):
     """ Define an exception which occurs when an invalid parameter is provided
@@ -87,7 +89,7 @@ def detect_ip(tpm_slot_id):
     try:
         f = open(subrack_slot_config_file, "r")
     except:
-        print("Configuration File not Found")
+        logger.debug("Configuration File not Found")
         return 1
     cfg_lines = f.readlines()
     f.close()
@@ -108,15 +110,15 @@ def detect_cpu_ip():
     cmd = "ip address"
     ret = run(cmd)
     lines = ret.splitlines()
-    print(lines)
+    logger.debug(lines)
     found = False
     state = 0
     cpu_ip = "255.255.255.255"
     for r in range(0, len(lines)):
         if str(lines[r]).find("inet") != -1:
-            print(lines[r])
+            logger.debug(lines[r])
             cpu_ip = str(lines[r]).split(" ")[5]
-            print("CPU IP:", str(lines[r]).split(" "))
+            logger.debug("CPU IP: %s" % str(lines[r]).split(" "))
             if cpu_ip.find("10.0.10") != -1:
                 cpu_ip = cpu_ip.split("/")[0]
                 found = True
@@ -150,21 +152,21 @@ def ipstr2hex(ip):
 @Pyro5.api.expose
 class SubrackMngBoard():
     def __init__(self, **kwargs):
-        print("SubrackMngBoard init ...")
+        logger.info("SubrackMngBoard init ...")
         self._simulation = kwargs.get("simulation")
         self.data = []
-        print("Mng creating..")
+        logger.debug("Mng creating..")
         self.Mng = Management(self._simulation)
-        print("Bkpln creating..")
+        logger.debug("Bkpln creating..")
         self.Bkpln = Backplane(self.Mng, self._simulation)
         ipstr = self.Mng.get_cpld_actual_ip()
-        print("CpldMng creating..")
+        logger.debug("CpldMng creating..")
         self.CpldMng = cpld_mng.MANAGEMENT(ip=ipstr, port="10000", timeout=10)
-        # print("MANAGEMENT created")
+        # logger.debug("MANAGEMENT created")
         self.mode = 0
         self.status = 0
         self.first_config = False
-        self.powermon_cfgd = False
+        self.powermon_cfgd = os.path.exists("/run/lock/subrack_management_board_powermon_cfgd")
         self.tpm_ip_list = []
         self.cpu_ip = ""
         self.__populate_tpm_ip_list()
@@ -179,23 +181,28 @@ class SubrackMngBoard():
         self.__detect_ups()
         self.ups_charge_regs = []
         self.ups_adc_values = []
-        print("SubrackMngBoard init done!")
+        logger.info("SubrackMngBoard init done!")
 
     def __del__(self):
         self.data = []
 
     def Initialize(self,pll_source_internal=False):
-        print("SUBRACK initialize start ...")
+        logger.info("SUBRACK initialize start ...")
         self.Mng.set_SFP()
         self.PllInitialize(source_internal=pll_source_internal)
-        print("SUBRACK initialize done.")
+        # power on the backplane
+        if self.Bkpln.get_bkpln_is_onoff() == 0:
+            self.Bkpln.power_on_bkpln()
+        if self.powermon_cfgd == False:
+            self.SubrackInitialConfiguration()
+        logger.info("SUBRACK initialize done.")
     """
     def mng_eth_cpld_read(self,add):
         cmd="../cpld_mng_api/reg.py --ip " + self.ipstr + " " + hex(add)
         res=run(cmd)
         lines = res.splitlines()
         r = lines[len(lines) - 1]
-        print("read val = %s" % r)
+        logger.debug("read val = %s" % r)
         return int(r,16)
 
     def mng_eth_cpld_write(self,add,val):
@@ -203,7 +210,7 @@ class SubrackMngBoard():
         res=run(cmd)
         lines = res.splitlines()
         r = lines[len(lines) - 1]
-        print("read val = %s" % r)
+        logger.debug("read val = %s" % r)
         return int(r,16)
     """
     def __detect_ups(self):
@@ -236,7 +243,7 @@ class SubrackMngBoard():
             tpm_ip_add = tpm_ip_add_h | (cpu_ip_l + 6 + tpm_slot_id)
             self.write_tpm_singlewire(tpm_slot_id, 0x40000028, tpm_ip_add)
         else:
-            print("Error in CPU IP detection")
+            logger.debug("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def __populate_tpm_ip_list(self):
@@ -249,7 +256,7 @@ class SubrackMngBoard():
                 tpm_add = tpm_ip_add_h | (cpu_ip_l + 6 + i)
                 self.tpm_ip_list.append(int2ip(tpm_add))
         else:
-            print("Error in CPU IP detection")
+            logger.debug("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def read_tpm_singlewire(self, tpm_id, address):
@@ -282,13 +289,13 @@ class SubrackMngBoard():
         :return list of IP address will be assigned assigned
         """
         if len(self.tpm_ip_list) == 8:
-            print("TPM address will be assigned:")
+            logger.debug("TPM address will be assigned:")
             for i in range(0, 8):
                 # tpm_add = (tpm_ip_add_h | (cpu_ip_l + 6 + i))
-                print("slot %d -> %s" % (i+1 , self.tpm_ip_list[i]))
+                logger.debug("slot %d -> %s" % (i+1 , self.tpm_ip_list[i]))
             return self.tpm_ip_list
         else:
-            print("Error TPM IP list")
+            logger.debug("Error TPM IP list")
             raise SubrackExecFault("Error:TPM IP Add List Incomplete")
 
     def SetTPMIP(self, tpm_slot_id, ip, netmask):
@@ -310,7 +317,7 @@ class SubrackMngBoard():
         if self.tpm_ip_list == 8:
             self.tpm_ip_list[tpm_slot_id - 1] = ip
         else:
-            print("SetTPMIP ERROR: TPM IP address list incomplete")
+            logger.debug("SetTPMIP ERROR: TPM IP address list incomplete")
             raise SubrackExecFault("Error:TPM IP address list incomplete")
 
     def GetTPMIP(self,tpm_slot_id):
@@ -329,10 +336,10 @@ class SubrackMngBoard():
         tpm_ip_str = int2ip(tpm_ip)
         if len(self.tpm_ip_list) == 8:
             if ipstr2hex(self.tpm_ip_list[tpm_slot_id - 1]) != tpm_ip:
-                print("GetTPMIP ERROR: TPM IP mismatch with expected list")
+                logger.debug("GetTPMIP ERROR: TPM IP mismatch with expected list")
                 raise SubrackExecFault("Error:TPM IP address mismatch with ip add list")
         else:
-            print("GetTPMIP ERROR: TPM IP address list incomplete")
+            logger.debug("GetTPMIP ERROR: TPM IP address list incomplete")
             raise SubrackExecFault("Error:TPM IP address list incomplete")
         logging.info("TPM IP ADD of board in slot %d: %s" % (tpm_slot_id, tpm_ip_str))
         return tpm_ip_str
@@ -377,7 +384,7 @@ class SubrackMngBoard():
             # logging.info(tpm_info)
             return tpm_info
         else:
-            print ("Error in CPU IP detection")
+            logger.debug ("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def GetTPMGlobalStatusAlarm(self, tpm_slot_id, forceread=False):
@@ -399,13 +406,13 @@ class SubrackMngBoard():
                             self.SubrackInitialConfiguration()
                 if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
                     # raise SubrackExecFault("Error:TPM Power on Failed")
-                    print ("Error:TPM Power on Failed")
+                    logger.debug ("Error:TPM Power on Failed")
                     return 1
             else:
                 prev_onoff = 1
         else:
             # raise SubrackInvalidCmd("TPM not present")
-            print("ERROR: TPM not present")
+            logger.debug("ERROR: TPM not present")
             return 1
         # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
         # tpm_ip_str = int2ip(tpm_ip)
@@ -416,7 +423,7 @@ class SubrackMngBoard():
         global_status = tpm.get_global_status_alarms()
         # tpm.disconnect()
         # global_status = self.read_tpm_singlewire(tpm_slot_id, 0x30000500)
-        print("Global status: ", global_status)
+        logger.debug("Global status: %s" % global_status)
         if prev_onoff == 0:
             if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
                 raise SubrackExecFault("Error:TPM Power off Failed")
@@ -456,10 +463,10 @@ class SubrackMngBoard():
         :param forceread: force the operation even if no TPM is present in selected slot
         :return tpm_board_temperature,tpm_fpga0_temp, tpm_fpga1_temp(if fpga is not programmed return fpga_temp =0)
         """
-        # print("GetTPMTemperatures %d"%tpm_slot_id)
+        # logger.debug("GetTPMTemperatures %d"%tpm_slot_id)
         prev_onoff = 0
         pres_tpm = self.GetTPMPresent()
-        #print("TPM Present: %x" %pres_tpm)
+        #logger.debug("TPM Present: %x" %pres_tpm)
         if pres_tpm & (1 << (tpm_slot_id-1)) != 0:
             # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
             if self.GetTPMOnOffVect() & (1 << (tpm_slot_id - 1)) == 0:
@@ -472,13 +479,13 @@ class SubrackMngBoard():
                             self.SubrackInitialConfiguration()
                 if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
                     #raise SubrackExecFault("Error:TPM Power on Failed")
-                    print ("Error:TPM Power on Failed")
+                    logger.debug ("Error:TPM Power on Failed")
                     return -1
             else:
                 prev_onoff = 1
         else:
             # raise SubrackInvalidCmd("TPM not present")
-            print("ERROR: TPM not present")
+            logger.debug("ERROR: TPM not present")
             return -1
         # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
         # tpm_ip_str = int2ip(tpm_ip)
@@ -557,13 +564,13 @@ class SubrackMngBoard():
                             self.SubrackInitialConfiguration()
                 if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
                     #raise SubrackExecFault("Error:TPM Power on Failed")
-                    print ("Error:TPM Power on Failed")
+                    logger.debug("Error:TPM Power on Failed")
                     return 1
             else:
                 prev_onoff = 1
         else:
             #raise SubrackInvalidCmd("TPM not present")
-            print("ERROR: TPM not present")
+            logger.debug("ERROR: TPM not present")
             return 1
         # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
         # tpm_ip_str = int2ip(tpm_ip)
@@ -583,11 +590,13 @@ class SubrackMngBoard():
         """ SubrackInitialConfiguration
         @brief method Initizlize the Subrack power control configuration for TPM current limit
         """
+        logger.info("SubrackInitialConfiguration")
         self.mode = "INIT"
-        print("Config TPM's Power monitor to config 5")
+        logger.debug("Config TPM's Power monitor to config 5")
         for i in range(1, 9):
             self.Bkpln.pwr_set_ilimt(i, 5)
         self.powermon_cfgd = True
+        open("/run/lock/subrack_management_board_powermon_cfgd", 'a').close()
 
     def get_subrack_cpu_cpld_ip(self):
         """ SubrackInitialConfiguration
@@ -754,7 +763,7 @@ class SubrackMngBoard():
         :return fan_bank_pwm: pwm value of selected fan
         """
         rpm, pwm_perc, status = self.Bkpln.get_bkpln_fan_speed(fan_id)
-        # print ("rpm %d, pwm_perc %d" %(rpm,pwm_perc))
+        # logger.debug ("rpm %d, pwm_perc %d" %(rpm,pwm_perc))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return rpm, pwm_perc
@@ -775,13 +784,14 @@ class SubrackMngBoard():
         :return status: status of operation
         """
         auto_mode, status = self.Bkpln.get_bkpln_fan_mode(fan_id)
-        # print("auto_mode %d, status %d" % (auto_mode, status))
+        # logger.debug("auto_mode %d, status %d" % (auto_mode, status))
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return auto_mode
 
     def PllInitialize(self, source_internal = False, pll_cfg_file=None):
         """This method initialize the PLL"""
+        logger.info("PllInitialize")
         if self._simulation is False:
             self.CpldMng.write_register(0x300,0)
             self.CpldMng.write_register(0x300,1)
@@ -801,33 +811,33 @@ class SubrackMngBoard():
             time.sleep(0.5)
             #rd=hex(self.CpldMng.read_spi(0x3001))
             rd = self.CpldMng.pll_read_with_update(0x3001)
-            print ("PLL lock reg (0x3001): 0x%x" % rd)
+            logger.debug ("PLL lock reg (0x3001): 0x%x" % rd)
             if rd != exp_rd:
-                print ("ERROR: PLL configuration failed, PLL not locked (expected value 0x%x)"%exp_rd)
+                logger.debug ("ERROR: PLL configuration failed, PLL not locked (expected value 0x%x)"%exp_rd)
             # raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
         else:
             r = "0x33"
-            print("pll res = %s" % r)
+            logger.debug("pll res = %s" % r)
             if r != "0x33":
-                print ("ERROR: PLL configuration failed, PLL not locked")
+                logger.debug ("ERROR: PLL configuration failed, PLL not locked")
         """
         if self._simulation==False:
             ipstring=self.Mng.get_cpld_actual_ip()
             cmd = "bash ./pll_cfg.sh "+ ipstring
-            print (cmd)
+            logger.debug (cmd)
             res=run(cmd)
             lines=res.splitlines()
             r=lines[len(lines)-1]
-            print("pll res = %s" %r)
+            logger.debug("pll res = %s" %r)
             if (r!="0x33"):
                 if (str(r) != "b'0x33'"):
-                    print ("ERROR: PLL configuration failed, PLL not locked")
+                    logger.debug ("ERROR: PLL configuration failed, PLL not locked")
             # raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
         else:
             r = "0x33"
-            print("pll res = %s" % r)
+            logger.debug("pll res = %s" % r)
             if r != "0x33":
-                print ("ERROR: PLL configuration failed, PLL not locked")
+                logger.debug ("ERROR: PLL configuration failed, PLL not locked")
         """
 
     def GetLockedPLL(self):
@@ -836,12 +846,12 @@ class SubrackMngBoard():
         """
         #rd = hex(self.CpldMng.read_spi(0x3001))
         rd = hex(self.CpldMng.pll_read_with_update(0x3001))
-        #print("PLL lock reg: %s" % rd)
+        #logger.debug("PLL lock reg: %s" % rd)
         if rd != "0x33":
-            #print("PLL not locked")
+            #logger.debug("PLL not locked")
             return False
         else:
-            #print("PLL locked")
+            #logger.debug("PLL locked")
             return True
 
     def GetCPLDLockedPLL(self):
@@ -849,12 +859,12 @@ class SubrackMngBoard():
         :return locked: value of locked status, True PLL is locked, False PLL not locked
         """
         rd = hex(self.CpldMng.read_register(0xC))
-        #print("PLL CPLD lock reg: %s" % rd)
+        #logger.debug("PLL CPLD lock reg: %s" % rd)
         if (int(rd, 16) & 0x1) != 0x1:
-            #print("PLL not locked")
+            #logger.debug("PLL not locked")
             return False
         else:
-            #print("PLL locked")
+            #logger.debug("PLL locked")
             return True
 
     # #UPS SECTION
@@ -884,15 +894,15 @@ class SubrackMngBoard():
             while (received is False) and (timeout is False):
                 start = time.time()
                 receive_data = self.ser.read(32)  # read serial port
-                print("Received Data", receive_data)
+                logger.debug("Received Data 0x%x" % receive_data)
                 end = time.time()
                 receive_data = self.ser.read(32)  # read serial port
-                print("Received Data", receive_data)
+                logger.debug("Received Data 0x%x" % receive_data)
                 end = time.time()
                 if end - start >= 5:
                     timeout = True
                 if receive_data[0] == 73:
-                    print("Update Ups Charge Regs")
+                    logger.debug("Update Ups Charge Regs")
                     self.ups_charge_regs = {
                         "charger_status": int.from_bytes(receive_data[1:3], byteorder='big'),  # .encode('hex'),
                         "charging_curr": int.from_bytes(receive_data[4:6], byteorder='big'),  # .encode('hex'),
@@ -902,9 +912,9 @@ class SubrackMngBoard():
                         "bbu_control": int.from_bytes(receive_data[16:18], byteorder='big')  # .encode('hex')
                     }
                     received = True
-                    print(self.ups_charge_regs)
+                    logger.debug(self.ups_charge_regs)
                     if receive_data[19] == 65:
-                        print("Update Ups ADC Values")
+                        logger.debug("Update Ups ADC Values")
                         self.ups_adc_values = {
                             "power_in": round((int.from_bytes(receive_data[20:22], byteorder='big') * 15.24 * 0.8), 2),
                             "vin_sht": round((int.from_bytes(receive_data[23:25], byteorder='big') * 15.24 * 0.8), 2),
@@ -912,7 +922,7 @@ class SubrackMngBoard():
                             "man_5v0": round((int.from_bytes(receive_data[29:31], byteorder='big') * 0.8 * 15.24), 2)
                         }
                         received = True
-                        print(self.ups_adc_values)
+                        logger.debug(self.ups_adc_values)
                 if timeout is False:
                     if self.ups_adc_values["vin"] < (self.warning_l*1000):
                         self.ups_status["warning"] = True
@@ -935,7 +945,7 @@ class SubrackMngBoard():
                     else:
                         self.ups_status["charging"] = False
                 else:
-                    print("TIMEOUT")
+                    logger.debug("TIMEOUT")
             return self.ups_status
 
     # #POWER SUPPLIES SECTION
@@ -1015,33 +1025,35 @@ class SubrackMngBoard():
     #     m = {'a':0x8,'b':0x04,'c':0x2,'d':0x1}
     #     value_A=self.Mng.read('Led.Led_User_A')
     #     value_K=self.Mng.read('Led.Led_User_K')
-    #     # print("m ",format(m[id],'#06b'))
-    #     # print("n ",format(~(m[id])&0xf,'#06b'))
-    #     # print("r ",format(value_A,'#06b'))
-    #     # print("r ",format(value_K,'#06b'))
+    #     # logger.debug("m ",format(m[id],'#06b'))
+    #     # logger.debug("n ",format(~(m[id])&0xf,'#06b'))
+    #     # logger.debug("r ",format(value_A,'#06b'))
+    #     # logger.debug("r ",format(value_K,'#06b'))
     #     value_A &= ~(m[id])&0xf
     #     value_K &= ~(m[id])&0xf
     #     if status == "green":
     #         value_A |= m[id];
     #     elif status == "red":
     #         value_K |= m[id];
-    #     # print("w ",format(value_A,'#06b'))
-    #     # print("w ",format(value_K,'#06b'))
+    #     # logger.debug("w ",format(value_A,'#06b'))
+    #     # logger.debug("w ",format(value_K,'#06b'))
     #     self.Mng.write('Led.Led_User_A',value_A)
     #     self.Mng.write('Led.Led_User_K',value_K)
     #     value_A=self.Mng.read('Led.Led_User_A')
     #     value_K=self.Mng.read('Led.Led_User_K')
-    #     # print("r ",format(value_A,'#06b'))
-    #     # print("r ",format(value_K,'#06b'))
+    #     # logger.debug("r ",format(value_A,'#06b'))
+    #     # logger.debug("r ",format(value_K,'#06b'))
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.WARNING)
+    logger=logging.getLogger(os.path.dirname(__file__)+"_main")
     parser = OptionParser()
     parser.add_option("-e", "--emulation", action="store_true", help="enable emulation mode")
     parser.add_option("-i", "--init", action="store_true", help="performe initialize, required after power up")
     parser.add_option("-s", "--pll_source_internal", action="store_true", help="Enable internal source for PPS and REF")
     (options, args) = parser.parse_args()
-    print("SubrackMngBoard init ...")
+    logger.debug("SubrackMngBoard init ...")
     subrack=SubrackMngBoard(simulation=False)
     if options.init:
-        print("SubrackMngBoard Initialize ...")
+        logger.debug("SubrackMngBoard Initialize ...")
         subrack.Initialize(pll_source_internal=options.pll_source_internal)

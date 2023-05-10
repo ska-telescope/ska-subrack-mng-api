@@ -8,6 +8,9 @@ from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
 print_debug = False
 
+import logging
+logger=logging.getLogger(os.path.basename(__file__))
+logger.setLevel(logging.DEBUG)
 
 class BackplaneInvalidParameter(Exception):
     """ Define an exception which occurs when an invalid parameter is provided
@@ -55,10 +58,11 @@ class Backplane():
     # #This method Power On the Bacplane Board providing supply to the TPMs Powercontrol devices
     # #@param[in] onoff: select the operation: 1 power on, 0 power off
     def power_on_bkpln(self):
+        logger.info("power_on_bkpln")
         self.mng.write("CtrlRegs.BkplOnOff", 1)
         rdval = self.mng.read("CtrlRegs.BkplOnOff")
         if rdval != 1:
-            print("Error during operation: Expected %d, Read %d" % (1, rdval))
+            logger.error("Error during operation: Expected %d, Read %d" % (1, rdval))
 
     # ##power_off_bkpln
     # This method Power Off the Bacplane Board providing supply to the TPMs Powercontrol devices
@@ -67,7 +71,7 @@ class Backplane():
         self.mng.write("CtrlRegs.BkplOnOff", 0)
         rdval = self.mng.read("CtrlRegs.BkplOnOff")
         if rdval != 0:
-            print("Error during operation: Expected %d, Read %d" % (0, rdval))
+            logger.error("Error during operation: Expected %d, Read %d" % (0, rdval))
 
     # ##get_bkpln_is_onoff
     # This method return the status of the Power On/Off registers for the Backplane Board power on,off
@@ -92,7 +96,7 @@ class Backplane():
         # print "I2C ADD "+hex(i2c_add)
         status = self.mng.fpgai2c_write8(i2c_add, 0x04, 0x00, FPGA_I2CBUS.i2c2)  # reset alarms
         if status != 0:
-            print("Error writing on device " + hex(i2c_add))
+            logger.error("Error writing on device " + hex(i2c_add))
             return status
         status = self.mng.fpgai2c_write8(i2c_add, 0x00, 0xBB, FPGA_I2CBUS.i2c2)  # power on tpm
         # update poweron reg used only for symulation
@@ -102,7 +106,7 @@ class Backplane():
             self.mng.write("Fram.TPM_SUPPLY_STATUS", reg)
         # end of update sequence
         if status != 0:
-            print("Error writing on device " + hex(i2c_add))
+            logger.error("Error writing on device " + hex(i2c_add))
         else:
             if self.is_tpm_on(tpm_id):
                 status = 0
@@ -125,7 +129,7 @@ class Backplane():
             self.mng.write("Fram.TPM_SUPPLY_STATUS", reg)
         # end of update sequence
         if status != 0:
-            print("Error writing on device " + hex(i2c_add))
+            logger.error("Error writing on device " + hex(i2c_add))
         else:
             if self.is_tpm_on(tpm_id) is False:
                 status = 0
@@ -141,14 +145,14 @@ class Backplane():
         i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
         data, status = self.mng.fpgai2c_read8(i2c_add, 0x00, FPGA_I2CBUS.i2c2)
         if print_debug:
-            print("is_tpm_on " + hex(data & 0xff))
+            logger.debug("is_tpm_on " + hex(data & 0xff))
         if (data & 0xff) == 0xbb:
             if print_debug:
-                print("tpm on")
+                logger.debug("tpm on")
             return True
         else:
             if print_debug:
-                print("tpm off")
+                logger.debug("tpm off")
             return False
 
     # ##get_power_tpm
@@ -167,7 +171,7 @@ class Backplane():
             pwr = float(power*0.04*16.64*65536)/((65535*65535)*0.0025)
             pwr = round(pwr, 3)
         if print_debug:
-            print("power, "+str(pwr))
+            logger.debug("power, "+str(pwr))
         return pwr
 
     # ##get_voltage_tpm
@@ -187,7 +191,7 @@ class Backplane():
             vout = float(voltage*16.64)/65535
             vout = round(vout, 3)
         if print_debug:
-            print("voltage, " + str(vout))
+            logger.info("voltage, " + str(vout))
         return vout
 
     # ##get_pwr_fault_log
@@ -200,24 +204,24 @@ class Backplane():
         data, status = self.mng.fpgai2c_read16(i2c_add, 0x04, FPGA_I2CBUS.i2c2)
         if status == 0:
             if data == 0:
-                print("No fault detected ")
+                logger.info("No fault detected ")
             else:
                 if data & 0x1 == 0x1:
-                    print("Over Voltage Detected")
+                    logger.error("Over Voltage Detected")
                 if data & 0x2 == 0x2:
-                    print("Under Voltage Detected")
+                    logger.error("Under Voltage Detected")
                 if data & 0x4 == 0x4:
-                    print("Over Current Detected")
+                    logger.error("Over Current Detected")
                 if data & 0x8 == 0x8:
-                    print("Power Bad Detected")
+                    logger.error("Power Bad Detected")
                 if data & 0x10 == 0x10:
-                    print("On Fault Detected")
+                    logger.error("On Fault Detected")
                 if data & 0x20 == 0x20:
-                    print("FET Short Detected")
+                    logger.error("FET Short Detected")
                 if data & 0x40 == 0x40:
-                    print("FET Bad Fault Detected")
+                    logger.error("FET Bad Fault Detected")
                 if data & 0x80 == 0x80:
-                    print("EEPROM Done Detected")
+                    logger.error("EEPROM Done Detected")
         return data, status
 
     # ##pwr_set_ilimt
@@ -227,7 +231,7 @@ class Backplane():
     # return status: status of operation
     def pwr_set_ilimt(self, tpm_id, cfg):
         if cfg > 7:
-            print("Wrong parameter, accepted value from 0 to 7")
+            logger.error("Wrong parameter, accepted value from 0 to 7")
             status = 1
             return status
         else:
@@ -292,7 +296,7 @@ class Backplane():
     # return status: status of operation
     def get_sens_temp(self, sens_id):
         if sens_id < 1 or sens_id > 2:
-            print("Error Invalid ID")
+            logger.error("Error Invalid ID")
             return 0xff, 0x1
         temperature = self.mng.read("Fram.ADT7408_B"+str(sens_id)+"_temp")
         if (temperature & 0x1000) >> 12 == 1:
@@ -310,7 +314,7 @@ class Backplane():
     # return status: status of operation
     def get_bkpln_fan_speed(self, fan_id):
         if fan_id < 1 or fan_id > 4:
-            print("Error Invalid Fan ID ")
+            logger.error("Error Invalid Fan ID ")
             return 0, 0, 1
         fan = self.mng.read("Fram.FAN"+str(fan_id)+"_TACH")
         fanpwmreg = self.mng.read("Fram.FAN_PWM")
@@ -334,7 +338,7 @@ class Backplane():
     # @note settings of fan speed is possible only if fan mode is manual
     def set_bkpln_fan_speed(self, fan_id, speed_pwm_perc):
         if fan_id < 1 or fan_id > 4:
-            print("Error Invalid Fan ID ")
+            logger.error("Error Invalid Fan ID ")
             return 1
         fanpwmreg = self.mng.read("Fram.FAN_PWM")
         if fan_id > 2:
@@ -342,11 +346,11 @@ class Backplane():
         else:
             auto_mode = (fanpwmreg & 0x01000000) >> 24
         if auto_mode == 1:
-            print("Invalid command auto mode is Enable")
+            logger.error("Invalid command auto mode is Enable")
             return 2
         else:
             if speed_pwm_perc < 0 or speed_pwm_perc > 100:
-                print("Error, It should be  0 < speed_pwm_perc < 100, given %s!" % str(speed_pwm_perc))
+                logger.error("Error, It should be  0 < speed_pwm_perc < 100, given %s!" % str(speed_pwm_perc))
                 return 3
             regval = int(round(float(speed_pwm_perc)/100*255)) & 0xff
             if fan_id > 2:
@@ -362,7 +366,7 @@ class Backplane():
     # return status: status of operation
     def get_bkpln_fan_mode(self, fan_id):
         if fan_id < 1 or fan_id > 4:
-            print("Error Invalid Fan ID ")
+            logger.error("Error Invalid Fan ID ")
             return 0, 1
         fanpwmreg = self.mng.read("Fram.FAN_PWM")
         if fan_id > 2:
@@ -377,7 +381,7 @@ class Backplane():
     # return status: status of operation
     def set_bkpln_fan_mode(self, fan_id, auto_mode):
         if fan_id < 1 or fan_id > 4:
-            print("Error Invalid Fan ID ")
+            logger.error("Error Invalid Fan ID ")
             return 1
         fanpwmreg = self.mng.read("Fram.FAN_PWM")
         if auto_mode == 1:
@@ -452,7 +456,7 @@ class Backplane():
         i2c_add = 0xb0+((ps_id-1)*2)
         if speed_cmd > 100 or speed_cmd < 0:
             status = -2
-            print("Error[set_ps_fanspeed]: Invalid speed parameter")
+            logger.error("Error[set_ps_fanspeed]: Invalid speed parameter")
             return status
         status = self.mng.fpgai2c_write16(i2c_add, 0x3B, speed_cmd, FPGA_I2CBUS.i2c3)
         return status
