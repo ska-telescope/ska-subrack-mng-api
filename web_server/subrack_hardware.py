@@ -621,12 +621,7 @@ class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
         subrack = SubrackMngBoard(simulation=emulation)
         self.subrack = subrack
-        # power on the backplane
-        if subrack.Bkpln.get_bkpln_is_onoff() == 0:
-            subrack.Bkpln.power_on_bkpln()
-        if subrack.powermon_cfgd == False:
-            subrack.SubrackInitialConfiguration()
-
+        
         # Add Commands
         self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, blocking=True))
         self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1, blocking=True))
