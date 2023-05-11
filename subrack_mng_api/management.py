@@ -379,7 +379,7 @@ class Management():
         string += hex(self.read("FPGA_FW.FirmwareVersion")) + "_" + hex(self.read("FPGA_FW.FirmwareBuildHigh") << 32 | self.read("FPGA_FW.FirmwareBuildLow"))
         string += "-MCU_"
         string += hex(self.read("MCUR.McuFWBuildVersion")) + "_" + hex(self.read("MCUR.McuFWBuildDate") << 32 | self.read("MCUR.McuFWBuildTime"))
-        kernel_release=run("uname -r")
+        kernel_release=run("uname -r").replace("-","_")
         #kernel_version=run("uname -v")
         string += "-KRN_" + kernel_release# + "_" + kernel_version.split(" ")[0]
         final_string = "v?.?.? (%s)" % string
