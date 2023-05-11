@@ -245,9 +245,13 @@ class Management():
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
             self.create_all_regs_list()
+        import ska_low_smm_bios.bios
+        self.hw_rev=self.get_hardware_revision()
+        self.BIOS_REV_list = ska_low_smm_bios.bios.bios_get_dict(hw_rev=self.hw_rev)
         self.board_info=self.get_board_info()
         for key,value in self.board_info.items():
             logger.info("%s: %s"%(key,value))
+        
 
     def __del__(self):
         self.data = []
@@ -383,14 +387,23 @@ class Management():
         #kernel_version=run("uname -v")
         string += "-KRN_" + kernel_release# + "_" + kernel_version.split(" ")[0]
         final_string = "v?.?.? (%s)" % string
-        """
         for BIOS_REV in self.BIOS_REV_list:
             if BIOS_REV[1] == string:
                 final_string = "v%s (%s)" % (BIOS_REV[0], string)
                 break
-        """
         return final_string
 
+    def get_hardware_revision(self):
+        logger.debug("get_hardware_revision")
+        hw_rev_arr = self.get_field("HARDWARE_REV")
+        hw_rev = 0
+        for byte in hw_rev_arr:
+            hw_rev = hw_rev * 256 + byte
+        logger.debug("get_hardware_revision 0x%x"%hw_rev)
+        if hw_rev == 0xffffff or hw_rev == 0x0:
+            raise Exception("Could not read HARDWARE_REV from EEPROM, returned: " + hex(hw_rev))
+        return hw_rev
+    
     def get_field(self, key):
         if self.eep_sec[key]["type"] == "ip":
             return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
@@ -638,10 +651,13 @@ class Management():
     # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
     # from CPU and MCU
     def read_i2c(self, bus_id, device_add, reg_offset, size_type):
+        # logger.debug(bus_id)
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
+        # logger.debug(cmd)
         run(cmd)
         time.sleep(0.02)
         while (1):
+            #logger.debug(' wait "MCUR.GPReg3") == 0x12c0dead')
             if (self.read("MCUR.GPReg3") == 0x12c0dead):
                 break
         cmd = "sudo i2cget -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + size_type
@@ -1240,14 +1256,14 @@ class Management():
     # return rxdata: read data from MCU uart
     # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def start_mcu_sam_ba_monitor(self):
-        logger.debug("Start MCU Monitor")
+        # logger.debug("Start MCU Monitor")
         op_status = 0
         self.write("MCUR.GPReg0", 0xb007)
         start = time.time()
         time.sleep(0.2)
         while (1):
             if self.read("MCUR.GPReg0") == 0x5e7:
-                logger.debug("MCU Ready for Reset")
+                # logger.debug("MCU Ready for Reset")
                 self.write("CtrlRegs.McuReset", 0)
                 time.sleep(0.01)
                 self.write("CtrlRegs.McuReset", 1)
