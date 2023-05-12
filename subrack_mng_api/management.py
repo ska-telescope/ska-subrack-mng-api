@@ -1177,10 +1177,10 @@ class Management():
             logging.error("update_kernel: error while mounting kernel partition")
             return 4
 
-        md5_actual_kernel = hashlib.md5(open("/mnt/zImage").read()).hexdigest()
-        md5_actual_dtb = hashlib.md5(open("/mnt/ska-management.dtb").read()).hexdigest()
-        md5_upd_kernel = hashlib.md5(open(zImage_path).read()).hexdigest()
-        md5_upd_dtb = hashlib.md5(open(dtb_path).read()).hexdigest()
+        md5_actual_kernel = hashlib.md5(open("/mnt/zImage", 'rb').read()).hexdigest()
+        md5_actual_dtb = hashlib.md5(open("/mnt/ska-management.dtb", 'rb').read()).hexdigest()
+        md5_upd_kernel = hashlib.md5(open(zImage_path, 'rb').read()).hexdigest()
+        md5_upd_dtb = hashlib.md5(open(dtb_path, 'rb').read()).hexdigest()
         os.mkdir("/tmp/recovery_kernel/")
 
         cp_cmd = "sudo cp /mnt/zImage /tmp/recovery_kernel/"
@@ -1205,8 +1205,8 @@ class Management():
             logging.error("update_kernel: error while device-tree copy")
             return 8
 
-        md5_cpd_kernel = hashlib.md5(open("/mnt/zImage").read()).hexdigest()
-        md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb").read()).hexdigest()
+        md5_cpd_kernel = hashlib.md5(open("/mnt/zImage",'rb').read()).hexdigest()
+        md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb",'rb').read()).hexdigest()
         error_k = False
         error_d = False
 
@@ -1236,8 +1236,8 @@ class Management():
                 logging.error("update_kernel: error while device-tree copy")
                 return 8
 
-            md5_cpd_kernel = hashlib.md5(open("/mnt/zImage").read()).hexdigest()
-            md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb").read()).hexdigest()
+            md5_cpd_kernel = hashlib.md5(open("/mnt/zImage", 'rb').read()).hexdigest()
+            md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb", 'rb').read()).hexdigest()
             error_rk = False
             error_rd = False
             if md5_cpd_kernel != md5_actual_kernel:
@@ -1251,10 +1251,8 @@ class Management():
             logging.error("update_kernel: UPDATE PROCEDURE FAILED")
             return 9
         else:
-            logging.error("update_kernel: UPDATE PROCEDURE COMPLETE")
+            logging.info("update_kernel: UPDATE PROCEDURE SUCCESSFULLY COMPLETE")
             return 0
-
-
 
     # Uart CPLD2MCU
 
