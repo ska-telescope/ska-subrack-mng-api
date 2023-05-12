@@ -1194,12 +1194,12 @@ class Management():
             logging.error("update_kernel: error while restore  device-tree copy")
             return 6
 
-        cp_cmd = "sudo cp " + zImage_path + " /mnt/"
+        cp_cmd = "sudo cp " + zImage_path + " /mnt/zImage"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while kernel copy")
             return 7
-        cp_cmd = "sudo cp " + dtb_path + " /mnt/"
+        cp_cmd = "sudo cp " + dtb_path + " /mnt/ska-management.dtb"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while device-tree copy")
