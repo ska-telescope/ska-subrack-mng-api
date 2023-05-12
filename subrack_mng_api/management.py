@@ -1147,6 +1147,127 @@ class Management():
         return temp
 
     # SW UPDATE METHODS SECTION
+    def emmc_config(self, layout_file):
+        """
+        method used to flash first time the CPU kernel
+        :param layout_file: EMMC layout file
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        logging.info("EMM Configuration started... ")
+        if os.path.isfile(layout_file) is False:
+            logging.error("emmc_config: invalid layout file path, file not found")
+            return 1
+        cmd = "sudo sfdisk /dev/mmcblk0 < " + layout_file
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("emmc_config: error while partion creating")
+            return 2
+        cmd = "sudo mkfs.vfat /dev/mmcblk0p1"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("emmc_config: error while formatting partition p1")
+            return 3
+        cmd = "sudo mkfs.ext4 /dev/mmcblk0p2"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("emmc_config: error while formatting partition p2")
+            return 4
+        cmd = "sudo mkfs.ext4 /dev/mmcblk0p3"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("emmc_config: error while formatting partition p2")
+            return 5
+        cmd = "lsblk"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        time.sleep(2)
+        find_count = 0
+        if retcode != 0:
+            logging.error("emmc_config: error while formatting partition p2")
+            return 5
+        else:
+            outl = out.splitlines()
+            for k in range(0,len(outl)):
+                if outl[k].find("0p1") != -1:
+                    find_count += 1
+                if outl[k].find("0p2") != -1:
+                    find_count += 1
+                if outl[k].find("0p3") != -1:
+                    find_count += 1
+                if find_count == 3:
+                    partition_ok = True
+                    break
+            if partition_ok is False:
+                logging.error("emmc_config: EMMC Configuration Failed, not all expected partition detected")
+                return 5
+            else:
+                logging.info("emmc_config: EMMC Configuration SUCCESSFULLY COMPLETED")
+                return 0
+
+
+    def write_kernel(self, zImage_path, dtb_path, dest_device="uSD"):
+        """
+        method used to flash first time the CPU kernel
+        :param zImage_path: path of the zImage file to be used for the write
+        :param dtb_path: path of the device-tree file to be used for the write
+        :param dest_device: memory where the write must be executed, accepted value are: uSD or EMMC
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        logging.info("Write kernel in %s procedure started... " % dest_device)
+        if dest_device == "uSD":
+            dev = "/dev/mmcblk1p1"
+        elif dest_device == "EMMC":
+            dev = "/dev/mmcblk0p1"
+        else:
+            logging.error("write_kernel: invalid dest_device parameter, accepted uSD or EMMC")
+            return 1
+        if os.path.isfile(zImage_path) is False:
+            logging.error("write_kernel: invalid zImage file path, file not found")
+            return 2
+        if os.path.isfile(dtb_path) is False:
+            logging.error("write_kernel: invalid dtb file path, file not found")
+            return 3
+
+        mount_cmd = "sudo mount " + dev + " /mnt"
+        out, retcode = exec_cmd(mount_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("write_kernel: error while mounting kernel partition")
+            return 4
+
+        md5_upd_kernel = hashlib.md5(open(zImage_path, 'rb').read()).hexdigest()
+        md5_upd_dtb = hashlib.md5(open(dtb_path, 'rb').read()).hexdigest()
+
+        cp_cmd = "sudo cp " + zImage_path + " /mnt/zImage"
+        out, retcode = exec_cmd(cp_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("write_kernel: error while kernel copy")
+            return 5
+        cp_cmd = "sudo cp " + dtb_path + " /mnt/ska-management.dtb"
+        out, retcode = exec_cmd(cp_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("write_kernel: error while device-tree copy")
+            return 6
+
+        md5_cpd_kernel = hashlib.md5(open("/mnt/zImage", 'rb').read()).hexdigest()
+        md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb", 'rb').read()).hexdigest()
+        error_k = False
+        error_d = False
+
+        if md5_cpd_kernel != md5_upd_kernel:
+            logging.error("write_kernel: failed kernel write, corrupted image present")
+            error_k = True
+        if md5_cpd_dtb != md5_upd_dtb:
+            logging.error("write_kernel: failed dtb write, corrupted device tree present")
+            error_d = True
+
+        if error_k or error_d:
+            logging.error("write_kernel: WRITE PROCEDURE FAILED")
+            return 7
+        else:
+            umount_cmd = "sudo umount /mnt"
+            out, retcode = exec_cmd(umount_cmd, verbose=True)
+            logging.info("write_kernel: WRITE PROCEDURE SUCCESSFULLY COMPLETE")
+            return 0
+
 
     def update_kernel(self, zImage_path, dtb_path, dest_device="uSD"):
         """
@@ -1253,7 +1374,7 @@ class Management():
         else:
             umount_cmd = "sudo umount /mnt"
             out, retcode = exec_cmd(umount_cmd, verbose=True)
-            umount_cmd = "rm -rf /tmp/recovrt_kernel"
+            umount_cmd = "rm -rf /tmp/recovery_kernel"
             out, retcode = exec_cmd(umount_cmd, verbose=True)
             logging.info("update_kernel: UPDATE PROCEDURE SUCCESSFULLY COMPLETE")
             return 0
