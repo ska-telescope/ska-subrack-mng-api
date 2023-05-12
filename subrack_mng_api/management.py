@@ -14,6 +14,8 @@ from subrack_mng_api.emulator_classes.def4emulation import *
 from cpld_mng_api.bsp.management_bsp import eep_sec
 import socket
 import struct
+import hashlib
+import shutil
 
 import Pyro5.api
 
@@ -142,6 +144,42 @@ LockRegs_list = []
 CtrlRegs_list = []
 CpldUart_list = []
 
+def exec_cmd(cmd,dir=None,verbose=True, exclude_line="", tee_file = None):
+    start_time = time.time()
+    try:
+        # if tee_file is not None:
+        #     cmd = cmd + " | tee -a " + tee_file
+        if verbose:
+            print("Exec command: \"" + cmd + "\"")
+        if dir is None:
+            child = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell = True)
+        else:
+            child = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell = True, cwd=dir)
+        out = ""
+        err = ""
+        n_lines=0
+        while child.poll() is None:
+            line = child.stdout.readline()
+            line = line.decode("utf-8")
+            n_lines+=1
+            if line:
+                if verbose:
+                    #if exclude_line not in line or exclude_line == "":
+                        print(line.strip())
+                out += line
+        returncode = child.returncode
+        print(n_lines, returncode)
+        if verbose:
+            if n_lines==0 and out!="":
+                lines = out.splitlines()
+                for l in lines:
+                    print(l)
+        #return {'out':out,'returncode':returncode}
+        return out,returncode
+    except KeyboardInterrupt:
+        print("...CTRL+C...")
+        raise NameError("exec_cmd fails: \""+cmd+"\"")
+
 
 def run(command):
     if sys.version_info[0]<3:
@@ -251,7 +289,7 @@ class Management():
         self.board_info=self.get_board_info()
         for key,value in self.board_info.items():
             logger.info("%s: %s"%(key,value))
-        
+
 
     def __del__(self):
         self.data = []
@@ -377,7 +415,7 @@ class Management():
         str_date+= "{:02x}".format((builddate&0xff00)>>8)+":"
         str_date+= "{:02x}".format((builddate&0xff))
         return str_version, str_date
-    
+
     def get_bios(self):
         string = "CPLD_"
         string += hex(self.read("FPGA_FW.FirmwareVersion")) + "_" + hex(self.read("FPGA_FW.FirmwareBuildHigh") << 32 | self.read("FPGA_FW.FirmwareBuildLow"))
@@ -403,7 +441,7 @@ class Management():
         if hw_rev == 0xffffff or hw_rev == 0x0:
             raise Exception("Could not read HARDWARE_REV from EEPROM, returned: " + hex(hw_rev))
         return hw_rev
-    
+
     def get_field(self, key):
         if self.eep_sec[key]["type"] == "ip":
             return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
@@ -423,7 +461,7 @@ class Management():
     def eep_rd8(self, offset):
         dev=self.smm_i2c_devices_dict['EEPROM_MAC_1']
         return self.read_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b")
-        
+
     def eep_rd16(self, offset):
         rd = 0
         for n in range(2):
@@ -458,7 +496,7 @@ class Management():
             mac_str += '{0:02x}'.format(mac[i])+":"
         mac_str += '{0:02x}'.format(mac[len(mac)-1])
         return mac_str
-    
+
     def get_cpu_mac(self):
         mac=(self.read("ETH.Mac1_H")<<32)+self.read("ETH.Mac1_L")
         res=bytearray()
@@ -720,7 +758,7 @@ class Management():
                     fo.close()
                     delta = time.time()
                     logger.debug("len lockedpid = %d, lockedpid val %s, elapsed time %d" % (
-                    len(lockedpid), lockedpid, delta - inittime))
+                        len(lockedpid), lockedpid, delta - inittime))
                     if len(lockedpid) != 0:
                         if check_pid(int(lockedpid)) == False:
                             os.remove("/run/lock/mngfpgai2c.lock")
@@ -929,46 +967,46 @@ class Management():
                     retval=0
                     if smm_i2c_devices[i]["bus_size"] == 2:
                         retval,state = self.fpgai2c_read16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                                   smm_i2c_devices[i]["i2cbus_id"])
+                                                           smm_i2c_devices[i]["i2cbus_id"])
                     else:
                         retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                                     smm_i2c_devices[i]["i2cbus_id"])
+                                                          smm_i2c_devices[i]["i2cbus_id"])
                     if retval != smm_i2c_devices[i]["ref_val"]:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                    retval, smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval, smm_i2c_devices[i]["ref_val"]))
                     else:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                    retval, smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval, smm_i2c_devices[i]["ref_val"]))
                 if smm_i2c_devices[i]["op_check"] == "rw":
                     retval=0
                     if smm_i2c_devices[i]["bus_size"] == 2:
                         logger.info("Writing16...")
                         self.fpgai2c_write16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                            smm_i2c_devices[i]["ref_val"],smm_i2c_devices[i]["i2cbus_id"])
+                                             smm_i2c_devices[i]["ref_val"],smm_i2c_devices[i]["i2cbus_id"])
                         logger.info("reading16...")
                         retval,state = self.fpgai2c_read16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                                   smm_i2c_devices[i]["i2cbus_id"])
+                                                           smm_i2c_devices[i]["i2cbus_id"])
 
                     else:
                         logger.info("Writing8...")
                         self.fpgai2c_write8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                             smm_i2c_devices[i]["ref_val"], smm_i2c_devices[i]["i2cbus_id"])
+                                            smm_i2c_devices[i]["ref_val"], smm_i2c_devices[i]["i2cbus_id"])
                         logger.info("reading8...")
                         retval,state = self.fpgai2c_read8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                                     smm_i2c_devices[i]["i2cbus_id"])
+                                                          smm_i2c_devices[i]["i2cbus_id"])
                     if retval != smm_i2c_devices[i]["ref_val"]:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                        retval,
-                                                                                        smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval,
+                                                                                              smm_i2c_devices[i]["ref_val"]))
                     else:
 
                         wr_op_passed = True
@@ -976,16 +1014,16 @@ class Management():
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                        retval,
-                                                                                        smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval,
+                                                                                              smm_i2c_devices[i]["ref_val"]))
                     if wr_op_passed == True:
                         logger.info("Restoring value")
                         if smm_i2c_devices[i]["bus_size"] == 2:
                             self.fpgai2c_write16(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                                smm_i2c_devices[i]["res_val"],smm_i2c_devices[i]["i2cbus_id"])
+                                                 smm_i2c_devices[i]["res_val"],smm_i2c_devices[i]["i2cbus_id"])
                         else:
                             self.fpgai2c_write8(smm_i2c_devices[i]["ICadd"], smm_i2c_devices[i]["ref_add"],
-                                                 smm_i2c_devices[i]["res_val"], smm_i2c_devices[i]["i2cbus_id"])
+                                                smm_i2c_devices[i]["res_val"], smm_i2c_devices[i]["i2cbus_id"])
             else:
                 if smm_i2c_devices[i]["op_check"] == "ro":
                     retval = 0
@@ -994,34 +1032,34 @@ class Management():
                                                smm_i2c_devices[i]["ref_add"],"w")
                     else:
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
-                                                      smm_i2c_devices[i]["ref_add"],"b")
+                                               smm_i2c_devices[i]["ref_add"],"b")
                     if retval != smm_i2c_devices[i]["ref_val"]:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "FAILED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                        retval,
-                                                                                        smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval,
+                                                                                              smm_i2c_devices[i]["ref_val"]))
                     else:
                         result.append({"name":smm_i2c_devices[i]["name"],"test_result": "PASSED",
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                        retval,
-                                                                                        smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval,
+                                                                                              smm_i2c_devices[i]["ref_val"]))
                 if smm_i2c_devices[i]["op_check"] == "rw":
                     retval = 0
                     if smm_i2c_devices[i]["bus_size"] == 2:
                         logger.info("Writing16...")
                         self.write_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
-                                               smm_i2c_devices[i]["ref_add"],"w",smm_i2c_devices[i]["ref_val"])
+                                       smm_i2c_devices[i]["ref_add"],"w",smm_i2c_devices[i]["ref_val"])
                         logger.info("reading16...")
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"w")
                     else:
                         logger.info("Writing8...")
                         self.write_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
-                                               smm_i2c_devices[i]["ref_add"],"b",smm_i2c_devices[i]["ref_val"])
+                                       smm_i2c_devices[i]["ref_add"],"b",smm_i2c_devices[i]["ref_val"])
                         logger.info("reading8...")
                         retval = self.read_i2c(smm_i2c_devices[i]["i2cbus_id"],smm_i2c_devices[i]["ICadd"] >> 1,
                                                smm_i2c_devices[i]["ref_add"],"b")
@@ -1030,8 +1068,8 @@ class Management():
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                        retval,
-                                                                                        smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval,
+                                                                                              smm_i2c_devices[i]["ref_val"]))
                     else:
 
                         wr_op_passed = True
@@ -1039,8 +1077,8 @@ class Management():
                                        "expected": smm_i2c_devices[i]["ref_val"],
                                        "read": retval})
                         logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (smm_i2c_devices[i]["name"],
-                                                                                        retval,
-                                                                                        smm_i2c_devices[i]["ref_val"]))
+                                                                                              retval,
+                                                                                              smm_i2c_devices[i]["ref_val"]))
                     if wr_op_passed == True:
                         logger.info("Restoring value")
                         if smm_i2c_devices[i]["bus_size"] == 2:
@@ -1107,6 +1145,116 @@ class Management():
             temp = float((temperature & 0xfff)) / 16
         temp = round(temp, 2)
         return temp
+
+    # SW UPDATE METHODS SECTION
+
+    def update_kernel(self, zImage_path, dtb_path, dest_device="uSD"):
+        """
+        method used to update the CPU kernel
+        :param zImage_path: path of the zImage file to be used for the update
+        :param dtb_path: path of the device-tree file to be used for the update
+        :param dest_device: memory where the update must be executed, accepted value are: uSD or EMMC
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        logging.info("Update kernel in %s procedure started... " % dest_device)
+        if dest_device == "uSD":
+            dev = "/dev/mmcblk1p1"
+        elif dest_device == "EMMC":
+            dev = "/dev/mmcblk0p1"
+        else:
+            logging.error("update_kernel: invalid dest_device parameter, accepted uSD or EMMC")
+            return 1
+        if os.path.isfile(zImage_path) is False:
+            logging.error("update_kernel: invalid zImage file path, file not found")
+            return 2
+        if os.path.isfile(dtb_path) is False:
+            logging.error("update_kernel: invalid dtb file path, file not found")
+            return 3
+
+        mount_cmd = "sudo mount " + dev + " /mnt"
+        out, retcode = exec_cmd(mount_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("update_kernel: error while mounting kernel partition")
+            return 4
+
+        md5_actual_kernel = hashlib.md5(open("/mnt/zImage").read()).hexdigest()
+        md5_actual_dtb = hashlib.md5(open("/mnt/ska-management.dtb").read()).hexdigest()
+        md5_upd_kernel = hashlib.md5(open(zImage_path).read()).hexdigest()
+        md5_upd_dtb = hashlib.md5(open(dtb_path).read()).hexdigest()
+        os.mkdir("/tmp/recovery_kernel/")
+
+        cp_cmd = "sudo cp /mnt/zImage /tmp/recovery_kernel/"
+        out, retcode = exec_cmd(cp_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("update_kernel: error while restore kernel copy")
+            return 5
+        cp_cmd = "sudo cp /mnt/ska-management.dtb /tmp/recovery_kernel/"
+        out, retcode = exec_cmd(cp_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("update_kernel: error while restore  device-tree copy")
+            return 6
+
+        cp_cmd = "sudo cp " + zImage_path + " /mnt/"
+        out, retcode = exec_cmd(cp_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("update_kernel: error while kernel copy")
+            return 7
+        cp_cmd = "sudo cp " + dtb_path + " /mnt/"
+        out, retcode = exec_cmd(cp_cmd, verbose=True)
+        if retcode != 0:
+            logging.error("update_kernel: error while device-tree copy")
+            return 8
+
+        md5_cpd_kernel = hashlib.md5(open("/mnt/zImage").read()).hexdigest()
+        md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb").read()).hexdigest()
+        error_k = False
+        error_d = False
+
+        if md5_cpd_kernel != md5_upd_kernel:
+            if md5_cpd_kernel == md5_actual_kernel:
+                logging.error("update_kernel: failed kernel write, old kernel still present")
+            else:
+                logging.error("update_kernel: failed kernel write, corrupted image present")
+            error_k = True
+        if md5_cpd_dtb != md5_upd_dtb:
+            if md5_cpd_dtb == md5_actual_dtb:
+                logging.error("update_kernel: failed dtb write, old device tree still present")
+            else:
+                logging.error("update_kernel: failed dtb write, corrupted device tree present")
+            error_d = True
+
+        if error_k or error_d:
+            logging.info("Error Detected in operation trying to recovery to old version")
+            cp_cmd = "sudo cp /tmp/recovery_kernel/zImage /mnt/"
+            out, retcode = exec_cmd(cp_cmd, verbose=True)
+            if retcode != 0:
+                logging.error("update_kernel: error while kernel copy")
+                return 7
+            cp_cmd = "sudo cp /tmp/recovery_kernel/ska-management.dtb /mnt/"
+            out, retcode = exec_cmd(cp_cmd, verbose=True)
+            if retcode != 0:
+                logging.error("update_kernel: error while device-tree copy")
+                return 8
+
+            md5_cpd_kernel = hashlib.md5(open("/mnt/zImage").read()).hexdigest()
+            md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb").read()).hexdigest()
+            error_rk = False
+            error_rd = False
+            if md5_cpd_kernel != md5_actual_kernel:
+                logging.error("update_kernel: failed kernel restore")
+                error_rk = True
+            if md5_cpd_dtb != md5_upd_dtb:
+                logging.error("update_kernel: failed dtb restore")
+                error_rd = True
+
+        if error_k or error_d:
+            logging.error("update_kernel: UPDATE PROCEDURE FAILED")
+            return 9
+        else:
+            logging.error("update_kernel: UPDATE PROCEDURE COMPLETE")
+            return 0
+
+
 
     # Uart CPLD2MCU
 
