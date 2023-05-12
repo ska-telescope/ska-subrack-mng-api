@@ -156,9 +156,7 @@ class SubrackMngBoard():
         self.Mng = Management(self._simulation)
         logger.debug("Bkpln creating..")
         self.Bkpln = Backplane(self.Mng, self._simulation)
-        ipstr = self.Mng.get_cpld_actual_ip()
-        logger.debug("CpldMng creating..")
-        self.CpldMng = cpld_mng.MANAGEMENT(ip=ipstr, port="10000", timeout=10)
+        self.CpldMng = self.Mng.CpldMng
         # logger.debug("MANAGEMENT created")
         self.mode = 0
         self.status = 0

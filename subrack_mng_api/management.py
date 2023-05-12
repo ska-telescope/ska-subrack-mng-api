@@ -12,10 +12,12 @@ import random
 import logging
 from subrack_mng_api.emulator_classes.def4emulation import *
 from cpld_mng_api.bsp.management_bsp import eep_sec
+import cpld_mng_api.bsp.management as cpld_mng
 import socket
 import struct
 import hashlib
 import shutil
+from console_progressbar import ProgressBar
 
 import Pyro5.api
 
@@ -240,9 +242,42 @@ def check_pid(pid):
     else:
         return True
 
+PAGE_SIZE = 512
+
+def loadBitstream(filename, pagesize):
+    print ("Open Bistream file %s" % (filename))
+    with open(filename, "rb") as f:
+        dump = bytearray(f.read())
+    bitstreamSize = len(dump)
+
+    pages = bitstreamSize // pagesize
+    if (pages * pagesize) != bitstreamSize:
+        pages = pages + 1
+    print("Loading %s (%d bytes) = %d * %d bytes pages" % (filename, bitstreamSize, pages, pagesize))
+    s = pages * pagesize
+    tmp = bytearray(s)
+    for i in range(bitstreamSize):
+        tmp[i] = dump[i]
+    for i in range(s - bitstreamSize):
+        tmp[i + bitstreamSize] = 0xff
+    return tmp, bitstreamSize, s
 
 CPULOCK_UNLOCK_VAL = 0xfffffff
 
+class flash_cmd():
+    CLRGPNVM = "W400E0A04,5A00010C#"
+    SETGPNVM = "W400E0A04,5A00010B#"
+    ERASEWRITEPG= ""
+    ERASEALL=""
+    ERASESECT0="W400E0A04,5A000011#"
+    ERASESECT1="W400E0A04,5A001011#"
+    ERASESECTL = "W400E0A04,5A002011#"
+    CLRLOCK=""
+    SETLOCK=""
+    WRITEPAGE="W400E0A04,5A000103#"
+    WRITEPAGEERASE_CMD="W400E0A04"
+    WRITEPAGE_ARG=0x5A000001
+    WRITEPAGEERASE_ARG=0x5A000003
 
 class mcu2cplduartbuff():
     rxbuff = []
@@ -256,7 +291,7 @@ class mcu2cplduartbuff():
 # management CPU (iMX6) mapped in filesystem
 @Pyro5.api.expose
 class Management():
-    def __init__(self, simulation = False):
+    def __init__(self, simulation = False, cpld_timeout=10):
         self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
@@ -283,6 +318,7 @@ class Management():
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
             self.create_all_regs_list()
+            self.CpldMng = cpld_mng.MANAGEMENT(ip=self.get_cpld_actual_ip(), port="10000", timeout=cpld_timeout)
         import ska_low_smm_bios.bios
         self.hw_rev=self.get_hardware_revision()
         self.BIOS_REV_list = ska_low_smm_bios.bios.bios_get_dict(hw_rev=self.hw_rev)
@@ -1268,6 +1304,100 @@ class Management():
             logging.info("write_kernel: WRITE PROCEDURE SUCCESSFULLY COMPLETE")
             return 0
 
+    def update_cpld(self,cpld_fw):
+        print("Using CPLD bitfile {}".format(cpld_fw))
+        starttime = time.time()
+        cpld_FW_start_add=0x10000
+        ec = self.CpldMng.spiflash.firmwareProgram(0,cpld_fw,cpld_FW_start_add,erase_size=0x70000)
+        endtime = time.time()
+        delta = endtime - starttime
+        if ec==0:
+            print("Bitstream write complete")
+            print("elapsed time " + str(delta) + "s")
+            return 0
+        else:
+            print("Error detected while bitsream writing in flash")
+            return 1
+    
+    def update_mcu(self,mcu_fw,verbose=False):
+        logging.info("Using MCU bitfile {}".format(mcu_fw))
+        memblock, bitstreamSize, size = loadBitstream(mcu_fw, PAGE_SIZE)
+        # Read bitfile and cast as a list of unsigned integers
+        formatted_bitstream = list(struct.unpack_from('I' * (len(memblock) // 4), memblock))
+        cmd = ""
+        page = 0
+        dataw = []
+        print ("Start Samba Monitor")
+        self.CpldMng.mcuuart.start_mcu_sam_ba_monitor()
+        print("Start FW loading in Flash")
+        start = time.time()
+        pre = start
+        # ERASE sector cmd
+        cmd_erase = [flash_cmd.ERASESECT0, flash_cmd.ERASESECT1, flash_cmd.ERASESECTL]
+        dataw = []
+        rxdata = []
+        for w in range(0, 3):
+            cmd = cmd_erase[w]
+            print ("erase cmd %s" % cmd)
+            for i in range(0, len(cmd)):
+                dataw.append(ord(cmd[i]))
+            state = self.CpldMng.mcuuart.uart_send_buffer(dataw)
+            time.sleep(0.7)
+
+        print("Start time %.6f" %start)
+        bw=0
+        if verbose:
+            pb = ProgressBar(total=100,prefix='', suffix='', decimals=1, length=50, fill='#', zfill='-')
+        for i in range(len(formatted_bitstream)):
+            if verbose:
+                pb.print_progress_bar(i*100/len(formatted_bitstream))
+            data = formatted_bitstream[i] & 0xFFFFFFFF
+            cmd = "W" + hex(0x400000 + i * 4)[2:] + "," + hex(data)[2:len(hex(data))] + "#"
+            dataw = []
+            for k in range(0, len(cmd)):
+                dataw.append(ord(cmd[k]))
+            state = self.CpldMng.mcuuart.uart_send_buffer(dataw)
+            if state != 0:
+                print("ERROR: TIMEOUT Occurred during write")
+                return 1
+            bw = bw + 4
+            # if i != 0 and i % 127 == 0:
+            if bw == 512:
+                wp_data = flash_cmd.WRITEPAGE_ARG | (page << 8)
+                wp_cmd = flash_cmd.WRITEPAGEERASE_CMD + "," + hex(wp_data)[2:len(hex(wp_data))] + "#"
+                print ("wp_command: %s" % wp_cmd)
+                print ("Write page %d of %d" % (page,len(formatted_bitstream)))
+                now = time.time()
+                print ("Elapsed time for page write %.6f" % (now - pre))
+                pre = now
+                page = page + 1
+                dataw = []
+                for k in range(0, len(wp_cmd)):
+                    dataw.append(ord(wp_cmd[k]))
+                state = self.CpldMng.mcuuart.uart_send_buffer(dataw)
+                if state != 0:
+                    print("ERROR: TIMEOUT Occurred during write")
+                    return 1
+                time.sleep(0.5)
+                bw = 0
+        end = time.time()
+        print ("Elapsed time %.6f" %(end-start))
+        # set GPNVM
+        print("Setting MCU to start from Flash")
+        cmd = flash_cmd.SETGPNVM
+        dataw = []
+        rxdata = []
+        for i in range(0, len(cmd)):
+            dataw.append(ord(cmd[i]))
+        state = self.CpldMng.mcuuart.uart_send_buffer(dataw)
+        if state != 0:
+            print("ERROR: TIMEOUT Occurred during write")
+            return 1
+        time.sleep(0.5)
+        # reset MCU
+        print("resetting MCU...")
+        self.CpldMng.mcuuart.reset_mcu()
+        return 0
 
     def update_kernel(self, zImage_path, dtb_path, dest_device="uSD"):
         """
@@ -1285,11 +1415,14 @@ class Management():
         else:
             logging.error("update_kernel: invalid dest_device parameter, accepted uSD or EMMC")
             return 1
+        logging.error(zImage_path)
         if os.path.isfile(zImage_path) is False:
             logging.error("update_kernel: invalid zImage file path, file not found")
+            logging.error(zImage_path)
             return 2
         if os.path.isfile(dtb_path) is False:
             logging.error("update_kernel: invalid dtb file path, file not found")
+            logging.error(dtb_path)
             return 3
 
         mount_cmd = "sudo mount " + dev + " /mnt"
