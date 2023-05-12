@@ -1251,9 +1251,11 @@ class Management():
             logging.error("update_kernel: UPDATE PROCEDURE FAILED")
             return 9
         else:
-            logging.info("update_kernel: UPDATE PROCEDURE SUCCESSFULLY COMPLETE")
             umount_cmd = "sudo umount /mnt"
             out, retcode = exec_cmd(umount_cmd, verbose=True)
+            umount_cmd = "rm -rf /tmp/recovrt_kernel"
+            out, retcode = exec_cmd(umount_cmd, verbose=True)
+            logging.info("update_kernel: UPDATE PROCEDURE SUCCESSFULLY COMPLETE")
             return 0
 
     # Uart CPLD2MCU
