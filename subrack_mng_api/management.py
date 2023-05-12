@@ -1252,6 +1252,8 @@ class Management():
             return 9
         else:
             logging.info("update_kernel: UPDATE PROCEDURE SUCCESSFULLY COMPLETE")
+            umount_cmd = "sudo umount " + dev + " /mnt"
+            out, retcode = exec_cmd(umount_cmd, verbose=True)
             return 0
 
     # Uart CPLD2MCU
