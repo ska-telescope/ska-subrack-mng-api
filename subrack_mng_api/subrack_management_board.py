@@ -16,7 +16,6 @@ from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
-import cpld_mng_api.bsp.management as cpld_mng
 
 from optparse import OptionParser
 import Pyro5.api
@@ -37,7 +36,7 @@ TPMInfo_t={
 }
 
 logger=logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 class SubrackInvalidParameter(Exception):
     """ Define an exception which occurs when an invalid parameter is provided

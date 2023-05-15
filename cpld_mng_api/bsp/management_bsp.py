@@ -40,16 +40,16 @@ class MANAGEMENT_BSP():
     def __init__(self, board, rmp):
         self.rmp = rmp
         self.board = board
-        print("creating bsp")
+        # print("creating bsp")
         self.mode=self.rmp.rd32(0x120)
         if self.mode == BOARD_MODE['subrack']:
-            print("mode: SUBRACK")
+            # print("mode: SUBRACK")
             self.spi = MANAGEMENT_SPI(board, rmp, subrack_pll_cs)
         elif self.mode == BOARD_MODE['cabinet']:
-            print("mode: CABINET")
+            # print("mode: CABINET")
             self.spi = MANAGEMENT_SPI(board, rmp, cabinet_pll_cs)
         else:
-            print("mode: UNKNOWN")
+            # print("mode: UNKNOWN")
             self.spi = MANAGEMENT_SPI(board, rmp, subrack_pll_cs)
         # self.hw_rev = []
         # hw_rev = self.rmp.rd32(0x124)

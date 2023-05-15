@@ -330,6 +330,13 @@ class Management():
     def __del__(self):
         self.data = []
 
+    def ip2long(self, ip):
+        """
+        Convert an IP string to long
+        """
+        packed_ip = socket.inet_aton(ip)
+        return struct.unpack("!L", packed_ip)[0]
+    
     def long2ip(self, ip):
         """
         Convert long to IP string
@@ -457,7 +464,7 @@ class Management():
         string += hex(self.read("FPGA_FW.FirmwareVersion")) + "_" + hex(self.read("FPGA_FW.FirmwareBuildHigh") << 32 | self.read("FPGA_FW.FirmwareBuildLow"))
         string += "-MCU_"
         string += hex(self.read("MCUR.McuFWBuildVersion")) + "_" + hex(self.read("MCUR.McuFWBuildDate") << 32 | self.read("MCUR.McuFWBuildTime"))
-        kernel_release=run("uname -r").replace("-","_")
+        kernel_release=run("uname -r")
         #kernel_version=run("uname -v")
         string += "-KRN_" + kernel_release# + "_" + kernel_version.split(" ")[0]
         final_string = "v?.?.? (%s)" % string
@@ -493,6 +500,25 @@ class Management():
             for offset in range(self.eep_sec[key]["size"]):
                 val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"]+offset)
             return val
+        
+    def set_field(self, key, value, override_protected=False):
+        if self.eep_sec[key]["protected"] is False or override_protected:
+            if self.eep_sec[key]["type"] == "ip":
+                self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
+            elif self.eep_sec[key]["type"] == "bytearray":
+                for offset in range(self.eep_sec[key]["size"]):
+                    self.eep_wr8(self.eep_sec[key]["offset"] + offset,
+                             ((value & (0xff << (8*(self.eep_sec[key]["size"]-1-offset))))
+                              >> (8*(self.eep_sec[key]["size"]-1-offset))) & 0xff)
+            elif self.eep_sec[key]["type"] == "string":
+                self.wr_string(self.eep_sec[key], value)
+            elif self.eep_sec[key]["type"] == "uint":
+                val = value
+                for offset in range(self.eep_sec[key]["size"]):
+                    self.eep_wr8(self.eep_sec[key]["offset"]+offset, val & 0xff)
+                    val = val >> 8
+        else:
+            print("Writing attempt on protected sector %s" % key)
 
     def eep_rd8(self, offset):
         dev=self.smm_i2c_devices_dict['EEPROM_MAC_1']
@@ -511,7 +537,19 @@ class Management():
             rd = rd << 8
             rd = rd | self.eep_rd8(offset+n)
         return rd
+    
+    def wr_string(self, partition, string):
+        return self._wr_string(partition["offset"], string, partition["size"])
 
+    def _wr_string(self, offset, string, max_len=16):
+        addr = offset
+        for i in range(len(string)):
+            self.eep_wr8(addr, ord(string[i]))
+            addr += 1
+            if addr >= offset + max_len:
+                break
+        if addr < offset + max_len:
+            self.eep_wr8(addr, ord("\n"))
     def rd_string(self, partition):
         return self._rd_string(partition["offset"], partition["size"])
 
@@ -525,6 +563,20 @@ class Management():
             string += chr(byte)
             addr += 1
         return string
+    
+    def eep_wr8(self, offset, data, ):
+        dev=self.smm_i2c_devices_dict['EEPROM_MAC_1']
+        return self.write_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b",data)
+
+    def eep_wr16(self, offset, data):
+        for n in range(2):
+            self.eep_wr8(offset+n, (data >> 8*(1-n)) & 0xFF)
+        return
+
+    def eep_wr32(self, offset, data):
+        for n in range(4):
+            self.eep_wr8(offset+n, (data >> 8*(3-n)) & 0xFF)
+        return
 
     def get_mac(self,mac):
         mac_str = ""
