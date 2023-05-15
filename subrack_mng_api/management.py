@@ -1193,7 +1193,7 @@ class Management():
         if os.path.isfile(uboot_file) is False:
             logging.error("flash_uboot: invalid u-boot file path, file not found")
             return 1
-        cmd = "sudo echo 0 > /sys/block/mmcblk0boot0/force_ro"
+        cmd = "sudo echo 0 | sudo tee /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while disabling force_ro flag")
@@ -1205,7 +1205,7 @@ class Management():
             logging.error("flash_uboot: error while writing uboot binary")
             return 3
 
-        cmd = "sudo echo 1 > /sys/block/mmcblk0boot0/force_ro"
+        cmd = "sudo echo 1 | sudo tee /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while enabling force_ro flag")
@@ -1219,12 +1219,12 @@ class Management():
         """
         error = 0
         logging.info("FUSE Setting... ")
-        cmd = "sudo echo 0x00000010 > /sys/fsl_otp/HW_OCOTP_CFG5 "
+        cmd = "sudo echo 0x00000010 | sudo tee /sys/fsl_otp/HW_OCOTP_CFG5"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG5")
             return 1
-        cmd = "sudo echo 0x0002060 > /sys/fsl_otp/HW_OCOTP_CFG4 "
+        cmd = "sudo echo 0x0002060 | sudo tee /sys/fsl_otp/HW_OCOTP_CFG4"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG4")
