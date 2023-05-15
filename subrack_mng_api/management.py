@@ -1193,19 +1193,19 @@ class Management():
         if os.path.isfile(uboot_file) is False:
             logging.error("flash_uboot: invalid u-boot file path, file not found")
             return 1
-        cmd = "echo 0 > /sys/block/mmcblk0boot0/force_ro"
+        cmd = "sudo echo 0 > /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while disabling force_ro flag")
             return 2
 
-        cmd = "dd if=" + uboot_file + " of=/dev/mmcblk0boot0 bs=1024 seek=1"
+        cmd = "sudo dd if=" + uboot_file + " of=/dev/mmcblk0boot0 bs=1024 seek=1"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while writing uboot binary")
             return 3
 
-        cmd = "echo 1 > /sys/block/mmcblk0boot0/force_ro"
+        cmd = "sudo echo 1 > /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while enabling force_ro flag")
