@@ -1183,6 +1183,88 @@ class Management():
         return temp
 
     # SW UPDATE METHODS SECTION
+    def flash_uboot(self, uboot_file):
+        """
+        method used to flash the u-boot bootloader
+        :param uboot_file: u-boot binary file absolute path
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        logging.info("Flashing U-BOOT... ")
+        if os.path.isfile(uboot_file) is False:
+            logging.error("flash_uboot: invalid u-boot file path, file not found")
+            return 1
+        cmd = "echo 0 > /sys/block/mmcblk0boot0/force_ro"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_uboot: error while disabling force_ro flag")
+            return 2
+
+        cmd = "dd if=" + uboot_file + " of=/dev/mmcblk0boot0 bs=1024 seek=1"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_uboot: error while writing uboot binary")
+            return 3
+
+        cmd = "echo 1 > /sys/block/mmcblk0boot0/force_ro"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_uboot: error while enabling force_ro flag")
+            return 4
+        return 0
+
+    def fuse_setting(self):
+        """
+        method used to configure CPU Fuse to boot from flashed bootlaoder
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        error = 0
+        logging.info("FUSE Setting... ")
+        cmd = "sudo echo 0x00000010 > /sys/fsl_opt/HW_OCOTP_CFG5 "
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG5")
+            return 1
+        cmd = "sudo echo 0x0002060 > /sys/fsl_opt/HW_OCOTP_CFG4 "
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG4")
+            return 2
+        cmd = "sudo  mmc bootpart enable 1 1 /dev/mmcblk0boot0"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("fuse_setting: error while writing bootpart")
+            return 3
+        cmd = "sudo mmc bootbus set single_backward x1 x8 /dev/mmcblk0boot0"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("fuse_setting: error while writing bootbus")
+            return 4
+        cmd = "sudo cat /sys/fsl_otp/HW_OCOTP_CFG5"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("fuse_setting: error while reading HW_OCOTP_CFG5")
+            return 5
+        else:
+            if out != "0x10":
+                logging.error("fuse_setting: HW_OCOTP_CFG5 different form expected, read %s, expected 0x10" %out )
+                error += 10
+        cmd = "sudo cat /sys/fsl_otp/HW_OCOTP_CFG4"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("fuse_setting: error while reading HW_OCOTP_CFG4")
+            return 6
+        else:
+            if out != "0x2060":
+                logging.error("fuse_setting: HW_OCOTP_CFG4 different form expected, read %s, expected 0x2060" %out )
+                error += 20
+        if error == 0:
+            logging.info("SETTING FUSE: OPERATION SUCCESSFULLY COMPLETED")
+        else:
+            logging.error("SETTING FUSE: OPERATION FAILED")
+        return error
+
+
+
     def emmc_config(self, layout_file):
         """
         method used to flash first time the CPU kernel
