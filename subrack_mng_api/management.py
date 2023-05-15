@@ -1193,7 +1193,7 @@ class Management():
         if os.path.isfile(uboot_file) is False:
             logging.error("flash_uboot: invalid u-boot file path, file not found")
             return 1
-        cmd = "sudo echo 0 | sudo tee /sys/block/mmcblk0boot0/force_ro"
+        cmd = "echo 0 > /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while disabling force_ro flag")
@@ -1205,7 +1205,7 @@ class Management():
             logging.error("flash_uboot: error while writing uboot binary")
             return 3
 
-        cmd = "sudo echo 1 | sudo tee /sys/block/mmcblk0boot0/force_ro"
+        cmd = "echo 1 > /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while enabling force_ro flag")
@@ -1219,12 +1219,12 @@ class Management():
         """
         error = 0
         logging.info("FUSE Setting... ")
-        cmd = "sudo echo 0x00000010 | sudo tee /sys/fsl_otp/HW_OCOTP_CFG5"
+        cmd = "echo 0x00000010 > /sys/fsl_otp/HW_OCOTP_CFG5"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG5")
             return 1
-        cmd = "sudo echo 0x0002060 | sudo tee /sys/fsl_otp/HW_OCOTP_CFG4"
+        cmd = "echo 0x0002060 > /sys/fsl_otp/HW_OCOTP_CFG4"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG4")
@@ -1239,7 +1239,7 @@ class Management():
         if retcode != 0:
             logging.error("fuse_setting: error while writing bootbus")
             return 4
-        cmd = "sudo cat /sys/fsl_otp/HW_OCOTP_CFG5"
+        cmd = "cat /sys/fsl_otp/HW_OCOTP_CFG5"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while reading HW_OCOTP_CFG5")
@@ -1248,7 +1248,7 @@ class Management():
             if out != "0x10":
                 logging.error("fuse_setting: HW_OCOTP_CFG5 different form expected, read %s, expected 0x10" %out )
                 error += 10
-        cmd = "sudo cat /sys/fsl_otp/HW_OCOTP_CFG4"
+        cmd = "cat /sys/fsl_otp/HW_OCOTP_CFG4"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while reading HW_OCOTP_CFG4")
@@ -1420,7 +1420,7 @@ class Management():
         rxdata = []
         for w in range(0, 3):
             cmd = cmd_erase[w]
-            print ("erase cmd %s" % cmd)
+            print("erase cmd %s" % cmd)
             for i in range(0, len(cmd)):
                 dataw.append(ord(cmd[i]))
             state = self.CpldMng.mcuuart.uart_send_buffer(dataw)
