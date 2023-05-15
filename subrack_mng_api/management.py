@@ -1245,6 +1245,7 @@ class Management():
             logging.error("fuse_setting: error while reading HW_OCOTP_CFG5")
             return 5
         else:
+            out = out[:len(out)-1]
             if out != "0x10":
                 logging.error("fuse_setting: HW_OCOTP_CFG5 different form expected, read %s, expected 0x10" %out )
                 error += 10
@@ -1254,6 +1255,7 @@ class Management():
             logging.error("fuse_setting: error while reading HW_OCOTP_CFG4")
             return 6
         else:
+            out = out[:len(out)-1]
             if out != "0x2060":
                 logging.error("fuse_setting: HW_OCOTP_CFG4 different form expected, read %s, expected 0x2060" %out )
                 error += 20
