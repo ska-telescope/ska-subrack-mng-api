@@ -1376,7 +1376,7 @@ class Management():
                 return 0
 
 
-    def write_kernel(self, zImage_path, dtb_path, dest_device="uSD"):
+    def write_kernel(self, zImage_path, dtb_path, dest_device=None):
         """
         method used to flash first time the CPU kernel
         :param zImage_path: path of the zImage file to be used for the write
@@ -1384,26 +1384,44 @@ class Management():
         :param dest_device: memory where the write must be executed, accepted value are: uSD or EMMC
         :return status of the operation, 0 PASSED, !=0 FAILED
         """
-        logging.info("Write kernel in %s procedure started... " % dest_device)
+
+        dev = ""
         if dest_device == "uSD":
             dev = "/dev/mmcblk1p1"
         elif dest_device == "EMMC":
             dev = "/dev/mmcblk0p1"
+        elif dest_device is None:
+            cp_cmd = "mount"
+            out, retcode = exec_cmd(cp_cmd, verbose=True)
+            if retcode != 0:
+                logging.error("write_kernel: ")
+                return 1
+            else:
+                outl = out.splitlines()
+                for k in range(0, len(outl)):
+                    if outl[k].find("/dev/mmcblk") != -1:
+                        dev = outl[k].split(" ")[0]
+                        break
+                if dev == "":
+                    logging.error("write_kernel: unable to detect valid mounted device")
+                    return 2
+
         else:
             logging.error("write_kernel: invalid dest_device parameter, accepted uSD or EMMC")
-            return 1
+            return 3
+        logging.info("Write kernel in %s started... " % dev)
         if os.path.isfile(zImage_path) is False:
             logging.error("write_kernel: invalid zImage file path, file not found")
-            return 2
+            return 4
         if os.path.isfile(dtb_path) is False:
             logging.error("write_kernel: invalid dtb file path, file not found")
-            return 3
+            return 5
 
         mount_cmd = "sudo mount " + dev + " /mnt"
         out, retcode = exec_cmd(mount_cmd, verbose=True)
         if retcode != 0:
             logging.error("write_kernel: error while mounting kernel partition")
-            return 4
+            return 6
 
         md5_upd_kernel = hashlib.md5(open(zImage_path, 'rb').read()).hexdigest()
         md5_upd_dtb = hashlib.md5(open(dtb_path, 'rb').read()).hexdigest()
@@ -1412,12 +1430,12 @@ class Management():
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("write_kernel: error while kernel copy")
-            return 5
+            return 7
         cp_cmd = "sudo cp " + dtb_path + " /mnt/ska-management.dtb"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("write_kernel: error while device-tree copy")
-            return 6
+            return 8
 
         md5_cpd_kernel = hashlib.md5(open("/mnt/zImage", 'rb').read()).hexdigest()
         md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb", 'rb').read()).hexdigest()
@@ -1433,7 +1451,7 @@ class Management():
 
         if error_k or error_d:
             logging.error("write_kernel: WRITE PROCEDURE FAILED")
-            return 7
+            return 9
         else:
             umount_cmd = "sudo umount /mnt"
             out, retcode = exec_cmd(umount_cmd, verbose=True)
@@ -1543,29 +1561,46 @@ class Management():
         :param dest_device: memory where the update must be executed, accepted value are: uSD or EMMC
         :return status of the operation, 0 PASSED, !=0 FAILED
         """
-        logging.info("Update kernel in %s procedure started... " % dest_device)
+        dev = ""
         if dest_device == "uSD":
             dev = "/dev/mmcblk1p1"
         elif dest_device == "EMMC":
             dev = "/dev/mmcblk0p1"
+        elif dest_device is None:
+            cp_cmd = "mount"
+            out, retcode = exec_cmd(cp_cmd, verbose=True)
+            if retcode != 0:
+                logging.error("write_kernel: failed to get mount")
+                return 1
+            else:
+                outl = out.splitlines()
+                for k in range(0, len(outl)):
+                    if outl[k].find("/dev/mmcblk") != -1:
+                        dev = outl[k].split(" ")[0]
+                        break
+                if dev == "":
+                    logging.error("write_kernel: unable to detect valid mounted device")
+                    return 2
+
         else:
-            logging.error("update_kernel: invalid dest_device parameter, accepted uSD or EMMC")
-            return 1
-        logging.error(zImage_path)
+            logging.error("write_kernel: invalid dest_device parameter, accepted uSD or EMMC")
+            return 3
+        logging.info("Write kernel in %s started... " % dev)
+
         if os.path.isfile(zImage_path) is False:
             logging.error("update_kernel: invalid zImage file path, file not found")
             logging.error(zImage_path)
-            return 2
+            return 4
         if os.path.isfile(dtb_path) is False:
             logging.error("update_kernel: invalid dtb file path, file not found")
             logging.error(dtb_path)
-            return 3
+            return 5
 
         mount_cmd = "sudo mount " + dev + " /mnt"
         out, retcode = exec_cmd(mount_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while mounting kernel partition")
-            return 4
+            return 6
 
         md5_actual_kernel = hashlib.md5(open("/mnt/zImage", 'rb').read()).hexdigest()
         md5_actual_dtb = hashlib.md5(open("/mnt/ska-management.dtb", 'rb').read()).hexdigest()
@@ -1577,23 +1612,23 @@ class Management():
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while restore kernel copy")
-            return 5
+            return 7
         cp_cmd = "sudo cp /mnt/ska-management.dtb /tmp/recovery_kernel/"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while restore  device-tree copy")
-            return 6
+            return 8
 
         cp_cmd = "sudo cp " + zImage_path + " /mnt/zImage"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while kernel copy")
-            return 7
+            return 9
         cp_cmd = "sudo cp " + dtb_path + " /mnt/ska-management.dtb"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
             logging.error("update_kernel: error while device-tree copy")
-            return 8
+            return 10
 
         md5_cpd_kernel = hashlib.md5(open("/mnt/zImage",'rb').read()).hexdigest()
         md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb",'rb').read()).hexdigest()
@@ -1619,12 +1654,12 @@ class Management():
             out, retcode = exec_cmd(cp_cmd, verbose=True)
             if retcode != 0:
                 logging.error("update_kernel: error while kernel copy")
-                return 7
+                return 11
             cp_cmd = "sudo cp /tmp/recovery_kernel/ska-management.dtb /mnt/"
             out, retcode = exec_cmd(cp_cmd, verbose=True)
             if retcode != 0:
                 logging.error("update_kernel: error while device-tree copy")
-                return 8
+                return 12
 
             md5_cpd_kernel = hashlib.md5(open("/mnt/zImage", 'rb').read()).hexdigest()
             md5_cpd_dtb = hashlib.md5(open("/mnt/ska-management.dtb", 'rb').read()).hexdigest()
@@ -1639,7 +1674,7 @@ class Management():
 
         if error_k or error_d:
             logging.error("update_kernel: UPDATE PROCEDURE FAILED")
-            return 9
+            return 13
         else:
             umount_cmd = "sudo umount /mnt"
             out, retcode = exec_cmd(umount_cmd, verbose=True)
