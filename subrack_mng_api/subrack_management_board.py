@@ -36,7 +36,7 @@ TPMInfo_t={
 }
 
 logger=logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 class SubrackInvalidParameter(Exception):
     """ Define an exception which occurs when an invalid parameter is provided
@@ -219,15 +219,30 @@ class SubrackMngBoard():
 
 
     def __startup(self):
+        logger.warning("__startup")
         vecton=self.GetTPMOnOffVect()
         for i in range(0, 8):
+            tpm_slot_id = i + 1
             if ((vecton >> i) & 0x1) == 1:
+                actual_tpm_ip_str = self.GetTPMIP(tpm_slot_id)
                 tpm_ip_str = self.tpm_ip_list[i]
-                self.TPM_instances_list[i] = TPM_1_6()
-                # port=10000, lmc_ip="10.0.10.1", lmc_port=4660, sampling_rate=800e6
-                self.TPM_instances_list[i].connect(ip=tpm_ip_str, port=10000, initialise=False,
-                                                               simulation=False, enable_ada=False, fsample=800e6)
-                self.TPM_instances_list[i].load_plugin("Tpm_1_6_Mcu")
+                if actual_tpm_ip_str != tpm_ip_str:
+                    logger.warning("Found TPM in SLOT-%d with unexpected ip address"%tpm_slot_id)
+                    logger.warning("expecetd %s, got %s"%(tpm_ip_str,actual_tpm_ip_str))
+                    time.sleep(2)
+                    self.__assign_tpm_ip(tpm_slot_id)
+                    time.sleep(2)
+                try:
+                    self.TPM_instances_list[i] = TPM_1_6()
+                    # port=10000, lmc_ip="10.0.10.1", lmc_port=4660, sampling_rate=800e6
+                    self.TPM_instances_list[i].connect(ip=tpm_ip_str, port=10000, initialise=False,
+                                                                simulation=False, enable_ada=False, fsample=800e6)
+                    self.TPM_instances_list[i].load_plugin("Tpm_1_6_Mcu")
+                except LibraryError:
+                    logger.warning("Exception during TPM connection at SLOT-%d, try power cycle"%tpm_slot_id)
+                    self.PowerOffTPM(tpm_slot_id)
+                    self.PowerOnTPM(tpm_slot_id)
+                    pass
 
     def __assign_tpm_ip(self, tpm_slot_id):
         state, cpu_ip = detect_cpu_ip()
@@ -330,8 +345,8 @@ class SubrackMngBoard():
         tpm_ip_str = int2ip(tpm_ip)
         if len(self.tpm_ip_list) == 8:
             if ipstr2hex(self.tpm_ip_list[tpm_slot_id - 1]) != tpm_ip:
-                logger.debug("GetTPMIP ERROR: TPM IP mismatch with expected list")
-                raise SubrackExecFault("Error:TPM IP address mismatch with ip add list")
+                logger.warning("GetTPMIP WARNING: TPM IP mismatch with expected list")
+                # raise SubrackExecFault("Error:TPM IP address mismatch with ip add list")
         else:
             logger.debug("GetTPMIP ERROR: TPM IP address list incomplete")
             raise SubrackExecFault("Error:TPM IP address list incomplete")
@@ -680,6 +695,7 @@ class SubrackMngBoard():
         return temp_mng1, temp_mng2, temp_bck1, temp_bck2
 
     def PowerOnTPM(self, tpm_slot_id, force=False):
+        logger.info("PowerOnTPM - %d"%(tpm_slot_id))
         """method to power on selected tpm
         :param  tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
         :param force: force the operation even if no TPM is present in selected slot
@@ -709,11 +725,15 @@ class SubrackMngBoard():
                     self.__assign_tpm_ip(tpm_slot_id)
                     time.sleep(2)
                     tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-                    self.TPM_instances_list[tpm_slot_id-1] = TPM_1_6()
-                    # port=10000, lmc_ip="10.0.10.1", lmc_port=4660, sampling_rate=800e6
-                    self.TPM_instances_list[tpm_slot_id-1].connect(ip=tpm_ip_str, port=10000, initialise=False,
-                                                                   simulation=False, enable_ada=False, fsample=800e6)
-                    self.TPM_instances_list[tpm_slot_id-1].load_plugin("Tpm_1_6_Mcu")
+                    try:
+                        self.TPM_instances_list[tpm_slot_id-1] = TPM_1_6()
+                        # port=10000, lmc_ip="10.0.10.1", lmc_port=4660, sampling_rate=800e6
+                        self.TPM_instances_list[tpm_slot_id-1].connect(ip=tpm_ip_str, port=10000, initialise=False,
+                                                                    simulation=False, enable_ada=False, fsample=800e6)
+                        self.TPM_instances_list[tpm_slot_id-1].load_plugin("Tpm_1_6_Mcu")
+                    except LibraryError:
+                        logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
+        logger.info("PowerOnTPM End")
 
 
 
@@ -722,6 +742,7 @@ class SubrackMngBoard():
         :param  tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
         :param force: force the operation even if no TPM is present in selected slot
         """
+        logger.info("PowerOffTPM - %d"%(tpm_slot_id))
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) == 0:
             logger.error("ERROR: TPM not present in selected slot")
             if force is True:
@@ -735,6 +756,7 @@ class SubrackMngBoard():
                 if self.Bkpln.pwr_off_tpm(tpm_slot_id):
                     logger.error("Power TPM off slot %d failed" % tpm_slot_id)
                     raise SubrackExecFault("ERROR: power off TPM command failed")
+        logger.info("PowerOffTPM End")
 
     def SetFanSpeed(self, fan_id, speed_pwm_perc):
         """This method set the_bkpln_fan_speed
@@ -742,6 +764,7 @@ class SubrackMngBoard():
         :param speed_pwm_perc: percentage value of fan RPM  (MIN 0=0% - MAX 100=100%)
         :note settings of fan speed is possible only if fan mode is manual
         """
+        logger.info("SetFanSpeed - %d,%d"%(fan_id, speed_pwm_perc))
         status = self.Bkpln.set_bkpln_fan_speed(fan_id, speed_pwm_perc)
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
@@ -768,9 +791,10 @@ class SubrackMngBoard():
         :param auto_mode: fan mode configuration, 1 auto(controlled by MCU), 0 manual(use SetFanSpeed method)
         :note fan are coupled, passing fan_blk_id=1 both fan 1 and 2 will be configured at same mode,
         """
+        logger.info("SetFanMode - %d,%d"%(fan_id_blk, auto_mode))
         if self.Bkpln.set_bkpln_fan_mode(fan_id_blk, auto_mode) == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
-
+        
     def GetFanMode(self, fan_id):
         """This method get the_bkpln_fan_mode
         :param fan_id: id of the selected fan accepted value: 1-4
@@ -1040,7 +1064,7 @@ class SubrackMngBoard():
 
 if __name__ == '__main__':
     #logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.DEBUG)
-    logging.basicConfig(format='%(asctime)s:%(levelname)s:%(name)s:%(message)s', datefmt='%m/%d/%Y %H:%M:%S',level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s:%(levelname)s:%(name)s:%(message)s', datefmt='%m/%d/%Y %H:%M:%S',level=logging.INFO)
     logger=logging.getLogger(os.path.basename(__file__)+"_main")
 
     parser = OptionParser()

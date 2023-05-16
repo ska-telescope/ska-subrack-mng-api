@@ -26,7 +26,7 @@ lasttemp = 59.875
 I2CDevices = ["ADT7408_1", "ADT7408_2", "EEPROM_MAC_1", "EEPROM_MAC_2", "LTC3676", "LTC4281"]
 
 logger=logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 class FPGA_I2CBUS:
     i2c1 = 0
@@ -1271,12 +1271,12 @@ class Management():
         """
         error = 0
         logging.info("FUSE Setting... ")
-        cmd = "echo 0x00000010 > /sys/fsl_otp/HW_OCOTP_CFG5"
+        cmd = "echo 0x00000010 > /sys/fsl_opt/HW_OCOTP_CFG5"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG5")
             return 1
-        cmd = "echo 0x0002060 > /sys/fsl_otp/HW_OCOTP_CFG4"
+        cmd = "echo 0x0002060 > /sys/fsl_opt/HW_OCOTP_CFG4"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG4")
