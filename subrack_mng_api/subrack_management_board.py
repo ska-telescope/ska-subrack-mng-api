@@ -341,7 +341,7 @@ class SubrackMngBoard():
                 raise SubrackExecFault("Error:TPM is Powered OFF")
         else:
             raise SubrackInvalidCmd("TPM not present")
-        tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
+        tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x40000028)
         tpm_ip_str = int2ip(tpm_ip)
         if len(self.tpm_ip_list) == 8:
             if ipstr2hex(self.tpm_ip_list[tpm_slot_id - 1]) != tpm_ip:
