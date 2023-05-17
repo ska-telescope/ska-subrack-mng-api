@@ -1,48 +1,25 @@
-## Clean up filesystem before backup
- 
- ```
- cat /dev/zero > zero.file
- sync
- rm zero.file
- history -c 
- ```
+## Field update
 
-## Create ISO from uSD
-
-```
-sudo dd if=/dev/sdb bs=1M count=8192 status=progress | gzip -c > ska-low-smm_v0.4.0_20230516.img.tgz
-```
-
-## Create uSD from ISO
-
+1. Create uSD from ISO. Be carefull to change `/dev/sdb` with your system uSD device path, minimum 8GB size required.
 ```
 gunzip -c ska-low-smm_v0.4.0_20230516.img.tgz  | sudo dd of=/dev/sdb status=progress
 ```
 
-## Create filesystem backup
-
-```
-sudo tar -cvpzf backup.tar.gz --exclude=/backup.tar.gz --one-file-system /
-```
-
-
-
-## field update
-
-1. Create uSD from ISO. Be carefull to change `/dev/sdb` with your system uSD device path.
-```
-gunzip -c ska-low-smm_v0.4.0_20230516.img.tgz  | sudo dd of=/dev/sdb status=progress
-```
-
-2. Insert uSD into uSD slot of SMB board, minimum 8GB size required.
+2. Insert uSD into uSD slot of SMB board.
 
 4. Power-on the board
 
-5. Connect to board via SSH
-The uSD filesystem configure CPU ip address calculated from CPLD ip address read from EEPROM, decreasing by 6. (e.g. CPLD ip 10.0.10.19 follow to CPU ip address 10.0.10.13).
+5. Web server start
+No action required. Filesystem start with web_server service active for external control (e.g. with SKALAB).
+The filesystem configure CPU ip address calculated from CPLD ip address read from EEPROM, decreasing by 6. (e.g. CPLD ip 10.0.10.19 follow to CPU ip address 10.0.10.13).
+
+6. Connect to board via SSH
 ```
 sshpass -p SkaUser ssh -o StrictHostKeyChecking=no mnguser@10.0.10.13
 ```
+7. Update BIOS if needed (read below)
+
+8. Change ip address if needed (read below)
 
 ## Update BIOS
 `ska_low_smm_bios` can be used to update a SMM board, you needs to specify bios version. Ip address is not required because it operate on localhost only.
@@ -174,3 +151,32 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         10.0.10.1       0.0.0.0         UG    0      0        0 eth0
 10.0.10.0       0.0.0.0         255.255.255.0   U     0      0        0 eth0
 ```
+
+## Misc
+
+### Clean up filesystem before backup
+ ```
+ cat /dev/zero > zero.file
+ sync
+ rm zero.file
+ history -c 
+ ```
+
+### Create ISO from uSD
+
+```
+sudo dd if=/dev/sdb bs=1M count=8192 status=progress | gzip -c > ska-low-smm_v0.4.0_20230516.img.tgz
+```
+
+### Create uSD from ISO
+
+```
+gunzip -c ska-low-smm_v0.4.0_20230516.img.tgz  | sudo dd of=/dev/sdb status=progress
+```
+
+### Create filesystem backup
+
+```
+sudo tar -cvpzf backup.tar.gz --exclude=/backup.tar.gz --one-file-system /
+```
+
