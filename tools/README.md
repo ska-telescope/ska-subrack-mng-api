@@ -1,4 +1,12 @@
-## Field update
+---
+title: "SKA-LOW-SMM Update"
+author: [Sanitas EG]
+date: "rev. 2023/05/16"
+lang: "en"
+fontsize: 9pt
+...
+
+# Filesystem update via uSD
 
 1. Create uSD from ISO. Be carefull to change `/dev/sdb` with your system uSD device path, minimum 8GB size required.
 ```
@@ -7,21 +15,55 @@ gunzip -c ska-low-smm_v0.4.0_20230516.img.tgz  | sudo dd of=/dev/sdb status=prog
 
 2. Insert uSD into uSD slot of SMB board.
 
-4. Power-on the board
+3. Power-on the board
 
-5. Web server start
+4. Web server start
 No action required. Filesystem start with web_server service active for external control (e.g. with SKALAB).
-The filesystem configure CPU ip address calculated from CPLD ip address read from EEPROM, decreasing by 6. (e.g. CPLD ip 10.0.10.19 follow to CPU ip address 10.0.10.13).
+The filesystem configure CPU ip address calculated from CPLD ip address read from EEPROM, decreasing by 6. (e.g. CPLD ip 10.0.10.70 follow to CPU ip address 10.0.10.64).
+Below ip addresses MUST be reserved for board function:
 
-6. Connect to board via SSH
+| RESERVED IPs   |            |
+|:---------------|:-----------|
+| 10.0.10.64     | CPU        |
+| 10.0.10.65     | reserved   |
+| 10.0.10.66     | reserved   |
+| 10.0.10.67     | reserved   |
+| 10.0.10.68     | reserved   |
+| 10.0.10.69     | reserved   |
+| 10.0.10.70     | CPLD       |
+| 10.0.10.71     | SLOT-1 TPM |
+| 10.0.10.72     | SLOT-2 TPM |
+| 10.0.10.73     | SLOT-3 TPM |
+| 10.0.10.74     | SLOT-4 TPM |
+| 10.0.10.75     | SLOT-5 TPM |
+| 10.0.10.76     | SLOT-6 TPM |
+| 10.0.10.77     | SLOT-7 TPM |
+| 10.0.10.78     | SLOT-8 TPM |
+| 10.0.10.79     | reserved   |
+
+5. Connect to board via SSH
 ```
-sshpass -p SkaUser ssh -o StrictHostKeyChecking=no mnguser@10.0.10.13
+sshpass -p SkaUser ssh -o StrictHostKeyChecking=no mnguser@10.0.10.64
 ```
-7. Update BIOS if needed (read below)
 
-8. Change ip address if needed (read below)
+6. Update BIOS if needed (read below)
 
-## Update BIOS
+7. Change ip address if needed (read below)
+
+8. Configure external HOST as gateway (no DHCP needed) and NTP server
+
+9. Check for SubrackMngAPI update if needed (needs internet access configured at 8.)
+```
+(venv) mnguser@ska-low-smm:~/SubrackMngAPI$ git pull
+Already up to date.
+```
+
+10. Shutdown and reboot
+```
+sudo poweroff
+```
+
+# Update BIOS
 `ska_low_smm_bios` can be used to update a SMM board, you needs to specify bios version. Ip address is not required because it operate on localhost only.
 
 ```
@@ -32,32 +74,39 @@ BY USING THIS SOFTWARE, YOU ACCEPT THE TERMS OF THE AGREEMENT.
 You can read license by '--show-license' option
 ==============================================================
 
-| BOARD INFO          |                                                                                                             |
-|:--------------------|:------------------------------------------------------------------------------------------------------------|
-| CPLD_ip_address     | 10.0.10.86                                                                                                  |
-| CPLD_netmask        | 255.255.255.0                                                                                               |
-| CPLD_gateway        | 10.0.10.1                                                                                                   |
-| CPLD_ip_address_eep | 10.0.10.86                                                                                                  |
-| CPLD_netmask_eep    | 255.255.255.0                                                                                               |
-| CPLD_gateway_eep    | 10.0.10.1                                                                                                   |
-| CPLD_MAC            | 04:91:62:b2:28:20                                                                                           |
-| CPU_ip_address      | 10.0.10.80                                                                                                  |
-| CPU_netmask         | 255.255.255.0                                                                                               |
-| CPU_MAC             | 04:91:62:b2:6c:b8                                                                                           |
-| SN                  |                                                                                                             |
-| PN                  | SKA_SMB                                                                                                     |
-| bios                | v1.0.0 (CPLD_0xbe7a1014_0x202106150954-MCU_0xdb000102_0x2021040600125020-KRN_4.14.98-0002-00003-gffba12ad9) |
-| BOARD_MODE          | SUBRACK                                                                                                     |
-| LOCATION            | 65535:255:255                                                                                               |
-| HARDWARE_REV        | v1.2.4                                                                                                      |
+| BOARD INFO          |                               |
+|:--------------------|:------------------------------|
+| CPLD_ip_address     | 10.0.10.86                    |
+| CPLD_netmask        | 255.255.255.0                 |
+| CPLD_gateway        | 10.0.10.1                     |
+| CPLD_ip_address_eep | 10.0.10.86                    |
+| CPLD_netmask_eep    | 255.255.255.0                 |
+| CPLD_gateway_eep    | 10.0.10.1                     |
+| CPLD_MAC            | 04:91:62:b2:28:20             |
+| CPU_ip_address      | 10.0.10.80                    |
+| CPU_netmask         | 255.255.255.0                 |
+| CPU_MAC             | 04:91:62:b2:6c:b8             |
+| SN                  |                               |
+| PN                  | SKA_SMB                       |
+| bios                | v?.?.?                        |
+| bios_cpld           | 0xbe7a1014_0x202106150954     |
+| bios_mcu            | 0xdb000102_0x2021040600125020 |
+| bios_uboot          | 2018.03-00002-g692c8e6e-dirty |
+| bios_krn            | 4.14.98-0002-00003-gffba12ad9 |
+| BOARD_MODE          | SUBRACK                       |
+| LOCATION            | 65535:255:255                 |
+| HARDWARE_REV        | v1.2.4                        |
 
-| BIOS      |                                                                                                             |
-|:----------|:------------------------------------------------------------------------------------------------------------|
-| ACTUAL    | v1.0.0 (CPLD_0xbe7a1014_0x202106150954-MCU_0xdb000102_0x2021040600125020-KRN_4.14.98-0002-00003-gffba12ad9) |
-| REQUESTED | v1.0.0 (CPLD_0xbe7a1014_0x202106150954-MCU_0xdb000102_0x2021040600125020-KRN_4.14.98-0002-00003-gffba12ad9) |
+| BIOS   | ACTUAL                        | REQUESTED                     | diff   |
+|:-------|:------------------------------|:------------------------------|:-------|
+| rev    | v?.?.?                        | v1.0.0                        | *      |
+| cpld   | 0xbe7a1014_0x202106150954     | 0xbe7a1014_0x202106150954     |        |
+| mcu    | 0xdb000102_0x2021040600125020 | 0xdb000102_0x2021040600125020 |        |
+| uboot  | 2018.03-00002-g692c8e6e-dirty | 2018.03-00005-gda75be7d       | *      |
+| krn    | 4.14.98-0002-00003-gffba12ad9 | 4.14.98-0002-00003-gffba12ad9 |        |
 ```
 
-## Change ip address
+# Change ip address
 `ska_low_smm_bios` can be also used to change network configuration stored into non-volatile memory.
 The OS of SMM, at boot time, retrive information from non-volatile memory to generate `/etc/network/interfaces`. OS also assume, for convenience, that a ntp server is available and try to exec a update time at boot.
 
@@ -69,24 +118,28 @@ BY USING THIS SOFTWARE, YOU ACCEPT THE TERMS OF THE AGREEMENT.
 You can read license by '--show-license' option
 ==============================================================
 
-| BOARD INFO          |                                                                                                             |
-|:--------------------|:------------------------------------------------------------------------------------------------------------|
-| CPLD_ip_address     | 10.0.10.86                                                                                                  |
-| CPLD_netmask        | 255.255.255.0                                                                                               |
-| CPLD_gateway        | 10.0.10.1                                                                                                   |
-| CPLD_ip_address_eep | 10.0.10.86                                                                                                  |
-| CPLD_netmask_eep    | 255.255.255.0                                                                                               |
-| CPLD_gateway_eep    | 10.0.10.1                                                                                                   |
-| CPLD_MAC            | 04:91:62:b2:28:20                                                                                           |
-| CPU_ip_address      | 10.0.10.80                                                                                                  |
-| CPU_netmask         | 255.255.255.0                                                                                               |
-| CPU_MAC             | 04:91:62:b2:6c:b8                                                                                           |
-| SN                  |                                                                                                             |
-| PN                  | SKA_SMB                                                                                                     |
-| bios                | v1.0.0 (CPLD_0xbe7a1014_0x202106150954-MCU_0xdb000102_0x2021040600125020-KRN_4.14.98-0002-00003-gffba12ad9) |
-| BOARD_MODE          | SUBRACK                                                                                                     |
-| LOCATION            | 65535:255:255                                                                                               |
-| HARDWARE_REV        | v1.2.4                                                                                                      |
+| BOARD INFO          |                               |
+|:--------------------|:------------------------------|
+| CPLD_ip_address     | 10.0.10.86                    |
+| CPLD_netmask        | 255.255.255.0                 |
+| CPLD_gateway        | 10.0.10.1                     |
+| CPLD_ip_address_eep | 10.0.10.86                    |
+| CPLD_netmask_eep    | 255.255.255.0                 |
+| CPLD_gateway_eep    | 10.0.10.1                     |
+| CPLD_MAC            | 04:91:62:b2:28:20             |
+| CPU_ip_address      | 10.0.10.80                    |
+| CPU_netmask         | 255.255.255.0                 |
+| CPU_MAC             | 04:91:62:b2:6c:b8             |
+| SN                  |                               |
+| PN                  | SKA_SMB                       |
+| bios                | v?.?.?                        |
+| bios_cpld           | 0xbe7a1014_0x202106150954     |
+| bios_mcu            | 0xdb000102_0x2021040600125020 |
+| bios_uboot          | 2018.03-00002-g692c8e6e-dirty |
+| bios_krn            | 4.14.98-0002-00003-gffba12ad9 |
+| BOARD_MODE          | SUBRACK                       |
+| LOCATION            | 65535:255:255                 |
+| HARDWARE_REV        | v1.2.4                        |
 
 =============== WARNING !!! ===================
 Error in netwrok configuration may leads to unreachable board.
@@ -151,32 +204,3 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         10.0.10.1       0.0.0.0         UG    0      0        0 eth0
 10.0.10.0       0.0.0.0         255.255.255.0   U     0      0        0 eth0
 ```
-
-## Misc
-
-### Clean up filesystem before backup
- ```
- cat /dev/zero > zero.file
- sync
- rm zero.file
- history -c 
- ```
-
-### Create ISO from uSD
-
-```
-sudo dd if=/dev/sdb bs=1M count=8192 status=progress | gzip -c > ska-low-smm_v0.4.0_20230516.img.tgz
-```
-
-### Create uSD from ISO
-
-```
-gunzip -c ska-low-smm_v0.4.0_20230516.img.tgz  | sudo dd of=/dev/sdb status=progress
-```
-
-### Create filesystem backup
-
-```
-sudo tar -cvpzf backup.tar.gz --exclude=/backup.tar.gz --one-file-system /
-```
-

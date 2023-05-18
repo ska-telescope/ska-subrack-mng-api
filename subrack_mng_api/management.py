@@ -17,6 +17,7 @@ import socket
 import struct
 import hashlib
 import shutil
+import parse
 from console_progressbar import ProgressBar
 
 import Pyro5.api
@@ -460,19 +461,37 @@ class Management():
         return str_version, str_date
 
     def get_bios(self):
-        string = "CPLD_"
-        string += hex(self.read("FPGA_FW.FirmwareVersion")) + "_" + hex(self.read("FPGA_FW.FirmwareBuildHigh") << 32 | self.read("FPGA_FW.FirmwareBuildLow"))
-        string += "-MCU_"
-        string += hex(self.read("MCUR.McuFWBuildVersion")) + "_" + hex(self.read("MCUR.McuFWBuildDate") << 32 | self.read("MCUR.McuFWBuildTime"))
-        kernel_release=run("uname -r")
-        #kernel_version=run("uname -v")
-        string += "-KRN_" + kernel_release# + "_" + kernel_version.split(" ")[0]
-        final_string = "v?.?.? (%s)" % string
+        bios_dict={}
+        bios_dict['rev']="v?.?.?"
+        bios_dict['cpld']=hex(self.read("FPGA_FW.FirmwareVersion")) + "_" + hex(self.read("FPGA_FW.FirmwareBuildHigh") << 32 | self.read("FPGA_FW.FirmwareBuildLow"))
+        bios_dict['mcu']=hex(self.read("MCUR.McuFWBuildVersion")) + "_" + hex(self.read("MCUR.McuFWBuildDate") << 32 | self.read("MCUR.McuFWBuildTime"))
+        bios_dict['uboot']="NA"
+        uboot_release = run("sudo dd if=/dev/mmcblk0boot0 | strings | grep U-Boot")
+        for line in uboot_release.splitlines():
+            r=parse.parse("U-Boot {} ({} {} {} - {} {})",line)
+            if r is not None:
+                bios_dict['uboot']=r[0]
+                break
+        bios_dict['krn']=run("uname -r")
+        string=""
+        _first_key = True
+        for key,value in bios_dict.items():
+            if key != 'rev':
+                if not _first_key:
+                    string +='-'
+                string += key + "_" + value
+                _first_key = False
+        
+        
+        
+        
         for BIOS_REV in self.BIOS_REV_list:
             if BIOS_REV[1] == string:
-                final_string = "v%s (%s)" % (BIOS_REV[0], string)
+                bios_dict['rev']="v%s"%BIOS_REV[0]
                 break
-        return final_string
+
+        final_string = bios_dict['rev'] + " (%s)" % string
+        return final_string, bios_dict
 
     def get_hardware_revision(self):
         logger.debug("get_hardware_revision")
@@ -614,6 +633,7 @@ class Management():
 
 
     def get_board_info(self):
+        bios_string,bios_dict=self.get_bios()
         mng_info = {"CPLD_ip_address": self.long2ip(self.read("ETH.IP")),
                     "CPLD_netmask": self.long2ip(self.read("ETH.Netmask")),
                     "CPLD_gateway": self.long2ip(self.read("ETH.Gateway")),
@@ -625,9 +645,13 @@ class Management():
                     "CPU_netmask": self.detect_cpu_ip()[1],
                     "CPU_MAC": self.get_mac(self.get_cpu_mac()),
                     "SN": self.get_field("SN"),
-                    "PN": self.get_field("PN"),
-                    "bios": self.get_bios()
+                    "PN": self.get_field("PN")
                     }
+        for key,value in bios_dict.items():
+            if key == 'rev':
+                mng_info['bios']=value
+            else:
+                mng_info['bios_'+key]=value
         if self.get_field("BOARD_MODE") == 0x1:
             mng_info["BOARD_MODE"] = "SUBRACK"
         elif self.get_field("BOARD_MODE") == 0x2:
