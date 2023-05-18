@@ -8,18 +8,18 @@ fontsize: 9pt
 
 # Filesystem update via uSD
 
-1. Create uSD from ISO. Be carefull to change `/dev/sdb` with your system uSD device path, minimum 8GB size required.
+## Create uSD
+Create uSD from ISO. Be carefull to change `/dev/sdb` with your system uSD device path, minimum 8GB size required.
 ```
 gunzip -c ska-low-smm_v0.4.0_20230516.img.tgz  | sudo dd of=/dev/sdb status=progress
 ```
 
-2. Insert uSD into uSD slot of SMB board.
+## Boot from uSD
+Insert uSD into uSD slot of SMB board and power-on the board
 
-3. Power-on the board
-
-4. Web server start
-No action required. Filesystem start with web_server service active for external control (e.g. with SKALAB).
-The filesystem configure CPU ip address calculated from CPLD ip address read from EEPROM, decreasing by 6. (e.g. CPLD ip 10.0.10.70 follow to CPU ip address 10.0.10.64).
+## Web server start
+No action required. Filesystem start with web_server service active for external control (e.g. with SKALAB).  
+The filesystem configure CPU ip address calculated from CPLD ip address read from EEPROM, decreasing by 6. (e.g. CPLD ip 10.0.10.70 follow to CPU ip address 10.0.10.64).  
 Below ip addresses MUST be reserved for board function:
 
 | RESERVED IPs   |            |
@@ -41,29 +41,39 @@ Below ip addresses MUST be reserved for board function:
 | 10.0.10.78     | SLOT-8 TPM |
 | 10.0.10.79     | reserved   |
 
-5. Connect to board via SSH
+## Connect to board via SSH
 ```
 sshpass -p SkaUser ssh -o StrictHostKeyChecking=no mnguser@10.0.10.64
 ```
 
-6. Update BIOS if needed (read below)
+## Gateway
+Configure external HOST as gateway (no DHCP needed) and NTP server [optional required for 1.6 and 1.9]
 
-7. Change ip address if needed (read below)
+## BIOS tool update
+Check for ska-low-smm-bios update if needed (needs internet access configured at 1.5)
+```
+(venv) mnguser@ska-low-smm:~/SubrackMngAPI$ pip install git+https://gitlab.com/sanitaseg/ska-low-smm-bios.git
+```
+## BIOS update into board
+Update BIOS if needed (read below)
 
-8. Configure external HOST as gateway (no DHCP needed) and NTP server
+## Network configuration
+Change ip address if needed (read below)
 
-9. Check for SubrackMngAPI update if needed (needs internet access configured at 8.)
+## SubrackMngAPI update
+Check for SubrackMngAPI update if needed (needs internet access configured at 1.5)
 ```
 (venv) mnguser@ska-low-smm:~/SubrackMngAPI$ git pull
 Already up to date.
 ```
 
-10. Shutdown and reboot
+## Reboot
+Shutdown and reboot to apply changes.
 ```
 sudo poweroff
 ```
 
-# Update BIOS
+# BIOS update into board
 `ska_low_smm_bios` can be used to update a SMM board, you needs to specify bios version. Ip address is not required because it operate on localhost only.
 
 ```
@@ -106,7 +116,7 @@ You can read license by '--show-license' option
 | krn    | 4.14.98-0002-00003-gffba12ad9 | 4.14.98-0002-00003-gffba12ad9 |        |
 ```
 
-# Change ip address
+# Change network configuration
 `ska_low_smm_bios` can be also used to change network configuration stored into non-volatile memory.
 The OS of SMM, at boot time, retrive information from non-volatile memory to generate `/etc/network/interfaces`. OS also assume, for convenience, that a ntp server is available and try to exec a update time at boot.
 
