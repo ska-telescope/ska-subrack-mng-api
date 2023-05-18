@@ -1272,6 +1272,7 @@ class Management():
         if retcode != 0:
             logging.error("flash_uboot: error while enabling force_ro flag")
             return 6
+        logging.info("flash_uboot: OPERATION SUCCESSFULLY COMPLETED")
         return 0
 
     def fuse_setting(self):
