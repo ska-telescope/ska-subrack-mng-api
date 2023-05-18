@@ -19,6 +19,7 @@ import hashlib
 import shutil
 import parse
 from console_progressbar import ProgressBar
+import parse
 
 import Pyro5.api
 
@@ -1269,23 +1270,33 @@ class Management():
         if os.path.isfile(uboot_file) is False:
             logging.error("flash_uboot: invalid u-boot file path, file not found")
             return 1
+        uboot_length = os.path.getsize(uboot_file)
         cmd = "echo 0 > /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while disabling force_ro flag")
             return 2
-
         cmd = "sudo dd if=" + uboot_file + " of=/dev/mmcblk0boot0 bs=1024 seek=1"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while writing uboot binary")
             return 3
-
+        cmd = "sudo dd if=/dev/mmcblk0boot0 of=/tmp/dumped_uboot bs=1 skip=1024 count=%s" %uboot_length
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_uboot: error while dump write uboot")
+            return 4
+        md5_write_uboot = hashlib.md5(open("/tmp/dumped_uboot", 'rb').read()).hexdigest()
+        md5_upd_uboot = hashlib.md5(open(uboot_file, 'rb').read()).hexdigest()
+        if md5_write_uboot != md5_upd_uboot:
+            logging.error("flash_uboot: error while enabling force_ro flag")
+            return 5
         cmd = "echo 1 > /sys/block/mmcblk0boot0/force_ro"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_uboot: error while enabling force_ro flag")
-            return 4
+            return 6
+        logging.info("flash_uboot: OPERATION SUCCESSFULLY COMPLETED")
         return 0
 
     def fuse_setting(self):
