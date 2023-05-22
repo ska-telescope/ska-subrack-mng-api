@@ -325,14 +325,17 @@ class Management():
         self.hw_rev=self.get_hardware_revision()
         self.BIOS_REV_list = ska_low_smm_bios.bios.bios_get_dict(hw_rev=self.hw_rev)
         self.board_info=self.get_board_info()
-        board_info_file = open("/tmp/board_info", "w")
         table=[]
         for key,value in self.board_info.items():
             logger.info("%s: %s"%(key,value))
             table.append([str(key), str(value)])
-        board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",""],tablefmt='pipe'))
-        board_info_file.write('\n')
-        board_info_file.close()
+        try:
+            board_info_file = open("/tmp/board_info", "w")
+            board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",""],tablefmt='pipe'))
+            board_info_file.write('\n')
+            board_info_file.close()
+        except PermissionError:
+            logger.warning("Cannot create '/tmp/board_info' -  Permission error")
 
 
     def __del__(self):
