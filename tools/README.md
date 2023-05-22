@@ -1,7 +1,7 @@
 ---
 title: "SKA-LOW-SMM Update"
 author: [Sanitas EG]
-date: "rev. 2023/05/16"
+date: "rev. 2023/05/22"
 lang: "en"
 fontsize: 9pt
 ...
@@ -86,6 +86,18 @@ You can read license by '--show-license' option
 
 | BOARD INFO          |                               |
 |:--------------------|:------------------------------|
+| SN                  |                               |
+| PN                  | SKA_SMB                       |
+| HARDWARE_REV        | v1.2.4                        |
+| BOARD_MODE          | SUBRACK                       |
+| LOCATION            | 65535:255:255                 |
+| bios                | v1.0.0                        |
+| bios_cpld           | 0xbe7a1014_0x202106150954     |
+| bios_mcu            | 0xdb000102_0x2021040600125020 |
+| bios_uboot          | 2018.03-00005-gda75be7d       |
+| bios_krn            | 4.14.98-0002-00003-gffba12ad9 |
+| OS                  | Debian GNU/Linux 10           |
+| OS_rev              | v0.6.0-12-g0994d5e            |
 | CPLD_ip_address     | 10.0.10.86                    |
 | CPLD_netmask        | 255.255.255.0                 |
 | CPLD_gateway        | 10.0.10.1                     |
@@ -96,16 +108,7 @@ You can read license by '--show-license' option
 | CPU_ip_address      | 10.0.10.80                    |
 | CPU_netmask         | 255.255.255.0                 |
 | CPU_MAC             | 04:91:62:b2:6c:b8             |
-| SN                  |                               |
-| PN                  | SKA_SMB                       |
-| bios                | v?.?.?                        |
-| bios_cpld           | 0xbe7a1014_0x202106150954     |
-| bios_mcu            | 0xdb000102_0x2021040600125020 |
-| bios_uboot          | 2018.03-00002-g692c8e6e-dirty |
-| bios_krn            | 4.14.98-0002-00003-gffba12ad9 |
-| BOARD_MODE          | SUBRACK                       |
-| LOCATION            | 65535:255:255                 |
-| HARDWARE_REV        | v1.2.4                        |
+
 
 | BIOS   | ACTUAL                        | REQUESTED                     | diff   |
 |:-------|:------------------------------|:------------------------------|:-------|
@@ -130,6 +133,18 @@ You can read license by '--show-license' option
 
 | BOARD INFO          |                               |
 |:--------------------|:------------------------------|
+| SN                  |                               |
+| PN                  | SKA_SMB                       |
+| HARDWARE_REV        | v1.2.4                        |
+| BOARD_MODE          | SUBRACK                       |
+| LOCATION            | 65535:255:255                 |
+| bios                | v1.0.0                        |
+| bios_cpld           | 0xbe7a1014_0x202106150954     |
+| bios_mcu            | 0xdb000102_0x2021040600125020 |
+| bios_uboot          | 2018.03-00005-gda75be7d       |
+| bios_krn            | 4.14.98-0002-00003-gffba12ad9 |
+| OS                  | Debian GNU/Linux 10           |
+| OS_rev              | v0.6.0-12-g0994d5e            |
 | CPLD_ip_address     | 10.0.10.86                    |
 | CPLD_netmask        | 255.255.255.0                 |
 | CPLD_gateway        | 10.0.10.1                     |
@@ -140,16 +155,7 @@ You can read license by '--show-license' option
 | CPU_ip_address      | 10.0.10.80                    |
 | CPU_netmask         | 255.255.255.0                 |
 | CPU_MAC             | 04:91:62:b2:6c:b8             |
-| SN                  |                               |
-| PN                  | SKA_SMB                       |
-| bios                | v?.?.?                        |
-| bios_cpld           | 0xbe7a1014_0x202106150954     |
-| bios_mcu            | 0xdb000102_0x2021040600125020 |
-| bios_uboot          | 2018.03-00002-g692c8e6e-dirty |
-| bios_krn            | 4.14.98-0002-00003-gffba12ad9 |
-| BOARD_MODE          | SUBRACK                       |
-| LOCATION            | 65535:255:255                 |
-| HARDWARE_REV        | v1.2.4                        |
+
 
 =============== WARNING !!! ===================
 Error in netwrok configuration may leads to unreachable board.
@@ -190,7 +196,7 @@ Here you can found network configuration applied
 ```
 # interfaces(5) file used by ifup(8) and ifdown(8)
 # Include files from /etc/network/interfaces.d:
-# WARNING!!! This file will be overwritten at boot by rc.local
+# WARNING!!! This file will be overwritten at boot by hw_init.service
 source-directory /etc/network/interfaces.d
 
 auto eth0
