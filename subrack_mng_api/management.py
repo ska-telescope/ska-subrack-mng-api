@@ -19,7 +19,7 @@ import hashlib
 import shutil
 import parse
 from console_progressbar import ProgressBar
-import parse
+import tabulate
 
 import Pyro5.api
 
@@ -325,8 +325,14 @@ class Management():
         self.hw_rev=self.get_hardware_revision()
         self.BIOS_REV_list = ska_low_smm_bios.bios.bios_get_dict(hw_rev=self.hw_rev)
         self.board_info=self.get_board_info()
+        board_info_file = open("/tmp/board_info", "w")
+        table=[]
         for key,value in self.board_info.items():
             logger.info("%s: %s"%(key,value))
+            table.append([str(key), str(value)])
+        board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",""],tablefmt='pipe'))
+        board_info_file.write('\n')
+        board_info_file.close()
 
 
     def __del__(self):
@@ -635,24 +641,21 @@ class Management():
 
     def get_board_info(self):
         bios_string,bios_dict=self.get_bios()
-        mng_info = {"CPLD_ip_address": self.long2ip(self.read("ETH.IP")),
-                    "CPLD_netmask": self.long2ip(self.read("ETH.Netmask")),
-                    "CPLD_gateway": self.long2ip(self.read("ETH.Gateway")),
-                    "CPLD_ip_address_eep": self.get_field("ip_address"),
-                    "CPLD_netmask_eep": self.get_field("netmask"),
-                    "CPLD_gateway_eep": self.get_field("gateway"),
-                    "CPLD_MAC": self.get_mac(self.get_field("MAC")),
-                    "CPU_ip_address": self.detect_cpu_ip()[0],
-                    "CPU_netmask": self.detect_cpu_ip()[1],
-                    "CPU_MAC": self.get_mac(self.get_cpu_mac()),
-                    "SN": self.get_field("SN"),
-                    "PN": self.get_field("PN")
-                    }
-        for key,value in bios_dict.items():
-            if key == 'rev':
-                mng_info['bios']=value
-            else:
-                mng_info['bios_'+key]=value
+        mng_info={}
+
+        mng_info["SN"] = self.get_field("SN")
+        mng_info["PN"] = self.get_field("PN")
+        location = [self.get_field("CABINET_LOCATION"),
+                    self.get_field("SUBRACK_LOCATION"),
+                    self.get_field("SLOT_LOCATION")]
+        
+        pcb_rev = self.get_field("PCB_REV")
+        if pcb_rev == 0xff:
+            pcb_rev_string = ""
+        else:
+            pcb_rev_string = str(pcb_rev)
+        hw_rev = self.get_field("HARDWARE_REV")
+        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
         if self.get_field("BOARD_MODE") == 0x1:
             mng_info["BOARD_MODE"] = "SUBRACK"
         elif self.get_field("BOARD_MODE") == 0x2:
@@ -660,20 +663,36 @@ class Management():
         else:
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
-
-        location = [self.get_field("CABINET_LOCATION"),
-                    self.get_field("SUBRACK_LOCATION"),
-                    self.get_field("SLOT_LOCATION")]
         mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
 
-        pcb_rev = self.get_field("PCB_REV")
-        if pcb_rev == 0xff:
-            pcb_rev_string = ""
-        else:
-            pcb_rev_string = str(pcb_rev)
 
-        hw_rev = self.get_field("HARDWARE_REV")
-        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
+        for key,value in bios_dict.items():
+            if key == 'rev':
+                mng_info['bios']=value
+            else:
+                mng_info['bios_'+key]=value
+
+            
+        mng_info["OS"] = run('cat /etc/issue.net')
+        mng_info["OS_rev"] = run('sudo git -C /etc describe --tag --dirty')
+                    
+        
+        
+        
+        
+
+        
+
+        mng_info["CPLD_ip_address"] = self.long2ip(self.read("ETH.IP"))
+        mng_info["CPLD_netmask"] = self.long2ip(self.read("ETH.Netmask"))
+        mng_info["CPLD_gateway"] = self.long2ip(self.read("ETH.Gateway"))
+        mng_info["CPLD_ip_address_eep"] = self.get_field("ip_address")
+        mng_info["CPLD_netmask_eep"] = self.get_field("netmask")
+        mng_info["CPLD_gateway_eep"] = self.get_field("gateway")
+        mng_info["CPLD_MAC"] = self.get_mac(self.get_field("MAC"))
+        mng_info["CPU_ip_address"] = self.detect_cpu_ip()[0]
+        mng_info["CPU_netmask"] = self.detect_cpu_ip()[1]
+        mng_info["CPU_MAC"] = self.get_mac(self.get_cpu_mac())
 
         return mng_info
 
