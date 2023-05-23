@@ -175,6 +175,12 @@ class SubrackMngBoard():
         self.__detect_ups()
         self.ups_charge_regs = []
         self.ups_adc_values = []
+        if self.Mng.read('HKeep.PPSMux') == 3:
+            logger.warning("PllInitialize internal source configured")
+            self.pll_lock_exp_rd = 0x03
+        else:
+            logger.info("PllInitialize external source configured")
+            self.pll_lock_exp_rd = 0x33
         logger.info("SubrackMngBoard init done!")
 
     def __del__(self):
@@ -817,11 +823,13 @@ class SubrackMngBoard():
                 self.CpldMng.pll_ldcfg(pll_cfg_file)
             else:
                 if source_internal:
-                    exp_rd = 0x03
+                    logger.warning("PllInitialize internal source selected")
+                    self.pll_lock_exp_rd = 0x03
                     self.Mng.write('HKeep.PPSMux',3)
                     self.CpldMng.pll_ldcfg(PLL_CFG_FILE_INTERNAL)
                 else:
-                    exp_rd = 0x33
+                    logger.info("PllInitialize external source selected")
+                    self.pll_lock_exp_rd = 0x33
                     self.Mng.write('HKeep.PPSMux',0)
                     self.CpldMng.pll_ldcfg(PLL_CFG_FILE)
             self.CpldMng.pll_calib()
@@ -830,8 +838,8 @@ class SubrackMngBoard():
             #rd=hex(self.CpldMng.read_spi(0x3001))
             rd = self.CpldMng.pll_read_with_update(0x3001)
             logger.debug ("PLL lock reg (0x3001): 0x%x" % rd)
-            if rd != exp_rd:
-                logger.debug ("ERROR: PLL configuration failed, PLL not locked (expected value 0x%x)"%exp_rd)
+            if rd != self.pll_lock_exp_rd:
+                logger.error("ERROR: PLL configuration failed, PLL not locked (expected 0x%x, read 0x%x)"%(self.pll_lock_exp_rd,rd))
             # raise SubrackExecFault("ERROR: PLL configuration failed, PLL not locked")
         else:
             r = "0x33"
@@ -863,13 +871,13 @@ class SubrackMngBoard():
         :return locked: value of locked status, True PLL is locked, False PLL not locked
         """
         #rd = hex(self.CpldMng.read_spi(0x3001))
-        rd = hex(self.CpldMng.pll_read_with_update(0x3001))
+        rd = self.CpldMng.pll_read_with_update(0x3001)
         #logger.debug("PLL lock reg: %s" % rd)
-        if rd != "0x33":
-            #logger.debug("PLL not locked")
+        if rd != self.pll_lock_exp_rd:
+            logger.error("PLL not locked")
             return False
         else:
-            #logger.debug("PLL locked")
+            logger.info("PLL locked")
             return True
 
     def GetCPLDLockedPLL(self):
@@ -1069,8 +1077,8 @@ if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option("-e", "--emulation", action="store_true", help="enable emulation mode")
-    parser.add_option("-i", "--init", action="store_true", help="performe initialize, required after power up")
-    parser.add_option("-s", "--pll_source_internal", action="store_true", help="Enable internal source for PPS and REF")
+    parser.add_option("-i", "--init", action="store_true", default=False, help="performe initialize, required after power up")
+    parser.add_option("-s", "--pll_source_internal", action="store_true", default=False, help="Enable internal source for PPS and REF")
     (options, args) = parser.parse_args()
     logger.debug("SubrackMngBoard init ...")
     subrack=SubrackMngBoard(simulation=False)
