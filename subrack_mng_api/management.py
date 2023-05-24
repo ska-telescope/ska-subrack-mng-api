@@ -626,8 +626,8 @@ class Management():
         ret = run(cmd)
         lines = ret.splitlines()
         found = False
-        state = 0
         cpu_ip = None
+        netmask = None
         for r in range(0, len(lines)):
             if str(lines[r]).find("inet") != -1:
                 _cpu_ip = str(lines[r]).split(" ")[5]
@@ -636,10 +636,19 @@ class Management():
                 netmask = self.long2ip(~(2**(32-int(netmask))-1) & 0xffffffff)
                 found = True
                 break
+        
+        gateway = None
+        gateway_str=run('ip route | grep default')
+        if gateway_str != '':
+            gateway_str = gateway_str.split()
+            if len(gateway_str) >= 5:
+                gateway = gateway_str[2]
+        if gateway is None:
+            logger.error("detect_cpu_ip - Cannot detect Gateway!")
+            
         if found is False:
-            state = -1
-            cpu_ip = None
-        return cpu_ip,netmask
+            logger.error("detect_cpu_ip - Cannot detect!")
+        return cpu_ip,netmask,gateway
 
 
     def get_board_info(self):

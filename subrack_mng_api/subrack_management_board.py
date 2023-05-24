@@ -104,27 +104,6 @@ def detect_ip(tpm_slot_id):
     tpm_board_ip=tpm_ip_part[0]+"."+tpm_ip_part[1]+"."+tpm_ip_part[2]+"."+tpm_new_last
     return tpm_board_ip,subrack_cpu_ip
 
-
-def detect_cpu_ip():
-    cmd = "ip address"
-    ret = run(cmd)
-    lines = ret.splitlines()
-    found = False
-    state = 0
-    cpu_ip = "255.255.255.255"
-    for r in range(0, len(lines)):
-        if str(lines[r]).find("inet") != -1:
-            cpu_ip = str(lines[r]).split(" ")[5]
-            if cpu_ip.find("10.0.10") != -1:
-                cpu_ip = cpu_ip.split("/")[0]
-                found = True
-                break
-    if found is False:
-        state = -1
-        cpu_ip = "255.255.255.255"
-    return state, cpu_ip
-
-
 def int2ip(value):
     ip = str((value >> 24) & 0xff)
     ip += "."
@@ -251,19 +230,19 @@ class SubrackMngBoard():
                     pass
 
     def __assign_tpm_ip(self, tpm_slot_id):
-        state, cpu_ip = detect_cpu_ip()
-        if state != -1:
+        cpu_ip, netmask, gateway = self.Mng.detect_cpu_ip()
+        if cpu_ip is not None:
             tpm_ip_add_h = ipstr2hex(cpu_ip) & 0xFFFFFF00
             cpu_ip_l = ipstr2hex(cpu_ip) & 0xFF
             tpm_ip_add = tpm_ip_add_h | (cpu_ip_l + 6 + tpm_slot_id)
-            self.write_tpm_singlewire(tpm_slot_id, 0x40000028, tpm_ip_add)
+            self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway)
         else:
             logger.debug("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def __populate_tpm_ip_list(self):
-        state, cpu_ip = detect_cpu_ip()
-        if state != -1:
+        cpu_ip, netmask, gateway = self.Mng.detect_cpu_ip()
+        if cpu_ip is not None:
             self.cpu_ip = cpu_ip
             tpm_ip_add_h = ipstr2hex(cpu_ip) & 0xFFFFFF00
             cpu_ip_l = ipstr2hex(cpu_ip) & 0xFF
@@ -275,14 +254,12 @@ class SubrackMngBoard():
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def read_tpm_singlewire(self, tpm_id, address):
-        self.CpldMng.write_register(0x500, tpm_id - 1)  # select tpm by psnt_mux
-        self.CpldMng.write_register(0xA00, 0x30000000)  # set EIM add
+        self.Mng.write("HKeep.PsntMux", tpm_id - 1)  # select tpm by psnt_mux
         regval = self.CpldMng.read_register(address)
         return regval
 
     def write_tpm_singlewire(self, tpm_id, address, value):
-        self.CpldMng.write_register(0x500, tpm_id - 1)  # select tpm by psnt_mux
-        self.CpldMng.write_register(0xA00, 0x30000000)  # set EIM add
+        self.Mng.write("HKeep.PsntMux", tpm_id - 1)  # select tpm by psnt_mux
         self.CpldMng.write_register(address, value)
 
     #  ##TPM GET/SET INFO METHODS
@@ -313,7 +290,7 @@ class SubrackMngBoard():
             logger.debug("Error TPM IP list")
             raise SubrackExecFault("Error:TPM IP Add List Incomplete")
 
-    def SetTPMIP(self, tpm_slot_id, ip, netmask):
+    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None):
         """ method to manually set volatile local ip address of a TPM board present on subrack
         :param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
         :param ip: ip address will be assigned to selected TPM
@@ -328,8 +305,13 @@ class SubrackMngBoard():
         else:
             raise SubrackInvalidCmd("TPM not present")
         self.write_tpm_singlewire(tpm_slot_id, 0x40000028, ipstr2hex(ip))
+        ip_int_rb = self.read_tpm_singlewire(tpm_slot_id, 0x40000028)
+        if ip_int_rb != ipstr2hex(ip):
+                logger.error("SetTPMIP - expected %s, got %s"%(ip,int2ip(ip_int_rb)))
         self.write_tpm_singlewire(tpm_slot_id, 0x4000002C, ipstr2hex(netmask))
-        if self.tpm_ip_list == 8:
+        if gateway is not None:
+            self.write_tpm_singlewire(tpm_slot_id, 0x40000030, ipstr2hex(gateway))
+        if len(self.tpm_ip_list) == 8:
             self.tpm_ip_list[tpm_slot_id - 1] = ip
         else:
             logger.debug("SetTPMIP ERROR: TPM IP address list incomplete")
@@ -385,22 +367,17 @@ class SubrackMngBoard():
         # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
         # tpm_ip_str = int2ip(tpm_ip)
         tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-        state, cpu_ip = detect_cpu_ip()
-        if state != -1:
-            # logger.info("TPM IP: %s, CPU IP: %s" %(tpm_ip,subrack_cpu_ip))
-            logger.info("TPM IP: %s" % tpm_ip_str)
-            # tpm = TPM_1_6()
-            # tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False, fsample=800e6)
-            tpm = self.TPM_instances_list[tpm_slot_id -1]
-            tpm_info = tpm.get_board_info()
-            if prev_onoff == 0:
-                if self.Bkpln.pwr_off_tpm(tpm_slot_id)!=0:
-                    raise SubrackExecFault("Error:TPM Power on Failed")
-            # logger.info(tpm_info)
-            return tpm_info
-        else:
-            logger.debug ("Error in CPU IP detection")
-            raise SubrackExecFault("Error:TPM Power on Failed")
+        # logger.info("TPM IP: %s, CPU IP: %s" %(tpm_ip,subrack_cpu_ip))
+        logger.info("TPM IP: %s" % tpm_ip_str)
+        # tpm = TPM_1_6()
+        # tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False, fsample=800e6)
+        tpm = self.TPM_instances_list[tpm_slot_id -1]
+        tpm_info = tpm.get_board_info()
+        if prev_onoff == 0:
+            if self.Bkpln.pwr_off_tpm(tpm_slot_id)!=0:
+                raise SubrackExecFault("Error:TPM Power on Failed")
+        # logger.info(tpm_info)
+        return tpm_info
 
     def GetTPMGlobalStatusAlarm(self, tpm_slot_id, forceread=False):
         """method to get Global Status Register of  TPM selected board present on subrack
@@ -618,7 +595,7 @@ class SubrackMngBoard():
         @brief method Initizlize the Subrack power control configuration for TPM current limit
         :return cpu_ip, cpld_ip: Management CPU IP, Management CPLD IP
         """
-        status, cpu_ip = detect_cpu_ip()
+        cpu_ip, netmask, gateway = self.Mng.detect_cpu_ip()
         cpld_ip = self.Mng.get_cpld_actual_ip()
         return cpu_ip, cpld_ip
 
@@ -877,7 +854,6 @@ class SubrackMngBoard():
             logger.error("PLL not locked")
             return False
         else:
-            logger.info("PLL locked")
             return True
 
     def GetCPLDLockedPLL(self):
