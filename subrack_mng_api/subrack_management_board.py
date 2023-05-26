@@ -17,6 +17,8 @@ import serial
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 
+from subrack_monitoring_point_lookup import load_subrack_lookup
+
 from optparse import OptionParser
 import Pyro5.api
 
@@ -160,6 +162,7 @@ class SubrackMngBoard():
         else:
             logger.info("PllInitialize external source configured")
             self.pll_lock_exp_rd = 0x33
+        self.monitoring_point_lookup_dict = load_subrack_lookup(self)
         logger.info("SubrackMngBoard init done!")
 
     def __del__(self):
@@ -1019,6 +1022,175 @@ class SubrackMngBoard():
         """method to get TPM Power consumption Alarm Register of subrack
         :return alarms: status vector, OK, WARN, ALM of each TPM Voltages Alarm, for each board
         """
+
+    def all_monitoring_points(self):
+        """
+        Returns a list of all monitoring points by finding all leaf nodes
+        in the lookup dict that have a corresponding method field.
+
+        The monitoring points returned are strings produced from '.' delimited 
+        keys. For example:
+        'voltages.5V0'
+        'io.udp_interface.crc_error_count.FPGA0'
+
+        More info at https://confluence.skatelescope.org/x/nDhED
+
+        :return: list of monitoring points
+        :rtype: list of strings
+        """
+        def find_leaf_dict_recursive(health_dict, key_list=[], output_list=[]):
+            for name, value in health_dict.items():
+                key_list.append(name)
+                if not isinstance(value, dict):
+                    output_list.append('.'.join(key_list))
+                    key_list.pop()
+                else:
+                    find_leaf_dict_recursive(value, key_list, output_list)
+            if key_list:
+                key_list.pop()
+            return output_list
+            
+        # Find leaves of nested dict
+        dict_leaf_list = find_leaf_dict_recursive(self.monitoring_point_lookup_dict)
+        # Keep only points ending in .method, then remove the .method
+        monitoring_point_list = []
+        for point in dict_leaf_list:
+            if point.endswith('.method'):
+                monitoring_point_list.append(point[:-7])
+        return monitoring_point_list
+
+    def _parse_dict_by_path(self, dictionary, path_list):
+        """
+        General purpose method to parse a nested dictory by a list of keys.
+
+        Example:
+        test_dict = {'parent': {'child1': 10, 'child2':12}, 'parent2': {'child3': 14}}
+        self._parse_dict_by_path(test_dict, ['parent', 'child2']) would return 12
+        self._parse_dict_by_path(test_dict, ['parent2', 'child3']) would return 14
+        self._parse_dict_by_path(test_dict, ['parent']) would return {'child1': 10, 'child2':12}
+
+        :param dictionary: Input nested dictionary
+        :type dictionary: dict
+
+        :param path_list: List of dictionary keys, from top to bottom
+        :type path_list: list
+
+        :return: value
+        """
+        return reduce(operator.getitem, path_list, dictionary)
+
+    def _create_nested_dict(self, key_list, value, nested_dict={}):
+        """
+        General purpose method to append to a nested dictionary based on a provided
+        list of keys and a value.
+        If nested_dict is not specified a new dictionary is created. Subsequent calls
+        with the same nested_dict provided will append.
+        Used to recreate a nested dictionary hierarchy from scratch.
+
+        NOTE: nested_dict is not copied so due to Python dictionaries being mutable,
+        the returned nested_dict is optional, required for creation of new dictionaries.
+
+        :param key_list: List of dictionary keys, from top to bottom
+        :type key_list: list
+
+        :param value: Value to be stored at path specified by key_list
+        :type value: anything
+
+        :param nested_dict: Input nested dictionary
+        :type nested_dict: dict
+
+        :return: nested_dict
+        :rtype: dict
+        """
+        current_dict = nested_dict
+        for key in key_list[:-1]:
+            if key not in current_dict:
+                current_dict[key] = {}
+            current_dict = current_dict[key]
+        current_dict[key_list[-1]] = value
+        return nested_dict
+    
+    def _kwargs_handler(self, kwargs):
+        """
+        For use with get_health_status method.
+        Filter all monitoring points to a subset based on monitoring 
+        point attr match to kwargs in monitoring point lookup dict.
+
+        NOTE: when multiple args specified, all must match
+
+        :param kwargs: dictionary of kwargs
+        :type kwargs: dict
+
+        :return: monitoring point list
+        :rtype: list
+        """
+        if not kwargs:
+            return self.all_monitoring_points()
+        # get list of monitoring points to be polled based on kwargs
+        mon_point_list = []
+        for monitoring_point in self.all_monitoring_points():
+            lookup = monitoring_point.split('.')
+            lookup_entry = self._parse_dict_by_path(self.monitoring_point_lookup_dict, lookup)
+            keep = 0
+            for key, val in kwargs.items():
+                if val in lookup_entry.get(key, []):
+                    keep +=1
+            if keep == len(kwargs):
+                mon_point_list.append(monitoring_point)
+        return mon_point_list
+    
+    def get_health_status(self, **kwargs):
+        """
+        Returns the current value of TPM monitoring points with the 
+        specified attributes as set in the method set_monitoring_point_attr.
+        If no arguments given, current value of all monitoring points is returned.
+
+        For example:
+        If configured with:
+        tile.set_monitoring_point_attr('io.udp_interface', my_category='yes', my_other_category=87)
+
+        Subsequent calls to:
+        tile.get_health_status(my_category='yes', my_other_category=87)
+
+        would return only the health status for:
+        io.udp_interface.arp
+        io.udp_interface.status
+        io.udp_interface.crc_error_count.FPGA0
+        io.udp_interface.crc_error_count.FPGA1
+        io.udp_interface.bip_error_count.FPGA0
+        io.udp_interface.bip_error_count.FPGA1
+        io.udp_interface.decode_error_count.FPGA0
+        io.udp_interface.decode_error_count.FPGA1
+        io.udp_interface.linkup_loss_count.FPGA0
+        io.udp_interface.linkup_loss_count.FPGA1
+
+        A group attribute is provided by default, see tpm_1_X_monitoring_point_lookup.
+        This can be used like the below example:
+        tile.get_health_status(group='temperatures')
+        tile.get_health_status(group='udp_interface')
+        tile.get_health_status(group='io')
+
+        Full documentation on usage available at https://confluence.skatelescope.org/x/nDhED
+        """
+        health_status = {}
+        mon_point_list = self._kwargs_handler(kwargs)
+        for monitoring_point in mon_point_list:
+            lookup = monitoring_point.split('.')
+            lookup_entry = self._parse_dict_by_path(self.monitoring_point_lookup_dict, lookup)
+            # call method stored in lookup entry
+            value = lookup_entry["method"]()
+            # Resolve nested values with only one value i.e
+            # get_voltage("voltage_name") returns {"voltage_name": voltage}
+            # get_clock_manager_status(fpga_id, name) returns {"FPGAid": {"name": status}}
+            while True:
+                if not isinstance(value, dict):
+                    break
+                if len(value) != 1:
+                    break
+                value = list(value.values())[0]
+            # Create dictionary of monitoring points in same format as lookup
+            health_status = self._create_nested_dict(lookup, value, health_status)
+        return health_status
 
     def close(self):
         self.__del__()
