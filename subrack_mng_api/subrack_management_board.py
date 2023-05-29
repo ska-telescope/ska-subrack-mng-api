@@ -15,7 +15,6 @@ from pyfabil.base.utils import ip2long
 from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
 import operator
-import yaml
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 
@@ -1099,6 +1098,38 @@ class SubrackMngBoard():
             if point.endswith('.method'):
                 monitoring_point_list.append(point[:-7])
         return monitoring_point_list
+    
+    def all_monitoring_categories(self):
+        """
+        Returns a list of all monitoring point 'categories'.
+        Here categories is a super-set of monitoring points and is 
+        the full list of accepted strings to set_monitoring_point_attr. 
+        For example, these monitoring points:
+        voltages.5V0
+        io.udp_interface.crc_error_count.FPGA0
+
+        would have these associated categories:
+        'voltages'
+        'voltages.5V0'
+        'io'
+        'io.udp_interface'
+        'io.udp_interface.crc_error_count'
+        'io.udp_interface.crc_error_count.FPGA0'
+
+        More info at https://confluence.skatelescope.org/x/nDhED
+
+        :return: list of categories
+        :rtype: list of strings
+        """
+        all_monitoring_points = self.all_monitoring_points()
+        categories = set()
+        for monitroing_point in all_monitoring_points:
+            parts = monitroing_point.split('.')
+            for i in range(len(parts)):
+                categories.add('.'.join(parts[:i+1]))
+        categories_list = list(categories)
+        categories_list.sort()
+        return categories_list
     
     def _parse_dict_by_path(self, dictionary, path_list):
         """
