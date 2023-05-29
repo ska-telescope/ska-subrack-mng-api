@@ -297,14 +297,14 @@ class Backplane():
     def get_sens_temp(self, sens_id):
         if sens_id < 1 or sens_id > 2:
             logger.error("Error Invalid ID")
-            return 0xff, 0x1
+            return None
         temperature = self.mng.read("Fram.ADT7408_B"+str(sens_id)+"_temp")
         if (temperature & 0x1000) >> 12 == 1:
             temp = float((temperature & 0xfff - 4096))/16
         else:
             temp = float((temperature & 0xfff))/16
         temp = round(temp, 2)
-        return temp, 0x0
+        return temp
 
     # ####BACKPLANE FAN FUNCTIONS
     # This method get the get_bkpln_fan_speed
@@ -402,10 +402,52 @@ class Backplane():
     # return status_reg: register value
     # return status: status of operation
     def get_ps_status(self, ps_id):
+        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
+        if status != 0:
+            return None
+        if bool(ioexp_value & (0b1<<(ps_id-1))):
+            res = {
+                "present" :       False,
+                "busy" :          False,
+                "off" :           False,
+                "vout_ov_fault" : False,
+                "iout_oc_fault" : False,
+                "vin_uv_fault" :  False,
+                "temp_fault" :    False,
+                "cml_fault" :     False,
+                "vout_fault" :    False,
+                "iout_fault" :    False,
+                "input_fault" :   False,
+                "pwr_gd" :        False,
+                "fan_fault" :     False,
+                "other" :         False,
+                "unknown" :       False,
+            }
+            return res
         i2c_add = 0xb0+((ps_id-1)*2)
-        status_reg, status = self.mng.fpgai2c_read8(i2c_add, 0x78, FPGA_I2CBUS.i2c3)
-        return status_reg, status
-
+        #status_reg, status = self.mng.fpgai2c_read8(i2c_add, 0x78, FPGA_I2CBUS.i2c3)
+        status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+        if status != 0:
+            return None
+        res = {
+            "present" :       True,
+            "busy" :          bool(status_reg & (0b1<<7)),
+            "off" :           bool(status_reg & (0b1<<6)),
+            "vout_ov_fault" : bool(status_reg & (0b1<<5)),
+            "iout_oc_fault" : bool(status_reg & (0b1<<4)),
+            "vin_uv_fault" :  bool(status_reg & (0b1<<3)),
+            "temp_fault" :    bool(status_reg & (0b1<<2)),
+            "cml_fault" :     bool(status_reg & (0b1<<1)),
+            "vout_fault" :    bool(status_reg & (0b1<<15)),
+            "iout_fault" :    bool(status_reg & (0b1<<14)),
+            "input_fault" :   bool(status_reg & (0b1<<13)),
+            "pwr_gd" :        not bool(status_reg & (0b1<<11)),
+            "fan_fault" :     bool(status_reg & (0b1<<10)),
+            "other" :         bool(status_reg & (0b1<<9)),
+            "unknown" :       bool(status_reg & (0b1<<8)),
+        }
+        return res
+        
     def get_ps_vout_mode(self, ps_id):
         i2c_add = 0xb0+((ps_id-1)*2)
         vout_mode, status = self.mng.fpgai2c_read8(i2c_add, 0x20, FPGA_I2CBUS.i2c3)
