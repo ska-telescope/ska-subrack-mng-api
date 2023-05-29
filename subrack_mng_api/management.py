@@ -1042,8 +1042,11 @@ class Management():
                 val = rw_emulator_i2c_file("r", i2cbus, hex(ICadd), hex(reg_add))
                 return val, 0
         else:
-            data2wr = (reg_add & 0xFF)
-            data, status = self.fpgai2c_op(ICadd, 1, 1, data2wr, i2cbus_id)
+            if reg_add is None:
+                data, status = self.fpgai2c_op(ICadd, 0, 1, 0x0, i2cbus_id)
+            else:
+                data2wr = (reg_add & 0xFF)
+                data, status = self.fpgai2c_op(ICadd, 1, 1, data2wr, i2cbus_id)
             return data, status
 
     def fpgai2c_write16(self, ICadd, reg_add, datatx, i2cbus_id):
