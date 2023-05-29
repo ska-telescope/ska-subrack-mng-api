@@ -549,22 +549,28 @@ class Management():
         else:
             print("Writing attempt on protected sector %s" % key)
 
-    def eep_rd8(self, offset):
+    def eep_rd8(self, offset, release_lock = True):
         dev=self.smm_i2c_devices_dict['EEPROM_MAC_1']
-        return self.read_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b")
+        return self.read_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b",release_lock=release_lock)
 
     def eep_rd16(self, offset):
         rd = 0
+        release_lock = False
         for n in range(2):
+            if n == 2-1:
+                release_lock = True
             rd = rd << 8
-            rd = rd | self.eep_rd8(offset+n)
+            rd = rd | self.eep_rd8(offset+n, release_lock = release_lock)
         return rd
 
     def eep_rd32(self, offset):
         rd = 0
-        for n in range(4):
+        release_lock = False
+        for n in range(2):
+            if n == 4-1:
+                release_lock = True
             rd = rd << 8
-            rd = rd | self.eep_rd8(offset+n)
+            rd = rd | self.eep_rd8(offset+n, release_lock = release_lock)
         return rd
     
     def wr_string(self, partition, string):
@@ -573,12 +579,15 @@ class Management():
     def _wr_string(self, offset, string, max_len=16):
         addr = offset
         for i in range(len(string)):
-            self.eep_wr8(addr, ord(string[i]))
+            self.eep_wr8(addr, ord(string[i]), release_lock = False)
             addr += 1
             if addr >= offset + max_len:
                 break
         if addr < offset + max_len:
-            self.eep_wr8(addr, ord("\n"))
+            self.eep_wr8(addr, ord("\n"), release_lock = True)
+        else:
+            self.eep_rd8(addr, release_lock = True)
+
     def rd_string(self, partition):
         return self._rd_string(partition["offset"], partition["size"])
 
@@ -586,25 +595,33 @@ class Management():
         addr = offset
         string = ""
         for i in range(max_len):
-            byte = self.eep_rd8(addr)
+            byte = self.eep_rd8(addr, release_lock = False)
             if byte == ord("\n") or byte == 0xff:
                 break
             string += chr(byte)
             addr += 1
+        self.eep_rd8(addr, release_lock = True)
         return string
     
-    def eep_wr8(self, offset, data, ):
+    def eep_wr8(self, offset, data, release_lock = True):
         dev=self.smm_i2c_devices_dict['EEPROM_MAC_1']
-        return self.write_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b",data)
+        return self.write_i2c(dev["i2cbus_id"],dev["ICadd"]>>1,offset,"b",data, release_lock = release_lock)
 
     def eep_wr16(self, offset, data):
+        release_lock = False
         for n in range(2):
-            self.eep_wr8(offset+n, (data >> 8*(1-n)) & 0xFF)
+            if n == 2-1:
+                release_lock = True
+            self.eep_wr8(offset+n, (data >> 8*(1-n)) & 0xFF,release_lock=release_lock)
+            
         return
 
     def eep_wr32(self, offset, data):
+        release_lock = False
         for n in range(4):
-            self.eep_wr8(offset+n, (data >> 8*(3-n)) & 0xFF)
+            if n == 4-1:
+                release_lock = True
+            self.eep_wr8(offset+n, (data >> 8*(3-n)) & 0xFF,release_lock=release_lock)
         return
 
     def get_mac(self,mac):
@@ -832,20 +849,32 @@ class Management():
     # return value: read register value
     # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
     # from CPU and MCU
-    def read_i2c(self, bus_id, device_add, reg_offset, size_type):
+    def read_i2c(self, bus_id, device_add, reg_offset, size_type, release_lock = True):
         # logger.debug(bus_id)
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
         # logger.debug(cmd)
         run(cmd)
-        time.sleep(0.02)
-        while (1):
-            #logger.debug(' wait "MCUR.GPReg3") == 0x12c0dead')
-            if (self.read("MCUR.GPReg3") == 0x12c0dead):
+        retry = 0
+        while (retry < 1000):
+            value=self.read("MCUR.GPReg3")
+            if (value == 0x12c0dead):
                 break
+            retry = retry + 1
+            time.sleep(0.001)
+        if retry == 1000:
+            logger.error("read_i2c - Maxretry on lock (MCUR.GPReg3)")
+            cmd = "echo 1 > /sys/class/gpio/gpio134/value"
+            run(cmd)
+            time.sleep(0.1)
+            self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
+            os.remove("/run/lock/mngfpgai2c.lock")
+            return 0
+        #logger.error("Maxretry read_i2c fpga access (MCUR.GPReg3) %d"%retry)
         cmd = "sudo i2cget -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + size_type
         value = run(cmd)
-        cmd = "echo 1 > /sys/class/gpio/gpio134/value"
-        run(cmd)
+        if release_lock:
+            cmd = "echo 1 > /sys/class/gpio/gpio134/value"
+            run(cmd)
         return int(value,16)
 
     ###write_i2c
@@ -856,7 +885,7 @@ class Management():
     # @param[in] size_type: type of access (b byte, w word 16b)
     # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
     # from CPU and MCU
-    def write_i2c(self, bus_id, device_add, reg_offset, size_type, data):
+    def write_i2c(self, bus_id, device_add, reg_offset, size_type, data, release_lock = True):
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
         run(cmd)
         time.sleep(0.02)
@@ -866,8 +895,9 @@ class Management():
         cmd = "sudo i2cset -y -f " + str(bus_id) + " " + hex(device_add) + " " + hex(reg_offset) + " " + hex(
             data) + " " + size_type
         value = run(cmd)
-        cmd = "echo 1 > /sys/class/gpio/gpio134/value"
-        run(cmd)
+        if release_lock:
+            cmd = "echo 1 > /sys/class/gpio/gpio134/value"
+            run(cmd)
         return value
 
     ###fpgai2c_op
@@ -901,7 +931,7 @@ class Management():
                     lockedpid = fo.readline()
                     fo.close()
                     delta = time.time()
-                    logger.debug("len lockedpid = %d, lockedpid val %s, elapsed time %d" % (
+                    logger.debug("fpgai2c_op - len lockedpid = %d, lockedpid val %s, elapsed time %d" % (
                         len(lockedpid), lockedpid, delta - inittime))
                     if len(lockedpid) != 0:
                         if check_pid(int(lockedpid)) == False:
@@ -940,14 +970,28 @@ class Management():
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
         run(cmd)
         time.sleep(0.01)
-        while (1):
-            if (self.read("MCUR.GPReg3") == 0x12c0dead):
+        retry = 0
+        while (retry < 1000):
+            value=self.read("MCUR.GPReg3")
+            if (value == 0x12c0dead):
                 break
+            retry = retry + 1
+            time.sleep(0.001)
+        if retry == 1000:
+            logger.error("fpgai2c_op -  Maxretry on lock (MCUR.GPReg3)")
+            cmd = "echo 1 > /sys/class/gpio/gpio134/value"
+            run(cmd)
+            time.sleep(0.1)
+            self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
+            os.remove("/run/lock/mngfpgai2c.lock")
+            return 0xff, 0x1
+        # else:
+        #     logger.error("Maxretry i2c fpga access (MCUR.GPReg3) %d"%retry)
         self.write("FPGA_I2C.twi_wrdata", datatx)
         if print_debug:
-            logger.debug("fpgai2c_op command = " + hex(command))
+            logger.debug("fpgai2c_op - command = " + hex(command))
         self.write("FPGA_I2C.twi_command", command)
-        time.sleep(0.1)
+        
         retry = 0
         while (retry < MAXRETRY):
             status = self.read("FPGA_I2C.twi_status")
@@ -955,7 +999,7 @@ class Management():
                 break
             else:
                 if status == 2 or status == 3:
-                    logger.error("Not Acknowledge detected")
+                    logger.error("fpgai2c_op - Not Acknowledge detected")
                     cmd = "echo 1 > /sys/class/gpio/gpio134/value"
                     run(cmd)
                     time.sleep(0.1)
@@ -964,9 +1008,9 @@ class Management():
                     return 0xff, status
                 elif status == 1:
                     retry = retry + 1
-                    time.sleep(0.01)
+                    time.sleep(0.001)
         if retry == MAXRETRY:
-            logger.debug("Maxretry i2c fpga access ")
+            logger.error("fpgai2c_op - Maxretry i2c fpga access ")
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
             time.sleep(0.1)
@@ -996,7 +1040,7 @@ class Management():
         time.sleep(0.01)
         self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
         os.remove("/run/lock/mngfpgai2c.lock")
-        logger.debug("End I2C OP")
+        logger.debug("fpgai2c_op - End I2C OP")
         return datarx, 0
 
     def fpgai2c_write8(self, ICadd, reg_add, datatx, i2cbus_id):
