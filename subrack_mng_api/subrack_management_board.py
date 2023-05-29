@@ -14,6 +14,8 @@ from pyfabil.base.definitions import *
 from pyfabil.base.utils import ip2long
 from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
+import operator
+import yaml
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 
@@ -71,10 +73,34 @@ class SubrackAdminModes:
     NOT_FITTED=3
 
 
-class SubrackHealtState: #to be clarify
-    OK=0,
-    DEGRADED =1,
-    FAILED=2
+_initial_missing = object()
+def reduce(function, sequence, initial=_initial_missing):
+    """
+    reduce(function, iterable[, initial]) -> value
+
+    Apply a function of two arguments cumulatively to the items of a sequence
+    or iterable, from left to right, so as to reduce the iterable to a single
+    value.  For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+    ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
+    of the iterable in the calculation, and serves as a default when the
+    iterable is empty.
+    """
+
+    it = iter(sequence)
+
+    if initial is _initial_missing:
+        try:
+            value = next(it)
+        except StopIteration:
+            raise TypeError(
+                "reduce() of empty iterable with no initial value") from None
+    else:
+        value = initial
+
+    for element in it:
+        value = function(value, element)
+
+    return value
 
 TPM_CPLD_REGFILE_BA=0x30000000
 
@@ -602,13 +628,20 @@ class SubrackMngBoard():
         cpld_ip = self.Mng.get_cpld_actual_ip()
         return cpu_ip, cpld_ip
 
-    def GetTPMPresent(self):
+    def GetTPMPresent(self,tpm_slot_id = None):
         """brief method to get info about TPM board present on subrack
         :return TpmDetected: vector of tpm positional,1 TPM detected,0 no TPM inserted,bit 7:0,bit 0 slot 1,bit 7 slot 8
         """
         TpmDetected = self.Mng.get_housekeeping_flag("TPMsPresent")
         TpmDetected = self.Mng.get_housekeeping_flag("TPMsPresent")
-        return TpmDetected
+        if tpm_slot_id is None:
+            return TpmDetected
+        else:
+            if (TpmDetected & (1 << (tpm_slot_id-1))) != 0:
+                return True
+            else:
+                return False
+
 
     def GetTPMOnOffVect(self):
         """method to get Power On status of inserted tpm, 0 off or not present, 1 power on
@@ -770,6 +803,14 @@ class SubrackMngBoard():
         if status == 1:
             raise SubrackInvalidParameter("ERROR: invalid Fan ID")
         return rpm, pwm_perc
+    
+    def GetFanRpm(self,fan_id):
+        rpm, pwm_perc = self.GetFanSpeed(fan_id)
+        return rpm
+    
+    def GetFanPwm(self,fan_id):
+        rpm, pwm_perc = self.GetFanSpeed(fan_id)
+        return pwm_perc
 
     def SetFanMode(self, fan_id_blk, auto_mode):
         """This method set the fan mode
@@ -1058,7 +1099,7 @@ class SubrackMngBoard():
             if point.endswith('.method'):
                 monitoring_point_list.append(point[:-7])
         return monitoring_point_list
-
+    
     def _parse_dict_by_path(self, dictionary, path_list):
         """
         General purpose method to parse a nested dictory by a list of keys.
