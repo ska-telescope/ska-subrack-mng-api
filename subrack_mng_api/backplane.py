@@ -294,17 +294,23 @@ class Backplane():
     # @param[in] sens_id: id of the selected sensor
     # return temperature: temperature value
     # return status: status of operation
-    def get_sens_temp(self, sens_id):
+    def get_sens_temp(self, sens_id, ret_val_only = False):
         if sens_id < 1 or sens_id > 2:
             logger.error("Error Invalid ID")
-            return None
+            if ret_val_only:
+                return None
+            return 0xff, 0x1
         temperature = self.mng.read("Fram.ADT7408_B"+str(sens_id)+"_temp")
         if (temperature & 0x1000) >> 12 == 1:
             temp = float((temperature & 0xfff - 4096))/16
         else:
             temp = float((temperature & 0xfff))/16
         temp = round(temp, 2)
-        return temp
+        if ret_val_only:
+            return temp
+        return temp, 0x0
+
+        
 
     # ####BACKPLANE FAN FUNCTIONS
     # This method get the get_bkpln_fan_speed
