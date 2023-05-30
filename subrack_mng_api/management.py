@@ -694,9 +694,6 @@ class Management():
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
         mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
-        boot_sel = self.get_field("BOOT_SEL")
-        mng_info["BOOT PART KRN"] = boot_sel & 0x1
-        mng_info["BOOT PART FS"] = (boot_sel & 0x2) >> 1
         for key,value in bios_dict.items():
             if key == 'rev':
                 mng_info['bios'] = value
@@ -714,6 +711,9 @@ class Management():
         mng_info["CPU_ip_address"] = self.detect_cpu_ip()[0]
         mng_info["CPU_netmask"] = self.detect_cpu_ip()[1]
         mng_info["CPU_MAC"] = self.get_mac(self.get_cpu_mac())
+        boot_sel = self.get_field("BOOT_SEL")
+        mng_info["BOOT PART KRN"] = boot_sel & 0x1
+        mng_info["BOOT PART FS"] = (boot_sel & 0x2) >> 1
 
         return mng_info
 
