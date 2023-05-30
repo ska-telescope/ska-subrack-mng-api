@@ -68,11 +68,16 @@ class partial:
 
 def load_subrack_lookup(obj):
     return{
-        'temperatures': {
+        'temperatures' : {
             'SMM1'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 1),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
             'SMM2'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 2),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
-            'BKPLN1' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 1), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
-            'BKPLN2' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 2), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
+            'BKPLN1' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 1, ret_val_only = True), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
+            'BKPLN2' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 2, ret_val_only = True), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
+        },
+        'plls' : {
+            'BoardPllLock' : {'method': obj.GetLockedPLL,     'group' : 'plls', 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
+            'CPLDPllLock'  : {'method': obj.GetCPLDLockedPLL, 'group' : 'plls', 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
+            'PllSource'    : {'method': obj.GetPllSource,     'group' : 'plls', 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
         },
         'fans' : {
             'speed' : {
@@ -112,6 +117,9 @@ def load_subrack_lookup(obj):
                 'PSU1'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 1), 'group' : ['psus', 'fan_pwm_or',  'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
                 'PSU2'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 2), 'group' : ['psus', 'fan_pwm_or',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
             },
+        },
+        'pings' : {
+            'CPLD'   : {'method': obj.GetPingCpld, 'group' : ['pings', 'CPLD'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
         },
         'slots': {
             'presence' : {
@@ -153,8 +161,16 @@ def load_subrack_lookup(obj):
                 'SLOT6'   : {'method': partial(obj.Bkpln.get_power_tpm, tpm_id = 6), 'group' : ['slots', 'powers', 'SLOT6'], 'exp_value': { 'min': 0.00, 'max': 12.60}, 'unit' : 'W'},
                 'SLOT7'   : {'method': partial(obj.Bkpln.get_power_tpm, tpm_id = 7), 'group' : ['slots', 'powers', 'SLOT7'], 'exp_value': { 'min': 0.00, 'max': 12.60}, 'unit' : 'W'},
                 'SLOT8'   : {'method': partial(obj.Bkpln.get_power_tpm, tpm_id = 8), 'group' : ['slots', 'powers', 'SLOT8'], 'exp_value': { 'min': 0.00, 'max': 12.60}, 'unit' : 'W'},
-            }
-
+            },
+            'pings' : {
+                'SLOT1'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 1), 'group' : ['slots', 'pings', 'SLOT1'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT2'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 2), 'group' : ['slots', 'pings', 'SLOT2'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT3'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 3), 'group' : ['slots', 'pings', 'SLOT3'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT4'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 4), 'group' : ['slots', 'pings', 'SLOT4'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT5'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 5), 'group' : ['slots', 'pings', 'SLOT5'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT6'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 6), 'group' : ['slots', 'pings', 'SLOT6'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT7'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 7), 'group' : ['slots', 'pings', 'SLOT7'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+                'SLOT8'   : {'method': partial(obj.GetPingTPM, tpm_slot_id = 8), 'group' : ['slots', 'pings', 'SLOT8'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+            },
         }
-
     }
