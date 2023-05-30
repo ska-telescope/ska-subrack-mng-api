@@ -69,10 +69,10 @@ class partial:
 def load_subrack_lookup(obj):
     return{
         'temperatures' : {
-            'SMM1'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 1),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
-            'SMM2'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 2),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
-            'BKPLN1' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 1, ret_val_only = True), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
-            'BKPLN2' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 2, ret_val_only = True), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : 'C'},
+            'SMM1'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 1),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : '°C'},
+            'SMM2'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 2),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : '°C'},
+            'BKPLN1' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 1, ret_val_only = True), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : '°C'},
+            'BKPLN2' : {'method': partial(obj.Bkpln.get_sens_temp, sens_id = 2, ret_val_only = True), 'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 68.00}, 'unit' : '°C'},
         },
         'plls' : {
             'BoardPllLock' : {'method': obj.GetLockedPLL,     'group' : 'plls', 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
@@ -113,7 +113,7 @@ def load_subrack_lookup(obj):
                 'PSU1'   : {'method': partial(obj.GetPSIout, ps_id = 1), 'group' : ['psus', 'currents',  'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'A'},
                 'PSU2'   : {'method': partial(obj.GetPSIout, ps_id = 2), 'group' : ['psus', 'currents',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'A'},
             },
-            'fan_pwm_or' : {
+            'fan_pwm_override' : {
                 'PSU1'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 1), 'group' : ['psus', 'fan_pwm_or',  'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
                 'PSU2'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 2), 'group' : ['psus', 'fan_pwm_or',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
             },

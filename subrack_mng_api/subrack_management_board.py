@@ -1344,6 +1344,24 @@ class SubrackMngBoard():
             # Create dictionary of monitoring points in same format as lookup
             health_status = self._create_nested_dict(lookup, value, health_status)
         return health_status
+    
+    def get_health_dict(self, **kwargs):
+        """
+        Returns the dictionary of TPM monitoring points with the 
+        static key only, no value
+        """
+        health_dict = {}
+        mon_point_list = self._kwargs_handler(kwargs)
+        for monitoring_point in mon_point_list:
+            lookup = monitoring_point.split('.')
+            d = self._parse_dict_by_path(self.monitoring_point_lookup_dict, lookup)
+            # call method stored in lookup entry
+            exclude_keys=['method']
+            new_d = {k: d[k] for k in set(list(d.keys())) - set(exclude_keys)}
+            
+            # Create dictionary of monitoring points in same format as lookup
+            health_dict = self._create_nested_dict(lookup, new_d, health_dict)
+        return health_dict
 
     def close(self):
         self.__del__()
