@@ -690,7 +690,7 @@ class Management():
             mng_info["BOARD_MODE"] = "SUBRACK"
         elif self.get_field("BOARD_MODE") == 0x2:
             mng_info["BOARD_MODE"] = "CABINET"
-        else:partition where u-boot search the
+        else:
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
         mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
