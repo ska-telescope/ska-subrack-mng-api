@@ -753,8 +753,11 @@ class SubrackMngBoard():
         :param force: force the operation even if no TPM is present in selected slot
         """
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0 or force:
-            volt = self.Bkpln.get_voltage_tpm(tpm_slot_id)
-            return volt
+            if self.Bkpln.is_tpm_on(tpm_slot_id):
+                volt = self.Bkpln.get_voltage_tpm(tpm_slot_id)
+                return volt
+            else:
+                return None
         else:
             raise SubrackInvalidCmd("Impossible to get Voltage Value, TPM is not present")
 
