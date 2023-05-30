@@ -57,6 +57,7 @@ class FPGA_MdioBUS:
     CPU = 1
     CPLD = 2
 
+
 ethernet_ports=[
     {'name' : 'CPU',    'mdio_mux' : FPGA_MdioBUS.CPU,  'port' : 0},# MCU U4-P0
     {'name' : 'CPLD',   'mdio_mux' : FPGA_MdioBUS.CPLD, 'port' : 0},# CPLD U5-P0
@@ -689,29 +690,20 @@ class Management():
             mng_info["BOARD_MODE"] = "SUBRACK"
         elif self.get_field("BOARD_MODE") == 0x2:
             mng_info["BOARD_MODE"] = "CABINET"
-        else:
+        else:partition where u-boot search the
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
         mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
-
-
+        boot_sel = self.get_field("BOOT_SEL")
+        mng_info["BOOT PART KRN"] = boot_sel & 0x1
+        mng_info["BOOT PART FS"] = (boot_sel & 0x2) >> 1
         for key,value in bios_dict.items():
             if key == 'rev':
-                mng_info['bios']=value
+                mng_info['bios'] = value
             else:
-                mng_info['bios_'+key]=value
-
-            
+                mng_info['bios_'+key] = value
         mng_info["OS"] = run('cat /etc/issue.net')
         mng_info["OS_rev"] = run('sudo git -C /etc describe --tag --dirty')
-                    
-        
-        
-        
-        
-
-        
-
         mng_info["CPLD_ip_address"] = self.long2ip(self.read("ETH.IP"))
         mng_info["CPLD_netmask"] = self.long2ip(self.read("ETH.Netmask"))
         mng_info["CPLD_gateway"] = self.long2ip(self.read("ETH.Gateway"))
@@ -1430,7 +1422,101 @@ class Management():
             logging.error("SETTING FUSE: OPERATION FAILED")
         return error
 
+    def set_krn_boot_partition(self, partition):
+        """
+        method used to set the flash partition where u-boot search the kernel image
+        :param partition: value of teh partition where u-boot search the kernel image, acceppted 0 or 1
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        logging.info("Setting kernel boot partition...")
+        if partition > 1 or partition < 0:
+            logging.error("set_krn_boot_partition: invalid partition expected 0 or 1 received %d" %partition)
+            return 1
+        boot_sel = self.get_field("BOOT_SEL")
+        boot_sel = (boot_sel & 0x2) | partition
+        self.set_field("BOOT_SEL", boot_sel)
+        boot_sel_n = self.get_field("BOOT_SEL")
+        if boot_sel_n != boot_sel:
+            logging.error("set_krn_boot_partition: operation failed expected %d returned %" %(boot_sel, boot_sel_n) )
+            return 2
+        else:
+            logging.info("set_krn_boot_partition: operation successfully completed")
+            return 0
 
+    def set_fs_boot_partition(self, partition):
+        """
+        method used to set the flash partition where u-boot search the FileSystem of OS
+        :param partition: value of teh partition where u-boot search the FileSystem, acceppted 0 or 1
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        if partition > 1 or partition < 0:
+            logging.error("set_fs_boot_partition: invalid partition expected 0 or 1 received %d" %partition)
+            return 1
+        boot_sel = self.get_field("BOOT_SEL")
+        boot_sel = (boot_sel & 0x1) | (partition << 1)
+        self.set_field("BOOT_SEL", boot_sel)
+        boot_sel_n = self.get_field("BOOT_SEL")
+        if boot_sel_n != boot_sel:
+            logging.error("set_krn_boot_partition: operation failed expected %d returned %" % (boot_sel, boot_sel_n))
+            return 2
+        else:
+            logging.info("set_krn_boot_partition: operation successfully completed")
+            return 0
+
+    def flash_fs_image(self, fs_image_path, device):
+        """
+        method used to set the flash FileSystem image on selected device and partition
+        :param fs_image_path: path of tar.gz fs file image
+        :param device: disk device and partition where image will be placed, accepted EMMC0, EMMC1
+        :return status of the operation, 0 PASSED, !=0 FAILED
+        """
+        logging.info("Flash FS image started operation take some minutes... ")
+        if os.path.isfile(fs_image_path) is False:
+            logging.error("flash_fs_image: invalid FS image file path, file not found")
+            return 1
+        if device == "EMMC0":
+            dev = "/dev/mmcblk0p2"
+        elif device == "EMMC1":
+            dev = "/dev/mmcblk0p4"
+        else:
+            logging.error("flash_fs_image: invalid device accepted EMMC0 or EMMC1")
+            return 1
+        cmd = "mount"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_fs_image: error while mount command execution")
+            return 2
+        outl = out.splitlines()
+        for k in range(0, len(outl)):
+            if outl[k].find("/dev/mmcblk") != -1:
+                if outl[k].split(" ")[0] == dev:
+                    logging.error("flash_fs_image: selected device is already mounted and in use select different")
+                    return 3
+        cmd = "sudo mount %s /mnt/" %dev
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_fs_image: error while mount command execution")
+            return 4
+        cmd = "cd /mnt/"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_fs_image: error while mount command execution")
+            return 5
+        logging.info("flash_fs_image: starting unzip image")
+        cmd = "sudo tar -xvzf %s" %fs_image_path
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_fs_image: error while unzip execution")
+            return 6
+        cmd = "cd /home/mnguser"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        cmd = "sudo umount /mnt"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_fs_image: error while umount execution")
+            return 7
+        logging.info("flash_fs_image: operation succefully completed")
+        return 0
 
     def emmc_config(self, layout_file):
         """
@@ -1438,10 +1524,33 @@ class Management():
         :param layout_file: EMMC layout file
         :return status of the operation, 0 PASSED, !=0 FAILED
         """
-        logging.info("EMM Configuration started... ")
+        logging.info("EMMC Configuration started... ")
         if os.path.isfile(layout_file) is False:
             logging.error("emmc_config: invalid layout file path, file not found")
             return 1
+        cmd = "lsblk"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("emmc_config: error while get emmc size")
+            return 6
+        else:
+            outl = out.splitlines()
+            size = parse.parse("mmcblk0      179:0    0 {}G  0 disk",outl[1])
+
+        logging.info("emmc_config: detected EMMC size of %s G" %size[0])
+        emmc_size=int(size[0])
+        sector_size_max=14680064
+        if emmc_size < 10:
+            sector_size_max = 8134656
+
+
+        f = open(layout_file, 'r')
+        lines = f.readlines()
+        for l in range (5, len(lines)):
+            p_size = parse.parse("/dev/mmcblk0p{}: start={}, size={}, type=83",lines[l])
+            if int(p_size[2]) > sector_size_max:
+                logging.error("emmc_config: invalid layout file wrong partition size ")
+                return 10
         cmd = "sudo sfdisk /dev/mmcblk0 < " + layout_file
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
@@ -1457,11 +1566,16 @@ class Management():
         if retcode != 0:
             logging.error("emmc_config: error while formatting partition p2")
             return 4
-        cmd = "sudo mkfs.ext4 /dev/mmcblk0p3"
+        cmd = "sudo mkfs.vfat /dev/mmcblk0p3"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("emmc_config: error while formatting partition p2")
             return 5
+        cmd = "sudo mkfs.ext4 /dev/mmcblk0p4"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("emmc_config: error while formatting partition p1")
+            return 3
         cmd = "lsblk"
         out, retcode = exec_cmd(cmd, verbose=True)
         time.sleep(2)
@@ -1478,7 +1592,9 @@ class Management():
                     find_count += 1
                 if outl[k].find("0p3") != -1:
                     find_count += 1
-                if find_count == 3:
+                if outl[k].find("0p4") != -1:
+                    find_count += 1
+                if find_count == 4:
                     partition_ok = True
                     break
             if partition_ok is False:

@@ -15,10 +15,11 @@ from pyfabil.base.utils import ip2long
 from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
 import operator
+from subrack_mng_api.subrack_monitoring_point_lookup import load_subrack_lookup
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 
-from subrack_monitoring_point_lookup import load_subrack_lookup
+
 
 from optparse import OptionParser
 import Pyro5.api

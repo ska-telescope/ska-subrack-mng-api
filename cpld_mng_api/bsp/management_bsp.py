@@ -31,6 +31,8 @@ eep_sec = {
                                  "protected": False},
             "SLOT_LOCATION": {"offset": 0x69, "size": 1, "name": "SLOT_LOCATION", "type": "uint",
                               "protected": False},
+            "BOOT_SEL":     {"offset": 0x70, "size": 1, "name": "BOOT_SEL", "type": "uint",
+                              "protected": False},
             "MAC": {"offset": 0xFA, "size": 6, "name": "MAC", "type": "bytearray",
                     "protected": True},  # READ-ONLY
         }
