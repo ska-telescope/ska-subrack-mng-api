@@ -1,5 +1,19 @@
 # Subrack Management API Changelog
 
+## v2.2.0 (2023-05-31)
+
+### Features
+ - new get_health_dict and get_health_status to collect all monitoring points at once
+ - new ping test on TPM (replace TPM pyfabil access, )
+
+### Removed
+ - GetTPMInfo
+ - GetTPMGlobalStatusAlarm
+ - Get_tpm_alarms_vector
+ - GetTPMTemperatures
+ - Get_TPM_temperature_vector
+ - GetTPMMCUTemperature
+
 ## v2.1.0 (2023-05-25)
 
 ### Features

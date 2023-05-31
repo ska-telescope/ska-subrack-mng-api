@@ -11,11 +11,7 @@ pip install numpy
 pip install lxml
 pip install enum34
 pip install pyserial
-cd pyfabil
-python setup.py install
-pwd
-cd ../
-pip install git+https://gitlab.com/sanitaseg/itpm-bios.git
+pip install git+https://gitlab.com/sanitaseg/ska-low-smm-bios.git
 python setup.py install
 #pip install matplotlib
 #pip install scipypip list

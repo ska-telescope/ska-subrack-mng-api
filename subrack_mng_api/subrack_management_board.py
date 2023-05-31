@@ -25,20 +25,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 from optparse import OptionParser
 import Pyro5.api
 
-TPMInfo_t={
-"ip_address":       "",
-"netmask":          "",
-"gateway":          "",
-"SN":               "",
-"PN":               "",
-"BOARD_MODE":       "",# 0 ada, 0xff no-ada
-"HARDWARE_REV":     "",# v00.00.00
-"SITE_LOCATION":    "",
-"CABINET_LOCATION": "",
-"SUBRACK_LOCATION": "",
-"SLOT_LOCATION":    "",
-"MAC":              "",#READ-ONLY
-}
+
 
 logger=logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.INFO)
@@ -203,6 +190,7 @@ def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8):
 # ##Subrack Management Board Class
 # This class implements methods to manage and to monitor the subrack management board
 @Pyro5.api.expose
+@Pyro5.server.behavior(instance_mode="single")
 class SubrackMngBoard():
     def __init__(self, **kwargs):
         logger.info("SubrackMngBoard init ...")
@@ -425,245 +413,24 @@ class SubrackMngBoard():
         return tpm_ip_str
 
     def GetTPMInfo(self, tpm_slot_id, forceread=False):
-        """ method to get info about TPM board present on subrack
-        :param tpm_slot_id:subrack slot index for selected TPM, accepted value 1-8
-        :param forceread: force the operation even if no TPM is present in selected slot
-        :return TPM_INFO
-    """
-        # prev_onoff = 0
-        # if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0:
-        #     # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
-        #     if self.GetTPMOnOffVect() & (1 << (tpm_slot_id - 1)) == 0:
-        #         if forceread is False:
-        #             raise SubrackInvalidCmd("TPM is powered off")
-        #         else:
-        #             if self.Bkpln.get_bkpln_is_onoff() == 0:
-        #                 self.Bkpln.power_on_bkpln()
-        #                 if self.powermon_cfgd is False:
-        #                     self.SubrackInitialConfiguration()
-        #         if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
-        #             raise SubrackExecFault("Error:TPM Power on Failed")
-        #     else:
-        #         prev_onoff = 1
-        # else:
-        #     raise SubrackInvalidCmd("TPM not present")
-        # # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
-        # # tpm_ip_str = int2ip(tpm_ip)
-        # tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-        # # logger.info("TPM IP: %s, CPU IP: %s" %(tpm_ip,subrack_cpu_ip))
-        # logger.info("TPM IP: %s" % tpm_ip_str)
-        # # tpm = TPM_1_6()
-        # # tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False, fsample=800e6)
-        # tpm = self.TPM_instances_list[tpm_slot_id -1]
-        # tpm_info = tpm.get_board_info()
-        # if prev_onoff == 0:
-        #     if self.Bkpln.pwr_off_tpm(tpm_slot_id)!=0:
-        #         raise SubrackExecFault("Error:TPM Power on Failed")
-        # # logger.info(tpm_info)
-        # return tpm_info
-        return {}
+        raise SubrackExecFault("Error: this method is deprecated, subrack do not access TPM anymore")
 
     def GetTPMGlobalStatusAlarm(self, tpm_slot_id, forceread=False):
-        """method to get Global Status Register of  TPM selected board present on subrack
-        :param tpm_slot_id subrack slot index for selected TPM, accepted value 1-8
-        :param forceread: force the operation even if no TPM is present in selected slot
-        :return alarms: OK, WARN, ALARM, WARN-ALARM {temperature_alarm,viltage_alarm,MCU watchdog, SEM watcdog}
-        """
-        # prev_onoff = 0
-        # if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0:
-        #     # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
-        #     if self.GetTPMOnOffVect() & (1 << (tpm_slot_id - 1)) == 0:
-        #         if forceread is False:
-        #             raise SubrackInvalidCmd("TPM is OFF and read isn't forced ")
-        #         else:
-        #             if self.Bkpln.get_bkpln_is_onoff() == 0:
-        #                 self.Bkpln.power_on_bkpln()
-        #                 if self.powermon_cfgd is False:
-        #                     self.SubrackInitialConfiguration()
-        #         if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
-        #             # raise SubrackExecFault("Error:TPM Power on Failed")
-        #             logger.debug ("Error:TPM Power on Failed")
-        #             return 1
-        #     else:
-        #         prev_onoff = 1
-        # else:
-        #     # raise SubrackInvalidCmd("TPM not present")
-        #     logger.debug("ERROR: TPM not present")
-        #     return 1
-        # # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
-        # # tpm_ip_str = int2ip(tpm_ip)
-        # tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-        # # tpm = TPM_1_6()
-        # # tpm.connect(ip=tpm_ip_str, port=10000,  initialise=False, simulation=False, enable_ada=False, fsample=800e6)
-        # tpm = self.TPM_instances_list[tpm_slot_id - 1]
-        # global_status = tpm.get_global_status_alarms()
-        # # tpm.disconnect()
-        # # global_status = self.read_tpm_singlewire(tpm_slot_id, 0x30000500)
-        # logger.debug("Global status: %s" % global_status)
-        # if prev_onoff == 0:
-        #     if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
-        #         raise SubrackExecFault("Error:TPM Power off Failed")
-        # return global_status
-        return None
+        raise SubrackExecFault("Error: this method is deprecated, subrack do not access TPM anymore")
 
     def Get_tpm_alarms_vector(self):
-        """method to get temperature and voltage alarm status of all TPMS presents and powered ON
-        :return tpm_temp_alarm_status_vect,tpm_voltage_alarm_status_vect arrays with status of alarms temperature and
-        voltages of each TPM, each field can be 0 OK, 01 Warning, 02 alarm, 03 warning then alarm, 04 board Not present or not powered
-        """
-        # tpm_temp_alarm_status_vect = []
-        # tpm_voltage_alarm_status_vect = []
-        # for slot in range (1,9):
-        #     if self.GetTPMPresent() & (1 << (slot - 1)) != 0:
-        #         if self.GetTPMOnOffVect() & (1 << (slot - 1)) == 0:
-        #             tpm_temp_alarm_status_vect.append(0x4)
-        #             tpm_voltage_alarm_status_vect.append(0x4)
-        #         else:
-        #             tpm_ip_str = self.tpm_ip_list[slot - 1]
-        #             # tpm = TPM_1_6()
-        #             # tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False,
-        #             #            fsample=800e6)
-        #             tpm = self.TPM_instances_list[slot - 1]
-        #             global_status = tpm.get_global_status_alarms()
-        #             # tpm.disconnect()
-        #             tpm_temp_alarm_status_vect.append(global_status["temperature_alm"])
-        #             tpm_voltage_alarm_status_vect.append(global_status["voltage_alm"])
-        #     else:
-        #         tpm_temp_alarm_status_vect.append(0x4)
-        #         tpm_voltage_alarm_status_vect.append(0x4)
-        # return tpm_temp_alarm_status_vect, tpm_voltage_alarm_status_vect
-        return None
-
+        raise SubrackExecFault("Error: this method is deprecated, subrack do not access TPM anymore")
 
     def GetTPMTemperatures(self, tpm_slot_id, forceread=False):
-        """method to get temperature of onboard TPM selected board present on subrack
-        :param tpm_slot_id subrack slot index for selected TPM, accepted value 1-8
-        :param forceread: force the operation even if no TPM is present in selected slot
-        :return tpm_board_temperature,tpm_fpga0_temp, tpm_fpga1_temp(if fpga is not programmed return fpga_temp =0)
-        """
-        # # logger.debug("GetTPMTemperatures %d"%tpm_slot_id)
-        # prev_onoff = 0
-        # pres_tpm = self.GetTPMPresent()
-        # #logger.debug("TPM Present: %x" %pres_tpm)
-        # if pres_tpm & (1 << (tpm_slot_id-1)) != 0:
-        #     # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
-        #     if self.GetTPMOnOffVect() & (1 << (tpm_slot_id - 1)) == 0:
-        #         if forceread is False:
-        #             raise SubrackInvalidCmd("TPM is OFF and read isn't forced ")
-        #         else:
-        #             if self.Bkpln.get_bkpln_is_onoff() == 0:
-        #                 self.Bkpln.power_on_bkpln()
-        #                 if self.powermon_cfgd is False:
-        #                     self.SubrackInitialConfiguration()
-        #         if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
-        #             #raise SubrackExecFault("Error:TPM Power on Failed")
-        #             logger.debug ("Error:TPM Power on Failed")
-        #             return -1
-        #     else:
-        #         prev_onoff = 1
-        # else:
-        #     # raise SubrackInvalidCmd("TPM not present")
-        #     logger.debug("ERROR: TPM not present")
-        #     return -1
-        # # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
-        # # tpm_ip_str = int2ip(tpm_ip)
-        # tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-        # #tpm = TPM_1_6()
-        # #port=10000, lmc_ip="10.0.10.1", lmc_port=4660, sampling_rate=800e6
-        # #tpm.connect(ip=tpm_ip_str, port=10000,  initialise=False, simulation=False, enable_ada=False, fsample=800e6)
-        # #tpm.load_plugin("Tpm_1_6_Mcu")
-        # tpm = self.TPM_instances_list[tpm_slot_id-1]
-        # temp_mcu_f = 0
-        # temp_board_f = 0
-        # temp_fpga1_f = 0
-        # temp_fpga2_f = 0
-        # if tpm != 0:
-        #     temp_mcu_f = tpm.tpm_monitor[0].get_mcu_temperature()
-        #     temp_board_f = tpm.tpm_monitor[0].get_temperature()
-        #     if tpm.is_programmed():
-        #         if self.tpm_plugin_loaded[tpm_slot_id-1] is False:
-        #             tpm.load_plugin("TpmSysmon", device=Device.FPGA_1)
-        #             tpm.load_plugin("TpmSysmon", device=Device.FPGA_2)
-        #             self.tpm_plugin_loaded[tpm_slot_id - 1] = True
-        #         else:
-        #             temp_fpga1_f = tpm.tpm_sysmon[0].get_fpga_temperature()
-        #             temp_fpga2_f = tpm.tpm_sysmon[1].get_fpga_temperature()
-        #     temp_fpga1_f = round(temp_fpga1_f, 2)
-        #     temp_fpga2_f = round(temp_fpga2_f, 2)
-        #     #tpm.disconnect()
-        #     if prev_onoff == 0:
-        #         if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
-        #             raise SubrackExecFault("Error:TPM Power off Failed")
-        # return temp_mcu_f, temp_board_f, temp_fpga1_f, temp_fpga2_f
-        return None
+        raise SubrackExecFault("Error: this method is deprecated, subrack do not access TPM anymore")
 
 
     def Get_TPM_temperature_vector(self):
-        """method to get temperature of all TPMS presents and powered ON
-        :return tpm_temp_board_vect, tpm_temp_fpga1_vect, tpm_temp_fpga2_vect arrays with temperature of each TPM, each
-        field can be a temperature value or -256  board Not present or not powered
-        """
-        tpm_temp_board_vect = []
-        tpm_temp_fpga1_vect = []
-        tpm_temp_fpga2_vect = []
-        for slot in range (1,9):
-            if self.GetTPMPresent() & (1 << (slot - 1)) != 0:
-                if self.GetTPMOnOffVect() & (1 << (slot - 1)) == 0:
-                    tpm_temp_board_vect.append(-256)
-                    tpm_temp_fpga1_vect.append(-256)
-                    tpm_temp_fpga2_vect.append(-256)
-                else:
-                    temp_board_f, temp_fpga1_f, temp_fpga2_f = self.GetTPMTemperatures(slot)
-                    tpm_temp_board_vect.append(temp_board_f)
-                    tpm_temp_fpga1_vect.append(temp_fpga1_f)
-                    tpm_temp_fpga2_vect.append(temp_fpga2_f)
-            else:
-                tpm_temp_board_vect.append(-256)
-                tpm_temp_fpga1_vect.append(-256)
-                tpm_temp_fpga2_vect.append(-256)
-        return tpm_temp_board_vect, tpm_temp_fpga1_vect, tpm_temp_fpga2_vect
+        raise SubrackExecFault("Error: this method is deprecated, subrack do not access TPM anymore")
 
 
     def GetTPMMCUTemperature(self, tpm_slot_id, forceread=False):
-        """method to get temperature of MCU on TPM selected board present on subrack
-        :param tpm_slot_id subrack slot index for selected TPM, accepted value 1-8
-        :param forceread: force the operation even if no TPM is present in selected slot
-        :return temp_mcu_f tpm mcu temperature
-        """
-        # prev_onoff = 0
-        # if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0:
-        #     # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
-        #     if self.GetTPMOnOffVect() & (1 << (tpm_slot_id - 1)) == 0:
-        #         if forceread is False:
-        #             raise SubrackInvalidCmd("TPM is OFF and read isn't forced ")
-        #         else:
-        #             if self.Bkpln.get_bkpln_is_onoff() == 0:
-        #                 self.Bkpln.power_on_bkpln()
-        #                 if self.powermon_cfgd == False:
-        #                     self.SubrackInitialConfiguration()
-        #         if self.Bkpln.pwr_on_tpm(tpm_slot_id) != 0:
-        #             #raise SubrackExecFault("Error:TPM Power on Failed")
-        #             logger.debug("Error:TPM Power on Failed")
-        #             return 1
-        #     else:
-        #         prev_onoff = 1
-        # else:
-        #     #raise SubrackInvalidCmd("TPM not present")
-        #     logger.debug("ERROR: TPM not present")
-        #     return 1
-        # # tpm_ip = self.read_tpm_singlewire(tpm_slot_id, 0x30000308)
-        # # tpm_ip_str = int2ip(tpm_ip)
-        # tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-        # #tpm = TPM_1_6()
-        # #tpm.connect(ip=tpm_ip_str, port=10000, initialise=False, simulation=False, enable_ada=False, fsample=800e6)
-        # #tpm.load_plugin("Tpm_1_6_Mcu")
-        # tpm = self.TPM_instances_list[tpm_slot_id - 1]
-        # temp_mcu_f = tpm.tpm_monitor[0].get_mcu_temperature()
-        # if prev_onoff == 0:
-        #     if self.Bkpln.pwr_off_tpm(tpm_slot_id) != 0:
-        #         raise SubrackExecFault("Error:TPM Power off Failed")
-        # return temp_mcu_f
-        return None
+        raise SubrackExecFault("Error: this method is deprecated, subrack do not access TPM anymore")
 
 
     def SubrackInitialConfiguration(self):
@@ -808,14 +575,7 @@ class SubrackMngBoard():
                     tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
                     if Adu_Eth_Ping(tpm_ip_str) > 0:
                         logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
-                    # try:
-                    #     self.TPM_instances_list[tpm_slot_id-1] = TPM_1_6()
-                    #     # port=10000, lmc_ip="10.0.10.1", lmc_port=4660, sampling_rate=800e6
-                    #     self.TPM_instances_list[tpm_slot_id-1].connect(ip=tpm_ip_str, port=10000, initialise=False,
-                    #                                                 simulation=False, enable_ada=False, fsample=800e6)
-                    #     self.TPM_instances_list[tpm_slot_id-1].load_plugin("Tpm_1_6_Mcu")
-                    # except LibraryError:
-                    #     logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
+
         logger.info("PowerOnTPM End")
 
     def GetPingTPM(self, tpm_slot_id):
@@ -849,8 +609,6 @@ class SubrackMngBoard():
                 raise SubrackExecFault("ERROR: TPM not present in selected slot")
         else:
             if self.Bkpln.is_tpm_on(tpm_slot_id) is True:
-                # self.TPM_instances_list[tpm_slot_id - 1].disconnect()
-                # self.tpm_plugin_loaded[tpm_slot_id -1] = False
                 if self.Bkpln.pwr_off_tpm(tpm_slot_id):
                     logger.error("Power TPM off slot %d failed" % tpm_slot_id)
                     raise SubrackExecFault("ERROR: power off TPM command failed")
