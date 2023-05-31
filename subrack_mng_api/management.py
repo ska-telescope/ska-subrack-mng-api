@@ -1622,15 +1622,17 @@ class Management():
         method used to flash first time the CPU kernel
         :param zImage_path: path of the zImage file to be used for the write
         :param dtb_path: path of the device-tree file to be used for the write
-        :param dest_device: memory where the write must be executed, accepted value are: uSD or EMMC
+        :param dest_device: memory where the write must be executed, accepted value are: uSD or EMMC0 or EMMC1
         :return status of the operation, 0 PASSED, !=0 FAILED
         """
 
         dev = ""
         if dest_device == "uSD":
             dev = "/dev/mmcblk1p1"
-        elif dest_device == "EMMC":
+        elif dest_device == "EMMC0":
             dev = "/dev/mmcblk0p1"
+        elif dest_device == "EMMC1":
+            dev = "/dev/mmcblk0p3"
         elif dest_device is None:
             cp_cmd = "mount"
             out, retcode = exec_cmd(cp_cmd, verbose=True)
@@ -1805,8 +1807,10 @@ class Management():
         dev = ""
         if dest_device == "uSD":
             dev = "/dev/mmcblk1p1"
-        elif dest_device == "EMMC":
+        elif dest_device == "EMMC0":
             dev = "/dev/mmcblk0p1"
+        elif dest_device == "EMMC1":
+            dev = "/dev/mmcblk0p3"
         elif dest_device is None:
             cp_cmd = "mount"
             out, retcode = exec_cmd(cp_cmd, verbose=True)
