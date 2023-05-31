@@ -47,7 +47,7 @@ sshpass -p SkaUser ssh -o StrictHostKeyChecking=no mnguser@10.0.10.64
 ```
 
 ## Gateway
-Configure external HOST as gateway (no DHCP needed) and NTP server [optional required for 1.6 and 1.9]
+Configure external HOST as gateway (no DHCP needed) and NTP server [optional required for 1.6, 1.9 and 1.10]
 
 ## BIOS tool update
 Check for ska-low-smm-bios update if needed (needs internet access configured at 1.5)
@@ -61,7 +61,7 @@ Update BIOS if needed (read below)
 Change ip address if needed (read below)
 
 ## SubrackMngAPI update
-Check for SubrackMngAPI update if needed (needs internet access configured at 1.5)
+Check for SubrackMngAPI update if needed (required internet access configured at 1.5)
 ```
 (venv) mnguser@ska-low-smm:~/SubrackMngAPI$ ./deploy.sh
 Updating repository with online version
@@ -84,6 +84,22 @@ Installing collected packages: subrack-mng-api
     Uninstalling subrack-mng-api-2.2.0:
       Successfully uninstalled subrack-mng-api-2.2.0
 Successfully installed subrack-mng-api-2.2.0
+
+```
+
+## OS update
+Check for OS update if needed (required internet access configured at 1.5)
+```
+(venv) mnguser@ska-low-smm:~$ sudo /etc/ska-low-smm-tools/update_os.sh 
+Updating repository with online version
+Already up to date.
+Already on 'master'
+Your branch is up to date with 'origin/master'.
+Install configured version of packages
+[...]
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+
+System reboot required to apply changes
 
 ```
 
