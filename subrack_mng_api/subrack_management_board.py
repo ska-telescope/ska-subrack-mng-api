@@ -525,7 +525,7 @@ class SubrackMngBoard():
                 volt = self.Bkpln.get_voltage_tpm(tpm_slot_id)
                 return volt
             else:
-                return None
+                return float('nan')
         else:
             raise SubrackInvalidCmd("Impossible to get Voltage Value, TPM is not present")
 
