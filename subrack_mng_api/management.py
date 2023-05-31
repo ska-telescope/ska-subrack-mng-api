@@ -11,6 +11,7 @@ from datetime import datetime
 import random
 import logging
 from subrack_mng_api.emulator_classes.def4emulation import *
+from subrack_mng_api.version import *
 from cpld_mng_api.bsp.management_bsp import eep_sec
 import cpld_mng_api.bsp.management as cpld_mng
 import socket
@@ -334,6 +335,7 @@ class Management():
             board_info_file = open("/tmp/board_info", "w")
             board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",""],tablefmt='pipe'))
             board_info_file.write('\n')
+            board_info_file.write("SubrackMngAPI version: %s \n" %get_version())
             board_info_file.close()
         except PermissionError:
             logger.warning("Cannot create '/tmp/board_info' -  Permission error")
@@ -672,9 +674,6 @@ class Management():
     def get_board_info(self):
         bios_string,bios_dict=self.get_bios()
         mng_info={}
-        boot_sel = self.get_field("BOOT_SEL")
-        mng_info["BOOT PART KRN"] = boot_sel & 0x1
-        mng_info["BOOT PART FS"] = (boot_sel & 0x2) >> 1
         mng_info["SN"] = self.get_field("SN")
         mng_info["PN"] = self.get_field("PN")
         location = [self.get_field("CABINET_LOCATION"),
@@ -703,6 +702,9 @@ class Management():
                 mng_info['bios_'+key] = value
         mng_info["OS"] = run('cat /etc/issue.net')
         mng_info["OS_rev"] = run('sudo git -C /etc describe --tag --dirty')
+        boot_sel = self.get_field("BOOT_SEL")
+        mng_info["BOOT_SEL_KRN"] = boot_sel & 0x1
+        mng_info["BOOT_SEL_FS"] = (boot_sel & 0x2) >> 1
         mng_info["CPLD_ip_address"] = self.long2ip(self.read("ETH.IP"))
         mng_info["CPLD_netmask"] = self.long2ip(self.read("ETH.Netmask"))
         mng_info["CPLD_gateway"] = self.long2ip(self.read("ETH.Gateway"))
