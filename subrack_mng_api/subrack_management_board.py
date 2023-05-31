@@ -5,6 +5,7 @@ import sys
 import os
 import time
 import calendar
+from datetime import timezone
 import datetime
 from subrack_mng_api.management import *
 from subrack_mng_api.backplane import *
@@ -1329,6 +1330,7 @@ class SubrackMngBoard():
         Full documentation on usage available at https://confluence.skatelescope.org/x/nDhED
         """
         health_status = {}
+        health_status['iso_datetime']= datetime.now(timezone.utc).isoformat()
         mon_point_list = self._kwargs_handler(kwargs)
         for monitoring_point in mon_point_list:
             lookup = monitoring_point.split('.')
@@ -1354,6 +1356,7 @@ class SubrackMngBoard():
         static key only, no value
         """
         health_dict = {}
+        health_dict['iso_datetime']= datetime.now(timezone.utc).isoformat()
         mon_point_list = self._kwargs_handler(kwargs)
         for monitoring_point in mon_point_list:
             lookup = monitoring_point.split('.')
