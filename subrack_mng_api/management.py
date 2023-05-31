@@ -672,7 +672,9 @@ class Management():
     def get_board_info(self):
         bios_string,bios_dict=self.get_bios()
         mng_info={}
-
+        boot_sel = self.get_field("BOOT_SEL")
+        mng_info["BOOT PART KRN"] = boot_sel & 0x1
+        mng_info["BOOT PART FS"] = (boot_sel & 0x2) >> 1
         mng_info["SN"] = self.get_field("SN")
         mng_info["PN"] = self.get_field("PN")
         location = [self.get_field("CABINET_LOCATION"),
@@ -711,9 +713,7 @@ class Management():
         mng_info["CPU_ip_address"] = self.detect_cpu_ip()[0]
         mng_info["CPU_netmask"] = self.detect_cpu_ip()[1]
         mng_info["CPU_MAC"] = self.get_mac(self.get_cpu_mac())
-        boot_sel = self.get_field("BOOT_SEL")
-        mng_info["BOOT PART KRN"] = boot_sel & 0x1
-        mng_info["BOOT PART FS"] = (boot_sel & 0x2) >> 1
+
 
         return mng_info
 
@@ -1422,15 +1422,19 @@ class Management():
             logging.error("SETTING FUSE: OPERATION FAILED")
         return error
 
-    def set_krn_boot_partition(self, partition):
+    def set_krn_boot_partition(self, part):
         """
         method used to set the flash partition where u-boot search the kernel image
-        :param partition: value of teh partition where u-boot search the kernel image, acceppted 0 or 1
+        :param part: value of teh partition where u-boot search the kernel image, acceppted EMMC0 or EMMC1
         :return status of the operation, 0 PASSED, !=0 FAILED
         """
         logging.info("Setting kernel boot partition...")
-        if partition > 1 or partition < 0:
-            logging.error("set_krn_boot_partition: invalid partition expected 0 or 1 received %d" %partition)
+        if part == "EMMC0":
+            partition = 0
+        elif part == "EMMC1":
+            partition = 1
+        else:
+            logging.error("set_krn_boot_partition: invalid device accepted EMMC0 or EMMC1")
             return 1
         boot_sel = self.get_field("BOOT_SEL")
         boot_sel = (boot_sel & 0x2) | partition
@@ -1443,14 +1447,18 @@ class Management():
             logging.info("set_krn_boot_partition: operation successfully completed")
             return 0
 
-    def set_fs_boot_partition(self, partition):
+    def set_fs_boot_partition(self, part):
         """
         method used to set the flash partition where u-boot search the FileSystem of OS
-        :param partition: value of teh partition where u-boot search the FileSystem, acceppted 0 or 1
+        :param part: value of teh partition where u-boot search the FileSystem, acceppted EMMC0 or EMMC1
         :return status of the operation, 0 PASSED, !=0 FAILED
         """
-        if partition > 1 or partition < 0:
-            logging.error("set_fs_boot_partition: invalid partition expected 0 or 1 received %d" %partition)
+        if part == "EMMC0":
+            partition = 0
+        elif part == "EMMC1":
+            partition = 1
+        else:
+            logging.error("set_krn_boot_partition: invalid device accepted EMMC0 or EMMC1")
             return 1
         boot_sel = self.get_field("BOOT_SEL")
         boot_sel = (boot_sel & 0x1) | (partition << 1)
@@ -1535,19 +1543,21 @@ class Management():
             return 6
         else:
             outl = out.splitlines()
-            size = parse.parse("mmcblk0      179:0    0 {}G  0 disk",outl[1])
+            r = outl[1]
+            size = parse.parse("mmcblk0      179:0    0 {}G  0 disk ", r)
+            size = size[0]
+            size = size.replace(",", ".")
 
-        logging.info("emmc_config: detected EMMC size of %s G" %size[0])
-        emmc_size=int(size[0])
-        sector_size_max=14680064
+        logging.info("emmc_config: detected EMMC size of %s G" % size)
+        emmc_size = float(size)
+        sector_size_max = 14680064
         if emmc_size < 10:
             sector_size_max = 8134656
 
-
         f = open(layout_file, 'r')
         lines = f.readlines()
-        for l in range (5, len(lines)):
-            p_size = parse.parse("/dev/mmcblk0p{}: start={}, size={}, type=83",lines[l])
+        for l in range(5, len(lines)):
+            p_size = parse.parse("/dev/mmcblk0p{}: start={}, size={}, type={}",lines[l])
             if int(p_size[2]) > sector_size_max:
                 logging.error("emmc_config: invalid layout file wrong partition size ")
                 return 10
