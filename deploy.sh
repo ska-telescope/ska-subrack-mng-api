@@ -47,6 +47,9 @@ fi
 
 git -C $ROOT checkout $BRANCH || { echo 'cmd failed' ; exit 1; }
 
+rm -r $ROOT/build
+rm -r $ROOT/subrack_mng_api.egg-info
+
 if [ $CLEAN_VENV == true ]; then
     echo "Reset venv to configured version"
     rm -r $ROOT/venv || { echo 'cmd failed' ; exit 1; }
