@@ -63,12 +63,32 @@ Change ip address if needed (read below)
 ## SubrackMngAPI update
 Check for SubrackMngAPI update if needed (needs internet access configured at 1.5)
 ```
-(venv) mnguser@ska-low-smm:~/SubrackMngAPI$ git pull
+(venv) mnguser@ska-low-smm:~/SubrackMngAPI$ ./deploy.sh
+Updating repository with online version
 Already up to date.
+Already on 'refactoring'
+Your branch is up to date with 'origin/refactoring'.
+Reset venv to configured version
+Extract venv
+...................................................................................Done
+Processing /home/mnguser/SubrackMngAPI
+  Preparing metadata (setup.py) ... done
+Building wheels for collected packages: subrack-mng-api
+  Building wheel for subrack-mng-api (setup.py) ... done
+  Created wheel for subrack-mng-api: filename=subrack_mng_api-2.2.0-py3-none-any.whl size=105032 sha256=ad1b739a544c7d5424c59e94439af491b1f387bd86ef7c63046d8c20beb39c1c
+  Stored in directory: /tmp/pip-ephem-wheel-cache-h3rhrcvc/wheels/66/93/89/e09265aebde78f0f945909b37cc5cfbbe23ff871119572ac0b
+Successfully built subrack-mng-api
+Installing collected packages: subrack-mng-api
+  Attempting uninstall: subrack-mng-api
+    Found existing installation: subrack-mng-api 2.2.0
+    Uninstalling subrack-mng-api-2.2.0:
+      Successfully uninstalled subrack-mng-api-2.2.0
+Successfully installed subrack-mng-api-2.2.0
+
 ```
 
 ## Reboot
-Shutdown and reboot to apply changes.
+Shutdown and powercycle to apply changes.
 ```
 sudo poweroff
 ```
