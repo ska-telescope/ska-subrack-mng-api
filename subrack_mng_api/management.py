@@ -1378,12 +1378,12 @@ class Management():
         """
         error = 0
         logging.info("FUSE Setting... ")
-        cmd = "echo 0x00000010 > /sys/fsl_opt/HW_OCOTP_CFG5"
+        cmd = "echo 0x00000010 > /sys/fsl_otp/HW_OCOTP_CFG5"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG5")
             return 1
-        cmd = "echo 0x0002060 > /sys/fsl_opt/HW_OCOTP_CFG4"
+        cmd = "echo 0x0002060 > /sys/fsl_otp/HW_OCOTP_CFG4"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("fuse_setting: error while writing fuse HW_OCOTP_CFG4")
