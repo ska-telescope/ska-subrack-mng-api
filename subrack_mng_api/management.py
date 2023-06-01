@@ -1507,19 +1507,12 @@ class Management():
         if retcode != 0:
             logging.error("flash_fs_image: error while mount command execution")
             return 4
-        cmd = "cd /mnt/"
-        out, retcode = exec_cmd(cmd, verbose=True)
-        if retcode != 0:
-            logging.error("flash_fs_image: error while mount command execution")
-            return 5
         logging.info("flash_fs_image: starting unzip image")
-        cmd = "sudo tar -xvzf %s" %fs_image_path
+        cmd = "sudo tar -xvzf %s -C /mnt/" %fs_image_path
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_fs_image: error while unzip execution")
             return 6
-        cmd = "cd /home/mnguser"
-        out, retcode = exec_cmd(cmd, verbose=True)
         cmd = "sudo umount /mnt"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
