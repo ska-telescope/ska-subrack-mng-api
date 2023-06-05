@@ -7,7 +7,7 @@ import time
 from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
 print_debug = False
-
+import Pyro5.api
 import logging
 logger=logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
@@ -19,6 +19,37 @@ class BackplaneInvalidParameter(Exception):
 
 
 power_supply_i2c_offset = [0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
+
+backplane_i2c_devices=[
+    {'name': "ADT7470_1", "ICadd": 0x58, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x3d,
+     "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
+    {'name': "ADT7470_2", "ICadd": 0x5e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x3d,
+     "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
+    {'name': "EEPROM", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x7f,
+     "ref_val": 0xa5, "res_val": 0xFF, "op_check": "rw", "access": "CPLD"},
+    {'name': "ADT7408_1", "ICadd": 0x30, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
+     "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
+    {'name': "ADT7408_2", "ICadd": 0x32, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
+     "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_1", "ICadd": 0x80, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val":0x0, "op_check": "rw", "access":"CPLD"},
+    {'name': "LTC4281_2", "ICadd": 0x82, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_3", "ICadd": 0x84, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_4", "ICadd": 0x86, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_5", "ICadd": 0x88, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_6", "ICadd": 0x8c, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_7", "ICadd": 0x8e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "PCF8574TS_1", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
+     "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
+    {'name': "PCF8574TS_2", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
+     "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
+]
 
 def twos_comp(val, bits):
     """compute the 2's complement of int value val"""
@@ -37,6 +68,7 @@ def _decodePMBus(message):
 # ## Backplane Board Class
 # This class contain methods to permit access to major functionality
 # of backplane board from management CPU (iMX6) via registers mapped in filesystem
+@Pyro5.api.expose
 class Backplane():
     def __init__(self, Management_b, simulation):
         self.data = []
@@ -401,6 +433,141 @@ class Backplane():
             else:
                 self.mng.write("Fram.FAN_PWM", fanpwmreg & (~0x01000000))
         return 0
+
+    def check_i2c_backplane_devices_access(self):
+        result = []
+        wr_op_passed = False
+        for i in range(0, len(backplane_i2c_devices)):
+            logger.info("Device: %s" %backplane_i2c_devices[i]["name"])
+            if backplane_i2c_devices[i]["access"] == "CPLD":
+                if backplane_i2c_devices[i]["op_check"] == "ro":
+                    retval=0
+                    if backplane_i2c_devices[i]["bus_size"] == 2:
+                        retval,state = self.fpgai2c_read16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                                           backplane_i2c_devices[i]["i2cbus_id"])
+                    else:
+                        retval,state = self.fpgai2c_read8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                                          backplane_i2c_devices[i]["i2cbus_id"])
+                    if retval != backplane_i2c_devices[i]["ref_val"]:
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval, backplane_i2c_devices[i]["ref_val"]))
+                    else:
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "PASSED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval, backplane_i2c_devices[i]["ref_val"]))
+                if backplane_i2c_devices[i]["op_check"] == "rw":
+                    retval=0
+                    if backplane_i2c_devices[i]["bus_size"] == 2:
+                        logger.info("Writing16...")
+                        self.fpgai2c_write16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                             backplane_i2c_devices[i]["ref_val"],backplane_i2c_devices[i]["i2cbus_id"])
+                        logger.info("reading16...")
+                        retval,state = self.fpgai2c_read16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                                           backplane_i2c_devices[i]["i2cbus_id"])
+
+                    else:
+                        logger.info("Writing8...")
+                        self.fpgai2c_write8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                            backplane_i2c_devices[i]["ref_val"], backplane_i2c_devices[i]["i2cbus_id"])
+                        logger.info("reading8...")
+                        retval,state = self.fpgai2c_read8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                                          backplane_i2c_devices[i]["i2cbus_id"])
+                    if retval != backplane_i2c_devices[i]["ref_val"]:
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval,
+                                                                                              backplane_i2c_devices[i]["ref_val"]))
+                    else:
+
+                        wr_op_passed = True
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "PASSED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval,
+                                                                                              backplane_i2c_devices[i]["ref_val"]))
+                    if wr_op_passed == True:
+                        logger.info("Restoring value")
+                        if backplane_i2c_devices[i]["bus_size"] == 2:
+                            self.fpgai2c_write16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                                 backplane_i2c_devices[i]["res_val"],backplane_i2c_devices[i]["i2cbus_id"])
+                        else:
+                            self.fpgai2c_write8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                                                backplane_i2c_devices[i]["res_val"], backplane_i2c_devices[i]["i2cbus_id"])
+            elif backplane_i2c_devices[i]["access"] == "CPLD":
+                if backplane_i2c_devices[i]["op_check"] == "ro":
+                    retval = 0
+                    if backplane_i2c_devices[i]["bus_size"] == 2:
+                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                                               backplane_i2c_devices[i]["ref_add"],"w")
+                    else:
+                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                                               backplane_i2c_devices[i]["ref_add"],"b")
+                    if retval != backplane_i2c_devices[i]["ref_val"]:
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval,
+                                                                                              backplane_i2c_devices[i]["ref_val"]))
+                    else:
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "PASSED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval,
+                                                                                              backplane_i2c_devices[i]["ref_val"]))
+                if backplane_i2c_devices[i]["op_check"] == "rw":
+                    retval = 0
+                    if backplane_i2c_devices[i]["bus_size"] == 2:
+                        logger.info("Writing16...")
+                        self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                                       backplane_i2c_devices[i]["ref_add"],"w",backplane_i2c_devices[i]["ref_val"])
+                        logger.info("reading16...")
+                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                                               backplane_i2c_devices[i]["ref_add"],"w")
+                    else:
+                        logger.info("Writing8...")
+                        self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                                       backplane_i2c_devices[i]["ref_add"],"b",backplane_i2c_devices[i]["ref_val"])
+                        logger.info("reading8...")
+                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                                               backplane_i2c_devices[i]["ref_add"],"b")
+                    if retval != backplane_i2c_devices[i]["ref_val"]:
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval,
+                                                                                              backplane_i2c_devices[i]["ref_val"]))
+                    else:
+
+                        wr_op_passed = True
+                        result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "PASSED",
+                                       "expected": backplane_i2c_devices[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (backplane_i2c_devices[i]["name"],
+                                                                                              retval,
+                                                                                              backplane_i2c_devices[i]["ref_val"]))
+                    if wr_op_passed == True:
+                        logger.info("Restoring value")
+                        if backplane_i2c_devices[i]["bus_size"] == 2:
+                            self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"], backplane_i2c_devices[i]["ICadd"] >> 1,
+                                           backplane_i2c_devices[i]["ref_add"], "w", backplane_i2c_devices[i]["res_val"])
+                        else:
+                            self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"], backplane_i2c_devices[i]["ICadd"] >> 1,
+                                           backplane_i2c_devices[i]["ref_add"], "b", backplane_i2c_devices[i]["res_val"])
+            else:
+                pass
+        return result
+
 
     # ####POWER SUPPLY FUNCTIONS
     # This method get the selected power supply status register

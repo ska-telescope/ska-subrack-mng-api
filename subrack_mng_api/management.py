@@ -295,7 +295,7 @@ class mcu2cplduartbuff():
 # management CPU (iMX6) mapped in filesystem
 @Pyro5.api.expose
 class Management():
-    def __init__(self, simulation = False, cpld_timeout=10):
+    def __init__(self, simulation=False, cpld_timeout=10):
         self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
@@ -1284,10 +1284,6 @@ class Management():
         self.write("Mdio.CFG_REG0", 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
         self.write("Mdio.ADR_REG1", register)
         self.write("Mdio.RAW_REG2", value)
-
-
-
-
 
     def set_SFP(self,mdio_mux=FPGA_MdioBUS.CPLD):
         logger.info("set_SFP")
