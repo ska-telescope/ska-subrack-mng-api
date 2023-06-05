@@ -443,10 +443,10 @@ class Backplane():
                 if backplane_i2c_devices[i]["op_check"] == "ro":
                     retval=0
                     if backplane_i2c_devices[i]["bus_size"] == 2:
-                        retval,state = self.fpgai2c_read16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                        retval,state = self.mng.fpgai2c_read16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                                            backplane_i2c_devices[i]["i2cbus_id"])
                     else:
-                        retval,state = self.fpgai2c_read8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                        retval,state = self.mng.fpgai2c_read8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                                           backplane_i2c_devices[i]["i2cbus_id"])
                     if retval != backplane_i2c_devices[i]["ref_val"]:
                         result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
@@ -464,18 +464,18 @@ class Backplane():
                     retval=0
                     if backplane_i2c_devices[i]["bus_size"] == 2:
                         logger.info("Writing16...")
-                        self.fpgai2c_write16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                        self.mng.fpgai2c_write16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                              backplane_i2c_devices[i]["ref_val"],backplane_i2c_devices[i]["i2cbus_id"])
                         logger.info("reading16...")
-                        retval,state = self.fpgai2c_read16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                        retval,state = self.mng.fpgai2c_read16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                                            backplane_i2c_devices[i]["i2cbus_id"])
 
                     else:
                         logger.info("Writing8...")
-                        self.fpgai2c_write8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                        self.mng.fpgai2c_write8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                             backplane_i2c_devices[i]["ref_val"], backplane_i2c_devices[i]["i2cbus_id"])
                         logger.info("reading8...")
-                        retval,state = self.fpgai2c_read8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                        retval,state = self.mng.fpgai2c_read8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                                           backplane_i2c_devices[i]["i2cbus_id"])
                     if retval != backplane_i2c_devices[i]["ref_val"]:
                         result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
@@ -496,19 +496,19 @@ class Backplane():
                     if wr_op_passed == True:
                         logger.info("Restoring value")
                         if backplane_i2c_devices[i]["bus_size"] == 2:
-                            self.fpgai2c_write16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                            self.mng.fpgai2c_write16(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                                  backplane_i2c_devices[i]["res_val"],backplane_i2c_devices[i]["i2cbus_id"])
                         else:
-                            self.fpgai2c_write8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
+                            self.mng.fpgai2c_write8(backplane_i2c_devices[i]["ICadd"], backplane_i2c_devices[i]["ref_add"],
                                                 backplane_i2c_devices[i]["res_val"], backplane_i2c_devices[i]["i2cbus_id"])
             elif backplane_i2c_devices[i]["access"] == "CPLD":
                 if backplane_i2c_devices[i]["op_check"] == "ro":
                     retval = 0
                     if backplane_i2c_devices[i]["bus_size"] == 2:
-                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                        retval = self.mng.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
                                                backplane_i2c_devices[i]["ref_add"],"w")
                     else:
-                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                        retval = self.mng.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
                                                backplane_i2c_devices[i]["ref_add"],"b")
                     if retval != backplane_i2c_devices[i]["ref_val"]:
                         result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
@@ -531,14 +531,14 @@ class Backplane():
                         self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
                                        backplane_i2c_devices[i]["ref_add"],"w",backplane_i2c_devices[i]["ref_val"])
                         logger.info("reading16...")
-                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                        retval = self.mng.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
                                                backplane_i2c_devices[i]["ref_add"],"w")
                     else:
                         logger.info("Writing8...")
                         self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
                                        backplane_i2c_devices[i]["ref_add"],"b",backplane_i2c_devices[i]["ref_val"])
                         logger.info("reading8...")
-                        retval = self.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
+                        retval = self.mng.read_i2c(backplane_i2c_devices[i]["i2cbus_id"],backplane_i2c_devices[i]["ICadd"] >> 1,
                                                backplane_i2c_devices[i]["ref_add"],"b")
                     if retval != backplane_i2c_devices[i]["ref_val"]:
                         result.append({"name":backplane_i2c_devices[i]["name"],"test_result": "FAILED",
@@ -559,10 +559,10 @@ class Backplane():
                     if wr_op_passed == True:
                         logger.info("Restoring value")
                         if backplane_i2c_devices[i]["bus_size"] == 2:
-                            self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"], backplane_i2c_devices[i]["ICadd"] >> 1,
+                            self.mng.write_i2c(backplane_i2c_devices[i]["i2cbus_id"], backplane_i2c_devices[i]["ICadd"] >> 1,
                                            backplane_i2c_devices[i]["ref_add"], "w", backplane_i2c_devices[i]["res_val"])
                         else:
-                            self.write_i2c(backplane_i2c_devices[i]["i2cbus_id"], backplane_i2c_devices[i]["ICadd"] >> 1,
+                            self.mng.write_i2c(backplane_i2c_devices[i]["i2cbus_id"], backplane_i2c_devices[i]["ICadd"] >> 1,
                                            backplane_i2c_devices[i]["ref_add"], "b", backplane_i2c_devices[i]["res_val"])
             else:
                 pass
