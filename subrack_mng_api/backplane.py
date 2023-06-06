@@ -7,7 +7,6 @@ import time
 from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
 print_debug = False
-
 import logging
 logger=logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
@@ -19,6 +18,8 @@ class BackplaneInvalidParameter(Exception):
 
 
 power_supply_i2c_offset = [0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
+
+
 
 def twos_comp(val, bits):
     """compute the 2's complement of int value val"""
@@ -38,7 +39,7 @@ def _decodePMBus(message):
 # This class contain methods to permit access to major functionality
 # of backplane board from management CPU (iMX6) via registers mapped in filesystem
 class Backplane():
-    def __init__(self, Management_b, simulation):
+    def __init__(self, Management_b, simulation=False):
         self.data = []
         self.mng = Management_b
         self.simulation = simulation
@@ -401,6 +402,9 @@ class Backplane():
             else:
                 self.mng.write("Fram.FAN_PWM", fanpwmreg & (~0x01000000))
         return 0
+
+
+
 
     # ####POWER SUPPLY FUNCTIONS
     # This method get the selected power supply status register
