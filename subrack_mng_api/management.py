@@ -1321,10 +1321,10 @@ class Management():
                 if dev_list[i]["op_check"] == "ro":
                     retval=0
                     if dev_list[i]["bus_size"] == 2:
-                        retval,state = self.mng.fpgai2c_read16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                        retval,state = self.fpgai2c_read16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                            dev_list[i]["i2cbus_id"])
                     else:
-                        retval,state = self.mng.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                        retval,state = self.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                           dev_list[i]["i2cbus_id"])
                     if retval != dev_list[i]["ref_val"]:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
@@ -1342,18 +1342,18 @@ class Management():
                     retval=0
                     if dev_list[i]["bus_size"] == 2:
                         logger.info("Writing16...")
-                        self.mng.fpgai2c_write16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                        self.fpgai2c_write16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                              dev_list[i]["ref_val"],dev_list[i]["i2cbus_id"])
                         logger.info("reading16...")
-                        retval,state = self.mng.fpgai2c_read16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                        retval,state = self.fpgai2c_read16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                            dev_list[i]["i2cbus_id"])
 
                     else:
                         logger.info("Writing8...")
-                        self.mng.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                        self.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                             dev_list[i]["ref_val"], dev_list[i]["i2cbus_id"])
                         logger.info("reading8...")
-                        retval,state = self.mng.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                        retval,state = self.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                           dev_list[i]["i2cbus_id"])
                     if retval != dev_list[i]["ref_val"]:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
@@ -1374,19 +1374,19 @@ class Management():
                     if wr_op_passed == True:
                         logger.info("Restoring value")
                         if dev_list[i]["bus_size"] == 2:
-                            self.mng.fpgai2c_write16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                            self.fpgai2c_write16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                  dev_list[i]["res_val"],dev_list[i]["i2cbus_id"])
                         else:
-                            self.mng.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                            self.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                 dev_list[i]["res_val"], dev_list[i]["i2cbus_id"])
             elif dev_list[i]["access"] == "CPLD":
                 if dev_list[i]["op_check"] == "ro":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:
-                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                        retval = self.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                                dev_list[i]["ref_add"],"w")
                     else:
-                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                        retval = self.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                                dev_list[i]["ref_add"],"b")
                     if retval != dev_list[i]["ref_val"]:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
@@ -1409,14 +1409,14 @@ class Management():
                         self.write_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                        dev_list[i]["ref_add"],"w",dev_list[i]["ref_val"])
                         logger.info("reading16...")
-                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                        retval = self.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                                dev_list[i]["ref_add"],"w")
                     else:
                         logger.info("Writing8...")
                         self.write_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                        dev_list[i]["ref_add"],"b",dev_list[i]["ref_val"])
                         logger.info("reading8...")
-                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                        retval = self.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                                dev_list[i]["ref_add"],"b")
                     if retval != dev_list[i]["ref_val"]:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
@@ -1437,10 +1437,10 @@ class Management():
                     if wr_op_passed == True:
                         logger.info("Restoring value")
                         if dev_list[i]["bus_size"] == 2:
-                            self.mng.write_i2c(dev_list[i]["i2cbus_id"], dev_list[i]["ICadd"] >> 1,
+                            self.write_i2c(dev_list[i]["i2cbus_id"], dev_list[i]["ICadd"] >> 1,
                                            dev_list[i]["ref_add"], "w", dev_list[i]["res_val"])
                         else:
-                            self.mng.write_i2c(dev_list[i]["i2cbus_id"], dev_list[i]["ICadd"] >> 1,
+                            self.write_i2c(dev_list[i]["i2cbus_id"], dev_list[i]["ICadd"] >> 1,
                                            dev_list[i]["ref_add"], "b", dev_list[i]["res_val"])
             else:
                 pass
