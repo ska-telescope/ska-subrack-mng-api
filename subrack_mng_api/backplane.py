@@ -69,6 +69,7 @@ def _decodePMBus(message):
 # This class contain methods to permit access to major functionality
 # of backplane board from management CPU (iMX6) via registers mapped in filesystem
 @Pyro5.api.expose
+@Pyro5.server.behavior(instance_mode="single")
 class Backplane():
     def __init__(self, Management_b, simulation):
         self.data = []

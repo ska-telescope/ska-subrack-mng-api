@@ -294,6 +294,7 @@ class mcu2cplduartbuff():
 # This class contain methods to permit access to all registers connected to the
 # management CPU (iMX6) mapped in filesystem
 @Pyro5.api.expose
+@Pyro5.server.behavior(instance_mode="single")
 class Management():
     def __init__(self, simulation=False, cpld_timeout=10):
         self.mcuuart = mcu2cplduartbuff()
