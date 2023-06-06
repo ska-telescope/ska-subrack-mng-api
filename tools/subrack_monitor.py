@@ -370,7 +370,6 @@ if options.pyro:
             {
                 SubrackMngBoard: "subrack",
                 Management: "management",
-                Backplane: "backplane"
             },
             ns = False,host="0.0.0.0",port=1234)
 

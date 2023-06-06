@@ -92,6 +92,36 @@ smm_i2c_devices=[
      "ref_val": 0xa5, "res_val":0xFF,"op_check": "rw", "access":"CPU"},
 ]
 
+backplane_i2c_devices=[
+    {'name': "ADT7470_1", "ICadd": 0x58, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x3d,
+     "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
+    {'name': "ADT7470_2", "ICadd": 0x5e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x3d,
+     "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
+    {'name': "EEPROM", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x7f,
+     "ref_val": 0xa5, "res_val": 0xFF, "op_check": "rw", "access": "CPLD"},
+    {'name': "ADT7408_1", "ICadd": 0x30, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
+     "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
+    {'name': "ADT7408_2", "ICadd": 0x32, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
+     "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_1", "ICadd": 0x80, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val":0x0, "op_check": "rw", "access":"CPLD"},
+    {'name': "LTC4281_2", "ICadd": 0x82, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_3", "ICadd": 0x84, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_4", "ICadd": 0x86, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_5", "ICadd": 0x88, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_6", "ICadd": 0x8c, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_7", "ICadd": 0x8e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
+     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "PCF8574TS_1", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
+     "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
+    {'name': "PCF8574TS_2", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
+     "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
+]
 
 
 TPM_PRESENT_MASK = [0x1, 0x2, 0x4, 0x8, 0x80, 0x40, 0x20, 0x10]
@@ -1274,6 +1304,148 @@ class Management():
                             self.write_i2c(smm_i2c_devices[i]["i2cbus_id"], smm_i2c_devices[i]["ICadd"] >> 1,
                                            smm_i2c_devices[i]["ref_add"], "b", smm_i2c_devices[i]["res_val"])
         return result
+
+    def check_i2c_board_devices_access(self, board="SMB"):
+        result = []
+        wr_op_passed = False
+        if board == "SMB":
+            dev_list=backplane_i2c_devices
+        elif board == "BKPLN":
+            dev_list = smm_i2c_devices
+        else:
+            logger.error("Invalid board parameter, accepted SMB or BKPLN")
+            return None
+        for i in range(0, len(dev_list)):
+            logger.info("Device: %s" %dev_list[i]["name"])
+            if dev_list[i]["access"] == "CPLD":
+                if dev_list[i]["op_check"] == "ro":
+                    retval=0
+                    if dev_list[i]["bus_size"] == 2:
+                        retval,state = self.mng.fpgai2c_read16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                                           dev_list[i]["i2cbus_id"])
+                    else:
+                        retval,state = self.mng.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                                          dev_list[i]["i2cbus_id"])
+                    if retval != dev_list[i]["ref_val"]:
+                        result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval, dev_list[i]["ref_val"]))
+                    else:
+                        result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval, dev_list[i]["ref_val"]))
+                if dev_list[i]["op_check"] == "rw":
+                    retval=0
+                    if dev_list[i]["bus_size"] == 2:
+                        logger.info("Writing16...")
+                        self.mng.fpgai2c_write16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                             dev_list[i]["ref_val"],dev_list[i]["i2cbus_id"])
+                        logger.info("reading16...")
+                        retval,state = self.mng.fpgai2c_read16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                                           dev_list[i]["i2cbus_id"])
+
+                    else:
+                        logger.info("Writing8...")
+                        self.mng.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                            dev_list[i]["ref_val"], dev_list[i]["i2cbus_id"])
+                        logger.info("reading8...")
+                        retval,state = self.mng.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                                          dev_list[i]["i2cbus_id"])
+                    if retval != dev_list[i]["ref_val"]:
+                        result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval,
+                                                                                              dev_list[i]["ref_val"]))
+                    else:
+
+                        wr_op_passed = True
+                        result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval,
+                                                                                              dev_list[i]["ref_val"]))
+                    if wr_op_passed == True:
+                        logger.info("Restoring value")
+                        if dev_list[i]["bus_size"] == 2:
+                            self.mng.fpgai2c_write16(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                                 dev_list[i]["res_val"],dev_list[i]["i2cbus_id"])
+                        else:
+                            self.mng.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
+                                                dev_list[i]["res_val"], dev_list[i]["i2cbus_id"])
+            elif dev_list[i]["access"] == "CPLD":
+                if dev_list[i]["op_check"] == "ro":
+                    retval = 0
+                    if dev_list[i]["bus_size"] == 2:
+                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                                               dev_list[i]["ref_add"],"w")
+                    else:
+                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                                               dev_list[i]["ref_add"],"b")
+                    if retval != dev_list[i]["ref_val"]:
+                        result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval,
+                                                                                              dev_list[i]["ref_val"]))
+                    else:
+                        result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval,
+                                                                                              dev_list[i]["ref_val"]))
+                if dev_list[i]["op_check"] == "rw":
+                    retval = 0
+                    if dev_list[i]["bus_size"] == 2:
+                        logger.info("Writing16...")
+                        self.write_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                                       dev_list[i]["ref_add"],"w",dev_list[i]["ref_val"])
+                        logger.info("reading16...")
+                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                                               dev_list[i]["ref_add"],"w")
+                    else:
+                        logger.info("Writing8...")
+                        self.write_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                                       dev_list[i]["ref_add"],"b",dev_list[i]["ref_val"])
+                        logger.info("reading8...")
+                        retval = self.mng.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
+                                               dev_list[i]["ref_add"],"b")
+                    if retval != dev_list[i]["ref_val"]:
+                        result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval,
+                                                                                              dev_list[i]["ref_val"]))
+                    else:
+
+                        wr_op_passed = True
+                        result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                       "expected": dev_list[i]["ref_val"],
+                                       "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                              retval,
+                                                                                              dev_list[i]["ref_val"]))
+                    if wr_op_passed == True:
+                        logger.info("Restoring value")
+                        if dev_list[i]["bus_size"] == 2:
+                            self.mng.write_i2c(dev_list[i]["i2cbus_id"], dev_list[i]["ICadd"] >> 1,
+                                           dev_list[i]["ref_add"], "w", dev_list[i]["res_val"])
+                        else:
+                            self.mng.write_i2c(dev_list[i]["i2cbus_id"], dev_list[i]["ICadd"] >> 1,
+                                           dev_list[i]["ref_add"], "b", dev_list[i]["res_val"])
+            else:
+                pass
+        return result
+
 
     def mdio_read22(self, mux, phy_adr, register):
         self.write("Mdio.CFG_REG0", 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
