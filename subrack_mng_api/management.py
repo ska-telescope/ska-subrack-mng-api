@@ -569,7 +569,7 @@ class Management():
     def eep_rd32(self, offset):
         rd = 0
         release_lock = False
-        for n in range(2):
+        for n in range(4):
             if n == 4-1:
                 release_lock = True
             rd = rd << 8
