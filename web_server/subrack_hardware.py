@@ -283,8 +283,6 @@ class TpmInfo(HardwareCommand):
         tpm_slot_id = int(params)
         tpm_info = self._hardware.GetTPMInfo(tpm_slot_id)
         answer["retvalue"] = tpm_info
-<<<<<<< Updated upstream
-=======
         return answer
 
 class GetHealthDict(HardwareCommand):
@@ -327,7 +325,6 @@ class GetHealthStatus(HardwareCommand):
             answer["retvalue"] = self._hardware.get_health_status()
         else:
             answer["retvalue"] = self._hardware.get_health_status(group=params)
->>>>>>> Stashed changes
         return answer
 
 
@@ -678,12 +675,9 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
         self.add_command(TpmInfo("tpm_info", subrack, 1))
-<<<<<<< Updated upstream
-=======
         self.add_command(GetHealthDict("get_health_dictionary", subrack, 1))
         self.add_command(GetHealthStatus("get_health_status", subrack, 1))
 
->>>>>>> Stashed changes
         # Add attributes
         self.add_attribute(
             BackplaneTemperature("backplane_temperatures", [0] * 2, subrack)
