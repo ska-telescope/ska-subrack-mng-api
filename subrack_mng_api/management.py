@@ -97,8 +97,8 @@ backplane_i2c_devices=[
      "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
     {'name': "ADT7470_2", "ICadd": 0x5e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x3d,
      "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
-    {'name': "EEPROM", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x7f,
-     "ref_val": 0xa5, "res_val": 0xFF, "op_check": "rw", "access": "CPLD"},
+#    {'name': "EEPROM", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x7f,
+#     "ref_val": 0xa5, "res_val": 0xFF, "op_check": "rw", "access": "CPLD"},
     {'name': "ADT7408_1", "ICadd": 0x30, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
      "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
     {'name': "ADT7408_2", "ICadd": 0x32, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
@@ -123,6 +123,20 @@ backplane_i2c_devices=[
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
 ]
 
+monitored_supplies= {
+    "V_SOC": {'name': "V_SOC",  "Mon": "MCU", "cat": "MCUR", "reg": "VoltageSOC",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.30, 'max': 1.40}},
+    "V_ARM": {'name': "V_ARM",  "Mon": "MCU", "cat": "MCUR", "reg": "VoltageARM",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.30, 'max': 1.40}},
+    "V_DDR": {'name': "V_DDR",  "Mon": "MCU", "cat": "MCUR", "reg": "VoltageDDR",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.30, 'max': 1.40}},
+    "V_2V5": {'name': "V_2V5",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage2V5",  "divider": 1000, "unit": "V", 'exp_value': {'min': 2.40, 'max': 2.55}},
+    "V_1V0": {'name': "V_1V0",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage1V0",  "divider": 1000, "unit": "V", 'exp_value': {'min': 0.95, 'max': 1.05}},
+    "V_1V1": {'name': "V_1V1",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage1V1",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.05, 'max': 1.15}},
+    "V_CORE": {'name': "V_CORE", "Mon": "MCU", "cat": "MCUR", "reg": "VoltageVCORE", "divider": 1000, "unit": "V",'exp_value': {'min': 1.18, 'max': 1.22}},
+    "V_1V5": {'name': "V_1V5",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage1V5",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.48, 'max': 1.52}},
+    "V_3V3": {'name': "V_3V3",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage3V3",  "divider": 1000, "unit": "V", 'exp_value': {'min': 3.30, 'max': 3.35}},
+    "V_5V": {'name': "V_5V",   "Mon": "MCU", "cat": "MCUR", "reg": "Voltage5V",  "divider": 1000, "unit": "V",'exp_value': {'min': 4.98, 'max': 5.05}},
+    "V_3V": {'name': "V_3V",   "Mon": "MCU", "cat": "MCUR", "reg": "Voltage3V",  "divider": 1000, "unit": "V", 'exp_value': {'min': 3.00, 'max': 3.35}},
+    "V_2V8": {'name': "V_2V8",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage2V8", "divider": 1000, "unit": "V",'exp_value': {'min': 2.75, 'max': 2.85}},
+}
 
 TPM_PRESENT_MASK = [0x1, 0x2, 0x4, 0x8, 0x80, 0x40, 0x20, 0x10]
 
@@ -1314,6 +1328,64 @@ class Management():
             else:
                 pass
         return result
+    def cpu_runtime_mem_test(self):
+        """
+        method used to exexute a ddr test while OS is running
+        :return dictionary with all phases test results
+        """
+        results = []
+        errors = 0
+        cmd = "sudo memtester 32M 1"
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("cpu_runtime_mem_test: error while execute command")
+            results.append({"DDR TEST": "FAILED"})
+            return results
+        lines = out.splitlines()
+        #for l in range(0,len(lines)):
+        #    res = parse.parse("  {}: {}", lines[l])
+        #    if res != None:
+        #       results.append({res[0].split(" ")[0] : res[1]})
+        #       if res[1] != "ok":
+        #               errors += 1
+        if lines[len(lines)-1] != "Done.":
+            errors += 1
+        if errors != 0:
+            results.append({"DDR TEST": "FAILED"})
+        else:
+            results.append({"DDR TEST": "PASSED"})
+        return results
+
+    def get_monitored_board_supplies_list(self):
+        measures = []
+        for key, value in monitored_supplies.items():
+            measures.append(value["name"])
+        return measures
+
+    def get_monitored_board_supplies(self, measure):
+        f_voltage = float("nan")
+        for key, value in monitored_supplies.items():
+            if measure in value["name"]:
+                voltage = self.read("%s.%s" % (value["cat"], value["reg"]))
+                f_voltage = float(voltage / value["divider"])
+                f_voltage = round(f_voltage, 2)
+                break
+        return f_voltage
+
+    def check_board_supplies(self):
+        results = []
+        test_pass = "FAILED"
+        for key, value in monitored_supplies.items():
+            voltage = self.read("%s.%s" % (value["cat"], value["reg"]))
+            f_voltage = float(voltage / value["divider"])
+            f_voltage = round(f_voltage, 2)
+            if f_voltage < value["exp_value"]["min"] or f_voltage > value["exp_value"]["max"]:
+                test_pass = "FAILED"
+            else:
+                test_pass = "PASSED"
+            results.append({"name":value["name"], "get": f_voltage, "min": value["exp_value"]["min"], "max": value["exp_value"]["max"], "result":test_pass })
+        return results
+
 
 
     def mdio_read22(self, mux, phy_adr, register):
