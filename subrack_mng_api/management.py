@@ -1441,6 +1441,36 @@ class Management():
         temp = round(temp, 2)
         return temp
 
+    # ##get_voltage_smb
+    # This method return the input voltage 12V0 voltage measured by the LTC4281 power control
+    # return vout: voltage value in V
+    def get_voltage_smb(self):
+        dev = self.smm_i2c_devices_dict["LTC4281"]
+        data_h, status = self.fpgai2c_read8(dev["ICadd"], 0x3A, dev["i2cbus_id"])
+        data_l, status = self.fpgai2c_read8(dev["ICadd"], 0x3b, dev["i2cbus_id"])
+        voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
+        vout = float(voltage * 16.64) / 65535
+        vout = round(vout, 3)
+        if print_debug:
+            logger.info("voltage, " + str(vout))
+        return vout
+
+    # ##check_input_voltage_smb
+    # This method check expected value of input voltage 12V0
+    # return results: dictionary with status an value of operation
+    def check_input_voltage_smb(self):
+        vout = self.get_voltage_smb()
+        vref = 12
+        results = []
+        if vout < (vref - (vref / 100 * 5)) or vout > ((vref + (vref / 100 * 5))):
+            test_pass = "FAILED"
+        else:
+            test_pass = "PASSED"
+        results.append({"name": "12V0", "get": vout, "min": (vref - (vref / 100 * 5)), "max": (vref + (vref / 100 * 5)),
+                        "result": test_pass})
+        return results
+
+
     # SW UPDATE METHODS SECTION
     def flash_uboot(self, uboot_file):
         """
