@@ -199,4 +199,8 @@ def load_subrack_lookup(obj):
             'V_2V8': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_2V8"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': {'min': 2.75, 'max': 2.85}, 'unit': 'V'},
         },
+        'smb_powerin_voltage': {
+            '12V0': {'method': partial(obj.Mng.get_voltage_smb, "12V0"), 'group': ['smb_powerin_voltage', 'voltages'],
+                      'exp_value': {'min': 12 - (12/100*5), 'max': 12 + (12/100*5)}, 'unit': 'V'},
+        },
     }
