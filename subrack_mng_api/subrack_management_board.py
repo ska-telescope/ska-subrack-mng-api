@@ -196,7 +196,7 @@ def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8, wait = '1'):
 class SubrackMngBoard():
     def __init__(self, **kwargs):
         logger.info("SubrackMngBoard init ...")
-        self._simulation = kwargs.get("simulation")
+        self._simulation = kwargs.get("simulation",False)
         self.data = []
         logger.debug("Mng creating..")
         self.Mng = Management(self._simulation)
