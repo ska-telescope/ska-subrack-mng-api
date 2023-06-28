@@ -285,6 +285,48 @@ class TpmInfo(HardwareCommand):
         answer["retvalue"] = tpm_info
         return answer
 
+class GetHealthDict(HardwareCommand):
+    """
+    Return subrack health status dictionary.
+    """
+
+    def do(self, params):
+        """
+        Info about subrack health status 
+        :param params: group of monitor points to report
+        :type params: str 
+
+        :return:dictionary  of monitor points
+        :rtype: dict
+        """
+        answer = super().do()
+        if (params == "") or (params is None) or (len(params) == 0):
+            answer["retvalue"] = self._hardware.get_health_dict()
+        else:
+            answer["retvalue"] = self._hardware.get_health_dict(group=params)
+        return answer
+
+class GetHealthStatus(HardwareCommand):
+    """
+    Return info about subrack health status.
+    """
+
+    def do(self, params):
+        """
+        Info about subrack health status 
+        :param params: group of monitor points to report
+        :type params: str 
+
+        :return: dictionary of monitor point values
+        :rtype: dict
+        """
+        answer = super().do()
+        if (params == "") or (params is None) or (len(params) == 0):
+            answer["retvalue"] = self._hardware.get_health_status()
+        else:
+            answer["retvalue"] = self._hardware.get_health_status(group=params)
+        return answer
+
 
 # Attributes
 
@@ -633,6 +675,9 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_command(SetFanSpeed("set_subrack_fan_speed", subrack, 2))
         self.add_command(SetPSFanSpeed("set_power_supply_fan_speed", subrack, 2))
         self.add_command(TpmInfo("tpm_info", subrack, 1))
+        self.add_command(GetHealthDict("get_health_dictionary", subrack, 1))
+        self.add_command(GetHealthStatus("get_health_status", subrack, 1))
+
         # Add attributes
         self.add_attribute(
             BackplaneTemperature("backplane_temperatures", [0] * 2, subrack)

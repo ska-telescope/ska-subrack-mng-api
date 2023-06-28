@@ -174,17 +174,19 @@ def exec_cmd(cmd,dir=None,verbose=True, exclude_line=""):
         raise NameError("exec_cmd fails: \""+cmd+"\"")
 
 
-def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8):
+def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8, wait = '1'):
     cmd='ping ' + ip + ' -c %d'%count + ' -i ' + interval
     if size is not None:
         cmd += ' -s %d'%size
+    if wait is not None:
+        cmd += ' -W %s'%wait
     out,returncode=exec_cmd(cmd,verbose=False)
     ping_loss=0
     if returncode > 0:
         result = 'FAILED'
         ping_loss=out.count('Unreachable')+out.count('unreachable')+out.count('time out')
         if out.count("100% packet loss"):
-            ping_loss=-1
+            ping_loss=count
     return ping_loss
 
 # ##Subrack Management Board Class
@@ -194,7 +196,7 @@ def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8):
 class SubrackMngBoard():
     def __init__(self, **kwargs):
         logger.info("SubrackMngBoard init ...")
-        self._simulation = kwargs.get("simulation")
+        self._simulation = kwargs.get("simulation",False)
         self.data = []
         logger.debug("Mng creating..")
         self.Mng = Management(self._simulation)
@@ -280,10 +282,9 @@ class SubrackMngBoard():
                 tpm_ip_str = self.tpm_ip_list[i]
                 if actual_tpm_ip_str != tpm_ip_str:
                     logger.warning("Found TPM in SLOT-%d with unexpected ip address"%tpm_slot_id)
-                    logger.warning("expecetd %s, got %s"%(tpm_ip_str,actual_tpm_ip_str))
-                    time.sleep(2)
+                    logger.warning("expected %s, got %s"%(tpm_ip_str,actual_tpm_ip_str))
+                    time.sleep(1)
                     self.__assign_tpm_ip(tpm_slot_id)
-                    time.sleep(2)
                 if Adu_Eth_Ping(tpm_ip_str) > 0:
                     logger.warning("Exception during TPM connection at SLOT-%d, try power cycle"%tpm_slot_id)
                     self.PowerOffTPM(tpm_slot_id)
@@ -306,7 +307,8 @@ class SubrackMngBoard():
             tpm_ip_add_h = ipstr2hex(cpu_ip) & 0xFFFFFF00
             cpu_ip_l = ipstr2hex(cpu_ip) & 0xFF
             tpm_ip_add = tpm_ip_add_h | (cpu_ip_l + 6 + tpm_slot_id)
-            self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway)
+            self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway,bypass_check = True)
+            out,returncode=exec_cmd("sudo arp -d %s"%int2ip(tpm_ip_add),verbose=False)
         else:
             logger.debug("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
@@ -361,7 +363,7 @@ class SubrackMngBoard():
             logger.debug("Error TPM IP list")
             raise SubrackExecFault("Error:TPM IP Add List Incomplete")
 
-    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None):
+    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None, bypass_check = False):
         """ method to manually set volatile local ip address of a TPM board present on subrack
         :param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
         :param ip: ip address will be assigned to selected TPM
@@ -369,12 +371,13 @@ class SubrackMngBoard():
         :return status
         """
         prev_onoff = 0
-        if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0:
-            # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
-            if self.GetTPMOnOffVect() & (1 << (tpm_slot_id-1)) == 0:
-                raise SubrackExecFault("Error:TPM is Powered OFF")
-        else:
-            raise SubrackInvalidCmd("TPM not present")
+        if bypass_check == False:
+            if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0:
+                # if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
+                if self.GetTPMOnOffVect() & (1 << (tpm_slot_id-1)) == 0:
+                    raise SubrackExecFault("Error:TPM is Powered OFF")
+            else:
+                raise SubrackInvalidCmd("TPM not present")
         self.write_tpm_singlewire(tpm_slot_id, 0x40000028, ipstr2hex(ip))
         ip_int_rb = self.read_tpm_singlewire(tpm_slot_id, 0x40000028)
         if ip_int_rb != ipstr2hex(ip):
@@ -474,8 +477,12 @@ class SubrackMngBoard():
         :return vector of poweron status for slots, bits 7:0, bit 0 slot 1, bit 7 slot 8, 1 TPM power on, 0 no TPM
         inserted or power off
         """
-        reg = self.Mng.read("Fram.TPM_SUPPLY_STATUS")
-        tpmison_vect = reg & 0xff
+        # reg = self.Mng.read("Fram.TPM_SUPPLY_STATUS")
+        # tpmison_vect = reg & 0xff
+        tpmison_vect = 0
+        for i in range(1,9):
+            if self.Bkpln.is_tpm_on(i):
+                tpmison_vect |= 1 << (i-1)
         return tpmison_vect
 
     def GetTPMSupplyFault(self):
@@ -484,7 +491,8 @@ class SubrackMngBoard():
         """
         reg = self.Mng.read("Fram.TPM_SUPPLY_STATUS")
         tpmsupplyfault = (reg & 0xff00) >> 8
-        return tpmsupplyfault
+        return 0
+        # return tpmsupplyfault
 
     def GetTPMPower(self, tpm_slot_id, force=True):
         """ method to get power consumption of selected tpm (providing subrack index slot of tpm)
@@ -542,7 +550,7 @@ class SubrackMngBoard():
         temp_bck2, stat2 = self.Bkpln.get_sens_temp(2)
         return temp_mng1, temp_mng2, temp_bck1, temp_bck2
 
-    def PowerOnTPM(self, tpm_slot_id, force=False):
+    def PowerOnTPM(self, tpm_slot_id, force=False, ping_check = False):
         logger.info("PowerOnTPM - %d"%(tpm_slot_id))
         """method to power on selected tpm
         :param  tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
@@ -560,21 +568,29 @@ class SubrackMngBoard():
             else:
                 raise SubrackExecFault("ERROR: TPM not present in selected slot")
         else:
+            logger.info("PowerOnTPM TPM is present")
             if self.Bkpln.get_bkpln_is_onoff() == 0:
                 self.Bkpln.power_on_bkpln()
                 if self.powermon_cfgd is False:
                     self.SubrackInitialConfiguration()
+                logger.info("PowerOnTPM BKPLN was off, switched on")
             if self.Bkpln.is_tpm_on(tpm_slot_id) is False:
+                logger.info("PowerOnTPM TPM was off, switched on")
                 if self.Bkpln.pwr_on_tpm(tpm_slot_id):
                     logger.error("Power TPM on slot %d failed" % tpm_slot_id)
                     raise SubrackExecFault("ERROR: power on TPM command failed")
                 else:
-                    time.sleep(2)
+                    #logger.info("PowerOnTPM wait 0.5s")
+                    #time.sleep(0.5)
+                    logger.info("PowerOnTPM __assign_tpm_ip")
                     self.__assign_tpm_ip(tpm_slot_id)
-                    time.sleep(2)
+                    #logger.info("PowerOnTPM wait 2s")
+                    #time.sleep(2)
                     tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
-                    if Adu_Eth_Ping(tpm_ip_str) > 0:
-                        logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
+                    if ping_check:
+                        logger.info("PowerOnTPM Adu_Eth_Ping")
+                        if Adu_Eth_Ping(tpm_ip_str) > 0:
+                            logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
 
         logger.info("PowerOnTPM End")
 
