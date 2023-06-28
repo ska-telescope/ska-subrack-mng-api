@@ -1954,7 +1954,11 @@ class Management():
                 outl = out.splitlines()
                 for k in range(0, len(outl)):
                     if outl[k].find("/dev/mmcblk") != -1:
-                        dev = outl[k].split(" ")[0]
+                        root = outl[k].split(" ")[0]
+                        parsed_root = parse.parse("/dev/mmcblk{}p{}",root)
+                        blk=int(parsed_root[0])
+                        part=int(parsed_root[1])-1
+                        dev="/dev/mmcblk%dp%d"%(blk,part)
                         break
                 if dev == "":
                     logging.error("write_kernel: unable to detect valid mounted device")
