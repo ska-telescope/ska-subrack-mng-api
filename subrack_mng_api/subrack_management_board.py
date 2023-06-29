@@ -230,6 +230,23 @@ class SubrackMngBoard():
             self.pll_lock_exp_rd = 0x33
         self.monitoring_point_lookup_dict = load_subrack_lookup(self)
         logger.info("SubrackMngBoard init done!")
+        self.board_info = {}
+        self.board_info['SMM']=self.Mng.get_board_info()
+        self.board_info['BKPLN']=self.Bkpln.get_board_info()
+        try:
+            board_info_file = open("/tmp/board_info", "w")
+            for board_key,board_info in self.board_info.items():
+                table=[]
+                for key,value in board_info.items():
+                    logger.info("%s: %s"%(key,value))
+                    table.append([str(key), str(value)])
+                board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",board_key],tablefmt='pipe'))
+                board_info_file.write('\n')
+                board_info_file.write('\n')
+            board_info_file.write("SubrackMngAPI version: %s\n" % get_version())
+            board_info_file.close()
+        except PermissionError:
+            logger.warning("Cannot create '/tmp/board_info' -  Permission error")
 
     def __del__(self):
         self.data = []
