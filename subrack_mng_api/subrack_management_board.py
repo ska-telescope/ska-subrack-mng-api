@@ -16,6 +16,7 @@ import logging
 # from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
 import operator
+import subprocess
 from subrack_mng_api.subrack_monitoring_point_lookup import load_subrack_lookup
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
@@ -243,7 +244,7 @@ class SubrackMngBoard():
                 board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",board_key],tablefmt='pipe'))
                 board_info_file.write('\n')
                 board_info_file.write('\n')
-            board_info_file.write("SubrackMngAPI version: %s\n" % get_version())
+            board_info_file.write("SubrackMngAPI version: %s\n" % self.Get_API_version())
             board_info_file.close()
         except PermissionError:
             logger.warning("Cannot create '/tmp/board_info' -  Permission error")
@@ -357,7 +358,18 @@ class SubrackMngBoard():
         """ method to get the Version of the API
         :return string with API version
         """
-        return get_version()
+        try:
+            cmd="git -C %s describe --tags --dirty --always"%os.path.dirname(__file__)
+        except:
+            cmd="git -C %s describe --tags --dirty --always"%"/home/mnguser/SubrackMngAPI"
+        
+        try:
+            result = subprocess.run(cmd.split(" "), stdout=subprocess.PIPE)
+            if result.returncode == 0:
+                return get_version() + " (%s)"%str(result.stdout.decode('utf-8').strip())
+            return get_version()
+        except:
+            return get_version()
 
     def Get_Subrack_TimeTS(self):
         """ method to get the subrack Time in timestamp format
