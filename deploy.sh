@@ -41,7 +41,7 @@ if [ $PRINT_HELP == true ]; then
 fi
 
 if [ $UPDATE == true ]; then
-    echo "Updating repository with online version"
+    echo "Updating API repository with online version"
     git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
 fi
 
@@ -57,6 +57,11 @@ if [ $CLEAN_VENV == true ]; then
     echo "Extract venv"
     tar -xzf $ROOT/packed-venv.tgz -C $ROOT/venv --checkpoint=.100 || { echo 'cmd failed' ; exit 1; }
     echo "Done"
+fi
+
+if [ $UPDATE == true ]; then
+    echo "Updating BIOS repository with online version"
+    pip install --upgrade git+https://gitlab.com/sanitaseg/ska-low-smm-bios.git || { echo 'cmd failed' ; exit 1; }
 fi
 
 $ROOT/venv/bin/python -m pip install -U $ROOT || { echo 'cmd failed' ; exit 1; }
