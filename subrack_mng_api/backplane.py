@@ -92,8 +92,8 @@ class LTC428x_dev():
             retry = 10
             while(wait_finish and retry > 0 ):
                 # print("=")
-                FAULT_LOG_B1 = self.read('FAULT_LOG_B1')
-                STATUS_B2  = self.read('STATUS_B2')
+                FAULT_LOG_B1, status = self.read('FAULT_LOG_B1')
+                STATUS_B2, status  = self.read('STATUS_B2')
                 # print(hex(FAULT_LOG_B1))
                 # print(hex(STATUS_B2))
                 wait_finish = False
