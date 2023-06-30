@@ -77,7 +77,7 @@ class LTC428x_dev():
             data, status = self.mng.fpgai2c_read8(self.i2c_add, self.regs[reg]['off'], self.i2c_bus)
         if status != 0:
             logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
-            return status
+            return 0xff, status
         # print(self.name, "read", reg, hex(data))
         return data, status
     
@@ -126,6 +126,16 @@ class Backplane():
             vout,status=self.get_ps_vout_mode(i+1)
             self.ps_vout_mode.append(vout)
             self.ps_vout_n.append(twos_comp(self.ps_vout_mode[i],5))
+        try:
+            data, status = self.power_supply[0].read('CONTROL_B1')
+            if status == 0:
+                self.bkpln_present = True
+            else:
+                self.bkpln_present = False
+                logger.error("Error BKPLN not present!")
+        except:
+            self.bkpln_present = False
+            logger.error("Error BKPLN not present!")
         self.board_info=self.get_board_info()
         
 
@@ -134,6 +144,10 @@ class Backplane():
 
     def get_board_info(self):
         mng_info={}
+        if not self.bkpln_present:
+            mng_info["SN"] = "NA"
+            mng_info["PN"] = "NA"    
+            return mng_info
         mng_info["SN"] = self.get_field("SN")
         mng_info["PN"] = "BKPLN"
         pcb_rev = self.get_field("PCB_REV")

@@ -232,8 +232,8 @@ class SubrackMngBoard():
         self.monitoring_point_lookup_dict = load_subrack_lookup(self)
         logger.info("SubrackMngBoard init done!")
         self.board_info = {}
-        self.board_info['SMM']=self.Mng.get_board_info()
-        self.board_info['BKPLN']=self.Bkpln.get_board_info()
+        self.board_info['SMM']=self.Mng.board_info
+        self.board_info['BKPLN']=self.Bkpln.board_info
         try:
             board_info_file = open("/tmp/board_info", "w")
             for board_key,board_info in self.board_info.items():
