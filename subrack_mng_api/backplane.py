@@ -615,7 +615,13 @@ class Backplane():
         return 0
 
 
-
+    def get_ps_present(self, ps_id):
+        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
+        if status != 0:
+            return None
+        if bool(ioexp_value & (0b1<<(ps_id-1))):
+            return False
+        return True
 
     # ####POWER SUPPLY FUNCTIONS
     # This method get the selected power supply status register
@@ -623,10 +629,10 @@ class Backplane():
     # return status_reg: register value
     # return status: status of operation
     def get_ps_status(self, ps_id):
-        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
-        if status != 0:
+        present = self.get_ps_present(ps_id)
+        if present is None:
             return None
-        if bool(ioexp_value & (0b1<<(ps_id-1))):
+        if present is False:
             res = {
                 "present" :       False,
                 "busy" :          False,
@@ -670,6 +676,8 @@ class Backplane():
         return res
         
     def get_ps_vout_mode(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
         i2c_add = 0xb0+((ps_id-1)*2)
         vout_mode, status = self.mng.fpgai2c_read8(i2c_add, 0x20, FPGA_I2CBUS.i2c3)
         return vout_mode, status
@@ -678,6 +686,8 @@ class Backplane():
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return v: vout value
     def get_ps_vout(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan')
         status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Vout")
         if status == 255:
             return 0
@@ -691,6 +701,8 @@ class Backplane():
     # return i: iout value
     # return status: status of operation
     def get_ps_iout(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan')
         status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Iout")
         if status == 255:
             return 0
@@ -704,6 +716,8 @@ class Backplane():
     # return pw: power value
     # return status: status of operation
     def get_ps_power(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan')
         i = self.get_ps_iout(ps_id)
         v = self.get_ps_vout(ps_id)
         pw = float(v*i)
@@ -716,6 +730,8 @@ class Backplane():
     # executed only if the desired Fanspeed is greater than what is required by the PSU. )
     # return status: status of operation
     def set_ps_fanspeed(self, ps_id, speed_cmd):
+        if self.get_ps_present(ps_id) != True:
+            return 1
         i2c_add = 0xb0+((ps_id-1)*2)
         if speed_cmd > 100 or speed_cmd < 0:
             status = -2
@@ -730,6 +746,8 @@ class Backplane():
     # executed only if the desired Fanspeed is greater than what is required by the PSU. )
     # return status: status of operation
     def get_ps_fanspeed(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan'), 1
         i2c_add = 0xb0+((ps_id-1)*2)
         speed_param, status = self.mng.fpgai2c_read16(i2c_add, 0x3B, FPGA_I2CBUS.i2c3)
         return speed_param, status

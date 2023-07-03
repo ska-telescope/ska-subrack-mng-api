@@ -887,7 +887,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return vout: value of Vout in Volt
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         vout = self.Bkpln.get_ps_vout(ps_id)
         return vout
@@ -897,7 +897,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return vout: value of Iout in Ampere
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         vout = self.Bkpln.get_ps_iout(ps_id)
         return vout
@@ -907,7 +907,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return power: value of power in W
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         power = self.Bkpln.get_ps_power(ps_id)
         return power
@@ -917,7 +917,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return fanspeed: speed of the fan
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         fanspeed, status = self.Bkpln.get_ps_fanspeed(ps_id)
         if status != 0:
@@ -930,7 +930,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :param speed_percent: speed in percentual value from 0 to 100
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         status = self.Bkpln.set_ps_fanspeed(ps_id, speed_percent)
         if status != 0:
