@@ -449,10 +449,10 @@ class Backplane():
             return status
         else:
             self.reset_pwr_fault_reg(tpm_id)
-            data, status = self.power_supply(tpm_id-1).read('ILIM_ADJUST')
+            data, status = self.power_supply[tpm_id-1].read('ILIM_ADJUST')
             
             datatowr = int(data) | (cfg << 5)
-            status = self.power_supply(tpm_id-1).write('ILIM_ADJUST', datatowr)
+            status = self.power_supply[tpm_id-1].write('ILIM_ADJUST', datatowr)
             return status
 
     # ##pwr_set_ilimt
@@ -461,7 +461,7 @@ class Backplane():
     # return status: status of operation
     # return cfg: actual configuration value
     def pwr_get_ilimt(self, tpm_id):
-        data, status = self.power_supply(tpm_id-1).read('ILIM_ADJUST')
+        data, status = self.power_supply[tpm_id-1].read('ILIM_ADJUST')
         cfg = (data & 0xE0) >> 5
         return cfg, status
 
