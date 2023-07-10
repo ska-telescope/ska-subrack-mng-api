@@ -372,18 +372,6 @@ class Management():
         self.hw_rev=self.get_hardware_revision()
         self.BIOS_REV_list = ska_low_smm_bios.bios.bios_get_dict(hw_rev=self.hw_rev)
         self.board_info=self.get_board_info()
-        table=[]
-        for key,value in self.board_info.items():
-            logger.info("%s: %s"%(key,value))
-            table.append([str(key), str(value)])
-        try:
-            board_info_file = open("/tmp/board_info", "w")
-            board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",""],tablefmt='pipe'))
-            board_info_file.write('\n')
-            board_info_file.write("SubrackMngAPI version: %s \n" %get_version())
-            board_info_file.close()
-        except PermissionError:
-            logger.warning("Cannot create '/tmp/board_info' -  Permission error")
 
 
     def __del__(self):
@@ -1642,13 +1630,18 @@ class Management():
                 if outl[k].split(" ")[0] == dev:
                     logging.error("flash_fs_image: selected device is already mounted and in use select different")
                     return 3
+        cmd = "sudo mkfs.ext4 %s" %dev
+        out, retcode = exec_cmd(cmd, verbose=True)
+        if retcode != 0:
+            logging.error("flash_fs_image: error while formatting partition %s"%dev)
+            return 4
         cmd = "sudo mount %s /mnt/" %dev
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_fs_image: error while mount command execution")
-            return 4
+            return 5
         logging.info("flash_fs_image: starting unzip image")
-        cmd = "sudo tar -xvzf %s -C /mnt/" %fs_image_path
+        cmd = "sudo tar --xattrs --xattrs-include=* -xvzf %s -C /mnt/" %fs_image_path
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
             logging.error("flash_fs_image: error while unzip execution")
@@ -1954,7 +1947,11 @@ class Management():
                 outl = out.splitlines()
                 for k in range(0, len(outl)):
                     if outl[k].find("/dev/mmcblk") != -1:
-                        dev = outl[k].split(" ")[0]
+                        root = outl[k].split(" ")[0]
+                        parsed_root = parse.parse("/dev/mmcblk{}p{}",root)
+                        blk=int(parsed_root[0])
+                        part=int(parsed_root[1])-1
+                        dev="/dev/mmcblk%dp%d"%(blk,part)
                         break
                 if dev == "":
                     logging.error("write_kernel: unable to detect valid mounted device")

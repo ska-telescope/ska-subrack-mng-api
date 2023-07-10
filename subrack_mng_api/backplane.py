@@ -8,6 +8,8 @@ from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
 print_debug = False
 import logging
+import socket
+import struct
 logger=logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
@@ -17,7 +19,7 @@ class BackplaneInvalidParameter(Exception):
     pass
 
 
-power_supply_i2c_offset = [0x0,0x2,0x4,0x6,0x8,0xa,0xc,0xe]
+
 
 
 
@@ -34,6 +36,79 @@ def _decodePMBus(message):
     message = messageY*(2.0**(twos_comp(messageN, 5))) #calculate real values (everything but VOUT works)
     return message
 
+eep_sec = {
+    "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
+    "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
+    "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
+    "HARDWARE_REV": {"offset": 0x0c, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
+    "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
+    "SN":           {"offset": 0x10, "size": 16, "name": "SN", "type": "string", "protected": True},
+}
+
+class LTC428x_dev():
+
+    def __init__(self,tpm_id,mng):
+        self.tpm_id = tpm_id
+        self.mng = mng
+        self.i2c_bus = FPGA_I2CBUS.i2c2
+        power_supply_i2c_offset = [0x80,0x82,0x84,0x86,0x88,0x8a,0x8c,0x8e]
+        self.i2c_add = power_supply_i2c_offset[tpm_id-1]
+        self.name = "FPGA_I2CBUS.i2c2.LTC428x_dev.tpm_id.%d(0x%x)"%(self.tpm_id,self.i2c_add)
+        self.regs = {
+            'CONTROL_B1'        : {'off' : 0x00, 'len' : 1},
+            'FAULT_LOG_B1'      : {'off' : 0x04, 'len' : 1},
+            'FAULT_LOG'         : {'off' : 0x04, 'len' : 2},
+            'ILIM_ADJUST'       : {'off' : 0x11, 'len' : 1},
+            'STATUS_B2'         : {'off' : 0x1f, 'len' : 1},
+            'EE_SCRATCH_PAD_B1' : {'off' : 0x4c, 'len' : 1},
+            'EE_SCRATCH_PAD_B2' : {'off' : 0x4d, 'len' : 1},
+            'EE_SCRATCH_PAD_B3' : {'off' : 0x4e, 'len' : 1},
+            'EE_SCRATCH_PAD_B4' : {'off' : 0x4f, 'len' : 1},
+        }
+
+    def get_name(self):
+        return self.name
+    
+    def read(self,reg):
+        # print(self.name, "read", reg)
+        if self.regs[reg]['len'] == 2:
+            data, status = self.mng.fpgai2c_read16(self.i2c_add, self.regs[reg]['off'], self.i2c_bus)
+        else:
+            data, status = self.mng.fpgai2c_read8(self.i2c_add, self.regs[reg]['off'], self.i2c_bus)
+        if status != 0:
+            logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
+            return 0xff, status
+        # print(self.name, "read", reg, hex(data))
+        return data, status
+    
+    def write(self, reg, data):
+        # print(self.name, "write", reg, hex(data))
+        if self.regs[reg]['len'] == 2:
+            status = self.mng.fpgai2c_write16(self.i2c_add, self.regs[reg]['off'], data, self.i2c_bus)
+        else:
+            status = self.mng.fpgai2c_write8(self.i2c_add, self.regs[reg]['off'], data, self.i2c_bus)
+        if "EE_" in reg:
+            wait_finish = True
+            retry = 10
+            while(wait_finish and retry > 0 ):
+                # print("=")
+                FAULT_LOG_B1, status = self.read('FAULT_LOG_B1')
+                STATUS_B2, status  = self.read('STATUS_B2')
+                # print(hex(FAULT_LOG_B1))
+                # print(hex(STATUS_B2))
+                wait_finish = False
+                if (FAULT_LOG_B1 & 0x80) == 0:
+                    wait_finish = True
+                if (STATUS_B2 & 0x08) > 0:
+                    wait_finish = True
+                retry -= 1
+            if retry == 0:
+                logger.error(self.name + " Error writing EE_ on device " + hex(self.i2c_add))
+                return -1
+            return 0
+        else:
+            return status
+        
 # mng=MngBoard()
 # ## Backplane Board Class
 # This class contain methods to permit access to major functionality
@@ -45,14 +120,158 @@ class Backplane():
         self.simulation = simulation
         self.ps_vout_mode=[]
         self.ps_vout_n=[]
+        self.eep_sec = eep_sec
+        self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
             vout,status=self.get_ps_vout_mode(i+1)
             self.ps_vout_mode.append(vout)
             self.ps_vout_n.append(twos_comp(self.ps_vout_mode[i],5))
+        try:
+            data, status = self.power_supply[0].read('CONTROL_B1')
+            if status == 0:
+                self.bkpln_present = True
+            else:
+                self.bkpln_present = False
+                logger.error("Error BKPLN not present!")
+        except:
+            self.bkpln_present = False
+            logger.error("Error BKPLN not present!")
+        self.board_info=self.get_board_info()
+        
 
     def __del__(self):
         self.data = []
 
+    def get_board_info(self):
+        mng_info={}
+        if not self.bkpln_present:
+            mng_info["SN"] = "NA"
+            mng_info["PN"] = "NA"    
+            return mng_info
+        mng_info["SN"] = self.get_field("SN")
+        mng_info["PN"] = "BKPLN"
+        pcb_rev = self.get_field("PCB_REV")
+        if pcb_rev == 0xff or pcb_rev == 0x00:
+            pcb_rev_string = ""
+        else:
+            pcb_rev_string = str(pcb_rev)
+        hw_rev = self.get_field("HARDWARE_REV")
+        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
+        mng_info["CPLD_ip_address_eep"] = self.get_field("ip_address")
+        mng_info["CPLD_netmask_eep"] = self.get_field("netmask")
+        mng_info["CPLD_gateway_eep"] = self.get_field("gateway")
+
+        return mng_info
+
+    def ip2long(self, ip):
+        """
+        Convert an IP string to long
+        """
+        packed_ip = socket.inet_aton(ip)
+        return struct.unpack("!L", packed_ip)[0]
+    
+    def long2ip(self, ip):
+        """
+        Convert long to IP string
+        """
+        return socket.inet_ntoa(struct.pack("!I", ip))
+    
+    def get_field(self, key):
+        if self.eep_sec[key]["type"] == "ip":
+            return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
+        elif self.eep_sec[key]["type"] == "bytearray":
+            arr = bytearray()
+            for offset in range(self.eep_sec[key]["size"]):
+                arr.append(self.eep_rd8(self.eep_sec[key]["offset"]+offset))
+            return arr
+        elif self.eep_sec[key]["type"] == "string":
+            return self.rd_string(self.eep_sec[key])
+        elif self.eep_sec[key]["type"] == "uint":
+            val = 0
+            for offset in range(self.eep_sec[key]["size"]):
+                val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"]+offset)
+            return val
+        
+    def set_field(self, key, value, override_protected=False):
+        if self.eep_sec[key]["protected"] is False or override_protected:
+            if self.eep_sec[key]["type"] == "ip":
+                self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
+            elif self.eep_sec[key]["type"] == "bytearray":
+                for offset in range(self.eep_sec[key]["size"]):
+                    self.eep_wr8(self.eep_sec[key]["offset"] + offset,
+                             ((value & (0xff << (8*(self.eep_sec[key]["size"]-1-offset))))
+                              >> (8*(self.eep_sec[key]["size"]-1-offset))) & 0xff)
+            elif self.eep_sec[key]["type"] == "string":
+                self.wr_string(self.eep_sec[key], value)
+            elif self.eep_sec[key]["type"] == "uint":
+                val = value
+                for offset in range(self.eep_sec[key]["size"]):
+                    self.eep_wr8(self.eep_sec[key]["offset"]+offset, val & 0xff)
+                    val = val >> 8
+        else:
+            print("Writing attempt on protected sector %s" % key)
+
+    def eep_rd8(self, offset, release_lock = True):
+        _id = (offset // 4)
+        reg='EE_SCRATCH_PAD_B%d' % ((offset % 4) + 1)
+        data, result = self.power_supply[_id].read(reg)
+        return data
+        
+        
+    def eep_rd32(self, offset):
+        rd = 0
+        release_lock = False
+        for n in range(4):
+            if n == 4-1:
+                release_lock = True
+            rd = rd << 8
+            rd = rd | self.eep_rd8(offset+n, release_lock = release_lock)
+        return rd
+    
+    def wr_string(self, partition, string):
+        return self._wr_string(partition["offset"], string, partition["size"])
+
+    def _wr_string(self, offset, string, max_len=16):
+        addr = offset
+        for i in range(len(string)):
+            self.eep_wr8(addr, ord(string[i]), release_lock = False)
+            addr += 1
+            if addr >= offset + max_len:
+                break
+        if addr < offset + max_len:
+            self.eep_wr8(addr, ord("\n"), release_lock = True)
+        else:
+            self.eep_rd8(offset, release_lock = True)
+
+    def rd_string(self, partition):
+        return self._rd_string(partition["offset"], partition["size"])
+
+    def _rd_string(self, offset, max_len=16):
+        addr = offset
+        string = ""
+        for i in range(max_len):
+            byte = self.eep_rd8(addr, release_lock = False)
+            if byte == ord("\n") or byte == 0xff:
+                break
+            string += chr(byte)
+            addr += 1
+        self.eep_rd8(offset, release_lock = True)
+        return string
+    
+    def eep_wr8(self, offset, data, release_lock = True):
+        _id = (offset // 4)
+        reg='EE_SCRATCH_PAD_B%d' % ((offset % 4) + 1)
+        return self.power_supply[_id].write(reg, data)
+        
+
+    def eep_wr32(self, offset, data):
+        release_lock = False
+        for n in range(4):
+            if n == 4-1:
+                release_lock = True
+            self.eep_wr8(offset+n, (data >> 8*(3-n)) & 0xFF,release_lock=release_lock)
+        return
+    
     # #####BACKPLANE TPM POWER CONTROL FUNCTIONS
 
     # ##power_on_bkpln
@@ -85,21 +304,18 @@ class Backplane():
     # This method reset the Bacplane TMP Power Controller fault register
     # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     def reset_pwr_fault_reg(self, tpm_id):
-        i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
-        status = self.mng.fpgai2c_write8(i2c_add, 0x04, 0x00, FPGA_I2CBUS.i2c2)  # reset alarms
+        status = self.power_supply[tpm_id-1].write('FAULT_LOG_B1',0x00)
 
     # ##pwr_on_tpm
     # This method power on the selected TPM board
     # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     # return status: status of operation
     def pwr_on_tpm(self, tpm_id):
-        i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
-        # print "I2C ADD "+hex(i2c_add)
-        status = self.mng.fpgai2c_write8(i2c_add, 0x04, 0x00, FPGA_I2CBUS.i2c2)  # reset alarms
+        status = self.power_supply[tpm_id-1].write('FAULT_LOG_B1',0x00)
         if status != 0:
-            logger.error("Error writing on device " + hex(i2c_add))
+            logger.error("Error writing on device " + self.power_supply[tpm_id-1].get_name())
             return status
-        status = self.mng.fpgai2c_write8(i2c_add, 0x00, 0xBB, FPGA_I2CBUS.i2c2)  # power on tpm
+        status = self.power_supply[tpm_id-1].write('CONTROL_B1',0xBB)  # power on tpm
         # update poweron reg used only for symulation
         if self.simulation is True:
             reg = self.mng.read("Fram.TPM_SUPPLY_STATUS")
@@ -107,7 +323,7 @@ class Backplane():
             self.mng.write("Fram.TPM_SUPPLY_STATUS", reg)
         # end of update sequence
         if status != 0:
-            logger.error("Error writing on device " + hex(i2c_add))
+            logger.error("Error writing on device " + self.power_supply[tpm_id-1].get_name())
         else:
             if self.is_tpm_on(tpm_id):
                 status = 0
@@ -120,9 +336,7 @@ class Backplane():
     # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     # return status: status of operation
     def pwr_off_tpm(self, tpm_id):
-        i2c_add = 0x80 + power_supply_i2c_offset[tpm_id-1]
-        # print "I2C ADD "+hex(i2c_add)
-        status = self.mng.fpgai2c_write8(i2c_add, 0x00, 0xB3, FPGA_I2CBUS.i2c2)  # power off tpm
+        status = self.power_supply[tpm_id-1].write('CONTROL_B1',0xB3) # power off tpm
         # update poweron reg used only for symulation
         if self.simulation is True:
             reg = self.mng.read("Fram.TPM_SUPPLY_STATUS")
@@ -130,7 +344,7 @@ class Backplane():
             self.mng.write("Fram.TPM_SUPPLY_STATUS", reg)
         # end of update sequence
         if status != 0:
-            logger.error("Error writing on device " + hex(i2c_add))
+            logger.error("Error writing on device " + self.power_supply[tpm_id-1].get_name())
         else:
             if self.is_tpm_on(tpm_id) is False:
                 status = 0
@@ -143,8 +357,7 @@ class Backplane():
     # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     # return status: status of operation: True board is turned on, False board is turned off
     def is_tpm_on(self, tpm_id):
-        i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
-        data, status = self.mng.fpgai2c_read8(i2c_add, 0x00, FPGA_I2CBUS.i2c2)
+        data, status = self.power_supply[tpm_id-1].read('CONTROL_B1') # power off tpm
         if print_debug:
             logger.debug("is_tpm_on " + hex(data & 0xff))
         if (data & 0xff) == 0xbb:
@@ -201,8 +414,7 @@ class Backplane():
     # return status: status of operation
     # return data: register value
     def get_pwr_fault_log(self, tpm_id):
-        i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
-        data, status = self.mng.fpgai2c_read16(i2c_add, 0x04, FPGA_I2CBUS.i2c2)
+        data, status = self.power_supply[tpm_id-1].read('FAULT_LOG')
         if status == 0:
             if data == 0:
                 logger.info("No fault detected ")
@@ -237,10 +449,10 @@ class Backplane():
             return status
         else:
             self.reset_pwr_fault_reg(tpm_id)
-            i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
-            data, status = self.mng.fpgai2c_read8(i2c_add, 0x11, FPGA_I2CBUS.i2c2)
+            data, status = self.power_supply[tpm_id-1].read('ILIM_ADJUST')
+            
             datatowr = int(data) | (cfg << 5)
-            status = self.mng.fpgai2c_write8(i2c_add, 0x11, datatowr, FPGA_I2CBUS.i2c2)
+            status = self.power_supply[tpm_id-1].write('ILIM_ADJUST', datatowr)
             return status
 
     # ##pwr_set_ilimt
@@ -249,8 +461,7 @@ class Backplane():
     # return status: status of operation
     # return cfg: actual configuration value
     def pwr_get_ilimt(self, tpm_id):
-        i2c_add = 0x80+power_supply_i2c_offset[tpm_id-1]
-        data, status = self.mng.fpgai2c_read8(i2c_add, 0x11, FPGA_I2CBUS.i2c2)
+        data, status = self.power_supply[tpm_id-1].read('ILIM_ADJUST')
         cfg = (data & 0xE0) >> 5
         return cfg, status
 
@@ -404,7 +615,13 @@ class Backplane():
         return 0
 
 
-
+    def get_ps_present(self, ps_id):
+        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
+        if status != 0:
+            return None
+        if bool(ioexp_value & (0b1<<(ps_id-1))):
+            return False
+        return True
 
     # ####POWER SUPPLY FUNCTIONS
     # This method get the selected power supply status register
@@ -412,10 +629,10 @@ class Backplane():
     # return status_reg: register value
     # return status: status of operation
     def get_ps_status(self, ps_id):
-        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
-        if status != 0:
+        present = self.get_ps_present(ps_id)
+        if present is None:
             return None
-        if bool(ioexp_value & (0b1<<(ps_id-1))):
+        if present is False:
             res = {
                 "present" :       False,
                 "busy" :          False,
@@ -459,6 +676,8 @@ class Backplane():
         return res
         
     def get_ps_vout_mode(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
         i2c_add = 0xb0+((ps_id-1)*2)
         vout_mode, status = self.mng.fpgai2c_read8(i2c_add, 0x20, FPGA_I2CBUS.i2c3)
         return vout_mode, status
@@ -467,6 +686,8 @@ class Backplane():
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return v: vout value
     def get_ps_vout(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan')
         status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Vout")
         if status == 255:
             return 0
@@ -480,6 +701,8 @@ class Backplane():
     # return i: iout value
     # return status: status of operation
     def get_ps_iout(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan')
         status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Iout")
         if status == 255:
             return 0
@@ -493,6 +716,8 @@ class Backplane():
     # return pw: power value
     # return status: status of operation
     def get_ps_power(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan')
         i = self.get_ps_iout(ps_id)
         v = self.get_ps_vout(ps_id)
         pw = float(v*i)
@@ -505,6 +730,8 @@ class Backplane():
     # executed only if the desired Fanspeed is greater than what is required by the PSU. )
     # return status: status of operation
     def set_ps_fanspeed(self, ps_id, speed_cmd):
+        if self.get_ps_present(ps_id) != True:
+            return 1
         i2c_add = 0xb0+((ps_id-1)*2)
         if speed_cmd > 100 or speed_cmd < 0:
             status = -2
@@ -519,6 +746,8 @@ class Backplane():
     # executed only if the desired Fanspeed is greater than what is required by the PSU. )
     # return status: status of operation
     def get_ps_fanspeed(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan'), 1
         i2c_add = 0xb0+((ps_id-1)*2)
         speed_param, status = self.mng.fpgai2c_read16(i2c_add, 0x3B, FPGA_I2CBUS.i2c3)
         return speed_param, status

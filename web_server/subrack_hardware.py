@@ -712,6 +712,8 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_attribute(API_Version("api_version", 0, subrack))
         self.add_attribute(Subrack_Timestamp("subrack_timestamp", 0, subrack))
 
+        self.subrack.Mng.write("Led.Led_3", 1) 
+
     def execute_command(self, command, params=None):
         try:
             answer = super().execute_command(command, params)

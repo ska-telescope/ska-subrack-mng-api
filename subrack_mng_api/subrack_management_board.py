@@ -16,6 +16,7 @@ import logging
 # from pyfabil.boards.tpm_1_6 import TPM_1_6
 import serial
 import operator
+import subprocess
 from subrack_mng_api.subrack_monitoring_point_lookup import load_subrack_lookup
 #from pyaavs.tile_1_6 import Tile_1_6 as Tile
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
@@ -230,6 +231,23 @@ class SubrackMngBoard():
             self.pll_lock_exp_rd = 0x33
         self.monitoring_point_lookup_dict = load_subrack_lookup(self)
         logger.info("SubrackMngBoard init done!")
+        self.board_info = {}
+        self.board_info['SMM']=self.Mng.board_info
+        self.board_info['BKPLN']=self.Bkpln.board_info
+        try:
+            board_info_file = open("/tmp/board_info", "w")
+            for board_key,board_info in self.board_info.items():
+                table=[]
+                for key,value in board_info.items():
+                    logger.info("%s: %s"%(key,value))
+                    table.append([str(key), str(value)])
+                board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",board_key],tablefmt='pipe'))
+                board_info_file.write('\n')
+                board_info_file.write('\n')
+            board_info_file.write("SubrackMngAPI version: %s\n" % self.Get_API_version())
+            board_info_file.close()
+        except PermissionError:
+            logger.warning("Cannot create '/tmp/board_info' -  Permission error")
 
     def __del__(self):
         self.data = []
@@ -340,7 +358,18 @@ class SubrackMngBoard():
         """ method to get the Version of the API
         :return string with API version
         """
-        return get_version()
+        try:
+            cmd="git -C %s describe --tags --dirty --always"%os.path.dirname(__file__)
+        except:
+            cmd="git -C %s describe --tags --dirty --always"%"/home/mnguser/SubrackMngAPI"
+        
+        try:
+            result = subprocess.run(cmd.split(" "), stdout=subprocess.PIPE)
+            if result.returncode == 0:
+                return get_version() + " (%s)"%str(result.stdout.decode('utf-8').strip())
+            return get_version()
+        except:
+            return get_version()
 
     def Get_Subrack_TimeTS(self):
         """ method to get the subrack Time in timestamp format
@@ -858,7 +887,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return vout: value of Vout in Volt
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         vout = self.Bkpln.get_ps_vout(ps_id)
         return vout
@@ -868,7 +897,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return vout: value of Iout in Ampere
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         vout = self.Bkpln.get_ps_iout(ps_id)
         return vout
@@ -878,7 +907,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return power: value of power in W
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         power = self.Bkpln.get_ps_power(ps_id)
         return power
@@ -888,7 +917,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :return fanspeed: speed of the fan
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         fanspeed, status = self.Bkpln.get_ps_fanspeed(ps_id)
         if status != 0:
@@ -901,7 +930,7 @@ class SubrackMngBoard():
         :param ps_id: id of the selected power supply, accepted value: 1,2
         :param speed_percent: speed in percentual value from 0 to 100
         """
-        if ps_id > 2 or ps_id < 0:
+        if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
         status = self.Bkpln.set_ps_fanspeed(ps_id, speed_percent)
         if status != 0:
