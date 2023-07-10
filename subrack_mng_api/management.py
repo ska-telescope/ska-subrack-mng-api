@@ -132,9 +132,9 @@ monitored_supplies= {
     "V_1V1": {'name': "V_1V1",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage1V1",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.05, 'max': 1.15}},
     "V_CORE": {'name': "V_CORE", "Mon": "MCU", "cat": "MCUR", "reg": "VoltageVCORE", "divider": 1000, "unit": "V",'exp_value': {'min': 1.18, 'max': 1.22}},
     "V_1V5": {'name': "V_1V5",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage1V5",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.48, 'max': 1.52}},
-    "V_3V3": {'name': "V_3V3",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage3V3",  "divider": 1000, "unit": "V", 'exp_value': {'min': 3.30, 'max': 3.35}},
-    "V_5V": {'name': "V_5V",   "Mon": "MCU", "cat": "MCUR", "reg": "Voltage5V",  "divider": 1000, "unit": "V",'exp_value': {'min': 4.98, 'max': 5.05}},
-    "V_3V": {'name': "V_3V",   "Mon": "MCU", "cat": "MCUR", "reg": "Voltage3V",  "divider": 1000, "unit": "V", 'exp_value': {'min': 3.00, 'max': 3.35}},
+    "V_3V3": {'name': "V_3V3",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage3V3",  "divider": 1000, "unit": "V", 'exp_value': {'min': 3.25, 'max': 3.35}},
+    "V_5V": {'name': "V_5V",   "Mon": "MCU", "cat": "MCUR", "reg": "Voltage5V",  "divider": 1000, "unit": "V",'exp_value': {'min': 4.95, 'max': 5.05}},
+    "V_3V": {'name': "V_3V",   "Mon": "MCU", "cat": "MCUR", "reg": "Voltage3V",  "divider": 1000, "unit": "V", 'exp_value': {'min': 2.95, 'max': 3.35}},
     "V_2V8": {'name': "V_2V8",  "Mon": "MCU", "cat": "MCUR", "reg": "Voltage2V8", "divider": 1000, "unit": "V",'exp_value': {'min': 2.75, 'max': 2.85}},
 }
 

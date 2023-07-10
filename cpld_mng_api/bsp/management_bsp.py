@@ -89,8 +89,23 @@ class MANAGEMENT_BSP():
 
         self.rmp.wr32(ba + 0x4, (offset & 0xFF))
         self.rmp.wr32(ba + 0x0, cmd)
-        while self.rmp.rd32(ba + 0xC) != 0:
-            pass
+        retry = 0
+        while (retry < 1000):
+            status = self.rmp.rd32(ba + 0xC)
+            if (status == 0):
+                break
+            else:
+                if status == 2 or status == 3:
+                    print("eep_rd8 - Not Acknowledge detected")
+                    return None
+                elif status == 1:
+                    retry = retry + 1
+                    time.sleep(0.001)
+            retry = retry + 1
+            time.sleep(0.001)
+        if retry == 1000:
+            print("eep_rd8 - max retry num reached")
+            return None
         return self.rmp.rd32(ba + 0x8)
 
     def eep_wr8(self, offset, data, phy_addr=eep_addr_0):
