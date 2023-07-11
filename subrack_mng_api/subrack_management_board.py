@@ -262,6 +262,9 @@ class SubrackMngBoard():
         if self.powermon_cfgd == False:
             self.SubrackInitialConfiguration()
         logger.info("SUBRACK initialize done.")
+
+    def get_board_info(self):
+        return self.board_info
     """
     def mng_eth_cpld_read(self,add):
         cmd="../cpld_mng_api/reg.py --ip " + self.ipstr + " " + hex(add)
