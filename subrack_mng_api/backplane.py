@@ -251,7 +251,7 @@ class Backplane():
         string = ""
         for i in range(max_len):
             byte = self.eep_rd8(addr, release_lock = False)
-            if byte == ord("\n") or byte == 0xff:
+            if byte == ord("\n") or byte == 0xff or byte == 0x0:
                 break
             string += chr(byte)
             addr += 1
