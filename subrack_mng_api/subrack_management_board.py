@@ -233,7 +233,7 @@ class SubrackMngBoard():
         logger.info("SubrackMngBoard init done!")
         self.board_info = {}
         self.board_info['SMM']=self.Mng.board_info
-        self.board_info['BKPLN']=self.Bkpln.board_info
+        self.board_info['BACKPLANE']=self.Bkpln.board_info
         try:
             board_info_file = open("/tmp/board_info", "w")
             for board_key,board_info in self.board_info.items():
@@ -1175,6 +1175,12 @@ class SubrackMngBoard():
             health_dict = self._create_nested_dict(lookup, new_d, health_dict)
         return health_dict
 
+    def bkpln_set_field(self,key,value, override_protected=False):
+        return self.Bkpln.set_field(key,value,override_protected)
+    
+    def bkpln_get_field(self,key):
+        return self.Bkpln.get_field(key)
+    
     def close(self):
         self.__del__()
 

@@ -149,7 +149,7 @@ class Backplane():
             mng_info["PN"] = "NA"    
             return mng_info
         mng_info["SN"] = self.get_field("SN")
-        mng_info["PN"] = "BKPLN"
+        mng_info["PN"] = "BACKPLANE"
         pcb_rev = self.get_field("PCB_REV")
         if pcb_rev == 0xff or pcb_rev == 0x00:
             pcb_rev_string = ""
@@ -251,7 +251,7 @@ class Backplane():
         string = ""
         for i in range(max_len):
             byte = self.eep_rd8(addr, release_lock = False)
-            if byte == ord("\n") or byte == 0xff:
+            if byte == ord("\n") or byte == 0xff or byte == 0x0:
                 break
             string += chr(byte)
             addr += 1
