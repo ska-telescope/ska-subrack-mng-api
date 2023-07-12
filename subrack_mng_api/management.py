@@ -103,20 +103,22 @@ backplane_i2c_devices=[
      "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
     {'name': "ADT7408_2", "ICadd": 0x32, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
      "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
-    {'name': "LTC4281_1", "ICadd": 0x80, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val":0x0, "op_check": "rw", "access":"CPLD"},
-    {'name': "LTC4281_2", "ICadd": 0x82, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
-    {'name': "LTC4281_3", "ICadd": 0x84, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
-    {'name': "LTC4281_4", "ICadd": 0x86, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
-    {'name': "LTC4281_5", "ICadd": 0x88, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
-    {'name': "LTC4281_6", "ICadd": 0x8c, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
-    {'name': "LTC4281_7", "ICadd": 0x8e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x4c,
-     "ref_val": 0xaa, "res_val": 0x0, "op_check": "rw", "access": "CPLD"},
+    {'name': "LTC4281_1", "ICadd": 0x80, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val":0x0, "op_check": "ro", "access":"CPLD"},
+    {'name': "LTC4281_2", "ICadd": 0x82, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_3", "ICadd": 0x84, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_4", "ICadd": 0x86, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_5", "ICadd": 0x88, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_6", "ICadd": 0x8a, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_7", "ICadd": 0x8c, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
+    {'name': "LTC4281_8", "ICadd": 0x8e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x30,
+     "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
     {'name': "PCF8574TS_1", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
     {'name': "PCF8574TS_2", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
@@ -1179,7 +1181,7 @@ class Management():
     def check_i2c_board_devices_access(self, board="SMB"):
         result = []
         wr_op_passed = False
-        if board == "BKPLN":
+        if board == "BACKPLANE":
             dev_list=backplane_i2c_devices
         elif board == "SMB":
             dev_list = smm_i2c_devices
