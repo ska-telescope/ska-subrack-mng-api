@@ -220,21 +220,21 @@ def set_SFP(mdio_mux=2):
 	get_port_cfg(9, mdio_mux)
 
 
-parser = OptionParser(usage="usage: %test_tpm [options]")
-parser.add_option("--ip", action="store", dest="ip", default="10.0.10.10", help="IP [default: 10.0.10.10]")
-parser.add_option("--port", action="store", dest="port", type="int", default="10000", help="Port [default: 10000]")
+# parser = OptionParser(usage="usage: %test_tpm [options]")
+# parser.add_option("--ip", action="store", dest="ip", default="10.0.10.10", help="IP [default: 10.0.10.10]")
+# parser.add_option("--port", action="store", dest="port", type="int", default="10000", help="Port [default: 10000]")
 
-(conf, args) = parser.parse_args(argv[1:])
+# (conf, args) = parser.parse_args(argv[1:])
 
-# tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
-mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
-decode_register(10, port_status_reg, 0x7fff)
-fw_ver = 0
-fw_ver = mng[0x8]
-print("Fw ver: " + hex(fw_ver))
-if (fw_ver & 0xffff) < 0x0009:
-	print("Error, minimum version required 0x0009")
-	exit(1)
+# # tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
+# mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
+# decode_register(10, port_status_reg, 0x7fff)
+# fw_ver = 0
+# fw_ver = mng[0x8]
+# print("Fw ver: " + hex(fw_ver))
+# if (fw_ver & 0xffff) < 0x0009:
+# 	print("Error, minimum version required 0x0009")
+# 	exit(1)
 
 # read_scratch(2, 0x60)
 # exit(0)
@@ -302,18 +302,18 @@ write45(mdio_mux, 0, 31, 0xF404, 0x4000)
 time.sleep(0.100)
 """
 
-print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
-print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
-print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
-print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
-print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
-# mgdPDStatePowerUp()
-print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
-print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
-print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
-print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
-print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
-# 31,0xf403
+# print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+# print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+# print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+# print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+# print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
+# # mgdPDStatePowerUp()
+# print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
+# print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
+# print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
+# print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
+# print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
+# # 31,0xf403
 
 
 def read_wis(mdio_mux=3):
@@ -382,29 +382,29 @@ def cfg_10g(port=0,mdio_mux=3):
 	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
 	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
 	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
-tpm_inst.disconnect()
 
 def get_switch_status():
 	ports=[
-	{'name' : 'CPU',    'mdio_mux' : 0, 'port' : 0},# MCU U4-P0
+	{'name' : 'CPU',    'mdio_mux' : 1, 'port' : 0},# MCU U4-P0
 	{'name' : 'CPLD',   'mdio_mux' : 2, 'port' : 0},# CPLD U5-P0
-	{'name' : 'SLOT-1', 'mdio_mux' : 0, 'port' : 0},# SLOT-1 U4-P1
-	{'name' : 'SLOT-2', 'mdio_mux' : 0, 'port' : 0},# SLOT-2 U4-P2
-	{'name' : 'SLOT-3', 'mdio_mux' : 0, 'port' : 0},# SLOT-3 U4-P3
-	{'name' : 'SLOT-4', 'mdio_mux' : 0, 'port' : 0},# SLOT-4 U4-P4
-	{'name' : 'SLOT-5', 'mdio_mux' : 0, 'port' : 0},# SLOT-5 U4-P5
-	{'name' : 'SLOT-6', 'mdio_mux' : 0, 'port' : 0},# SLOT-6 U4-P6
-	{'name' : 'SLOT-7', 'mdio_mux' : 0, 'port' : 0},# SLOT-7 U4-P7
-	{'name' : 'SLOT-8', 'mdio_mux' : 0, 'port' : 0},# SLOT-8 U4-P8
+	{'name' : 'SLOT-1', 'mdio_mux' : 1, 'port' : 1},# SLOT-1 U4-P1
+	{'name' : 'SLOT-2', 'mdio_mux' : 1, 'port' : 2},# SLOT-2 U4-P2
+	{'name' : 'SLOT-3', 'mdio_mux' : 1, 'port' : 3},# SLOT-3 U4-P3
+	{'name' : 'SLOT-4', 'mdio_mux' : 1, 'port' : 4},# SLOT-4 U4-P4
+	{'name' : 'SLOT-5', 'mdio_mux' : 1, 'port' : 5},# SLOT-5 U4-P5
+	{'name' : 'SLOT-6', 'mdio_mux' : 1, 'port' : 6},# SLOT-6 U4-P6
+	{'name' : 'SLOT-7', 'mdio_mux' : 1, 'port' : 7},# SLOT-7 U4-P7
+	{'name' : 'SLOT-8', 'mdio_mux' : 1, 'port' : 8},# SLOT-8 U4-P8
 	{'name' : 'P1',     'mdio_mux' : 2, 'port' : 9},# U53 U5-P9
-	{'name' : 'P2',     'mdio_mux' : 0, 'port' : 9},# U52 U4-P9
+	{'name' : 'P2',     'mdio_mux' : 1, 'port' : 9},# U52 U4-P9
 	{'name' : 'P3',     'mdio_mux' : 2, 'port' : 5},# J8-B U5-P5
 	{'name' : 'P4',     'mdio_mux' : 2, 'port' : 6},# J8-A U5-P6
 	]
 	status={}
 	for port in ports:
 		_status={}
-		if port['mdio_mux'] == 2:
+		if port['mdio_mux'] in [1,2]:
+			reg_value = read22(port['mdio_mux'], port['port'], port_status_reg['offset'])
 			reg_value = read22(port['mdio_mux'], port['port'], port_status_reg['offset'])
 			_status['link'] = decode_register(port, port_status_reg, reg_value, 'Link')
 			if _status['link'] == 1:
@@ -424,6 +424,7 @@ def get_switch_status():
 				else:
 					_status['speed']+=" FD"
 
+				reg_value = read22(port['mdio_mux'], port['port'], debug_reg['offset'])
 				reg_value = read22(port['mdio_mux'], port['port'], debug_reg['offset'])
 				_status['rxGood'] = decode_register(port, debug_reg, reg_value, 'RxGood')
 				_status['rxBad'] = decode_register(port, debug_reg, reg_value, 'RxBad')
