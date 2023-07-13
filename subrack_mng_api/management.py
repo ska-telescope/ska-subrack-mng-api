@@ -1183,6 +1183,7 @@ class Management():
         wr_op_passed = False
         if board == "BACKPLANE":
             dev_list=backplane_i2c_devices
+            self.write("CtrlRegs.BkplOnOff", 1)
         elif board == "SMB":
             dev_list = smm_i2c_devices
         else:
