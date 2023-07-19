@@ -674,7 +674,18 @@ class Backplane():
             "unknown" :       bool(status_reg & (0b1<<8)),
         }
         return res
-        
+    
+    def get_ps_temp(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
+        temp_list = []
+        for _add in [ 0x8d, 0x8e, 0x8f ]:
+            i2c_add = 0xb0+((ps_id-1)*2)
+            temp_reg, status = self.mng.fpgai2c_read16(i2c_add, _add, FPGA_I2CBUS.i2c3)
+            temp = float(_decodePMBus(temp_reg))
+            temp_list.append(temp)
+        return temp_list, status
+    
     def get_ps_vout_mode(self, ps_id):
         if self.get_ps_present(ps_id) != True:
             return 0, 1
@@ -729,7 +740,7 @@ class Backplane():
     # @param[in] speed_cmd: command value (MIN 0=0% - MAX 100=100%, Fan Speed = speed_cmd*21000RPM/100,Write request is
     # executed only if the desired Fanspeed is greater than what is required by the PSU. )
     # return status: status of operation
-    def set_ps_fanspeed(self, ps_id, speed_cmd):
+    def set_ps_fancmd(self, ps_id, speed_cmd):
         if self.get_ps_present(ps_id) != True:
             return 1
         i2c_add = 0xb0+((ps_id-1)*2)
@@ -745,12 +756,20 @@ class Backplane():
     # return speed_param: speed reg value (MIN 0=0% - MAX 100=100%, Fan Speed = speed_cmd*21000RPM/100,Write request is
     # executed only if the desired Fanspeed is greater than what is required by the PSU. )
     # return status: status of operation
-    def get_ps_fanspeed(self, ps_id):
+    def get_ps_fancmd(self, ps_id):
         if self.get_ps_present(ps_id) != True:
             return float('nan'), 1
         i2c_add = 0xb0+((ps_id-1)*2)
         speed_param, status = self.mng.fpgai2c_read16(i2c_add, 0x3B, FPGA_I2CBUS.i2c3)
         return speed_param, status
+    
+    def get_ps_fanspeed(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return float('nan'), 1
+        i2c_add = 0xb0+((ps_id-1)*2)
+        speed_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x90, FPGA_I2CBUS.i2c3)
+        speed = float(_decodePMBus(speed_reg))
+        return speed, status
 
     def close(self):
         self.__del__()
