@@ -220,8 +220,8 @@ def exec_cmd(cmd,dir=None,verbose=True, exclude_line="", tee_file = None):
                         print(line.strip())
                 out += line
         returncode = child.returncode
-        print(n_lines, returncode)
         if verbose:
+            print(n_lines, returncode)
             if n_lines==0 and out!="":
                 lines = out.splitlines()
                 for l in lines:
@@ -737,6 +737,16 @@ class Management():
                 mng_info['bios_'+key] = value
         mng_info["OS"] = run('cat /etc/issue.net')
         mng_info["OS_rev"] = run('sudo git -C /etc describe --tag --dirty')
+        root = run('mount | head -n 1 | cut -d\  -f1')
+        if root == "/dev/mmcblk1p2":
+            mng_info["OS_root"] = "uSD"
+        elif root == "/dev/mmcblk0p2":
+            mng_info["OS_root"] = "eMMC-0"
+        elif root == "/dev/mmcblk0p4":
+            mng_info["OS_root"] = "eMMC-1"
+        else:
+            mng_info["OS_root"] = "unknown"
+
         boot_sel = self.get_field("BOOT_SEL")
         mng_info["BOOT_SEL_KRN"] = boot_sel & 0x1
         mng_info["BOOT_SEL_FS"] = (boot_sel & 0x2) >> 1
@@ -1656,6 +1666,27 @@ class Management():
             return 7
         logging.info("flash_fs_image: operation succefully completed")
         return 0
+    
+    def emmc_get_size(self):
+        """
+        method used to return eMMC size in GB
+        :return eMMC size in GB
+        """
+        cmd = "lsblk"
+        out, retcode = exec_cmd(cmd, verbose=False)
+        if retcode != 0:
+            logging.error("emmc_get_size: error while get emmc size")
+            return None
+        else:
+            outl = out.splitlines()
+            r = outl[1]
+            size = parse.parse("mmcblk0      179:0    0 {}G  0 disk ", r)
+            size = size[0]
+            size = size.replace(",", ".")
+
+        logging.info("emmc_config: detected EMMC size of %s G" % size)
+        emmc_size = float(size)
+        return emmc_size
 
     def emmc_config(self, layout_file):
         """
@@ -1665,8 +1696,11 @@ class Management():
         """
         logging.info("EMMC Configuration started... ")
         if os.path.isfile(layout_file) is False:
-            logging.error("emmc_config: invalid layout file path, file not found")
-            return 1
+            logging.warning("emmc_config: invalid layout file path, file not found at %s"%layout_file)
+            layout_file = os.path.join(os.path.dirname(__file__),layout_file)
+            if os.path.isfile(layout_file) is False:
+                logging.error("emmc_config: invalid layout file path, file not found at %s"%layout_file)
+                return 1
         cmd = "lsblk"
         out, retcode = exec_cmd(cmd, verbose=True)
         if retcode != 0:
