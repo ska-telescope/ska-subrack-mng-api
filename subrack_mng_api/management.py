@@ -741,9 +741,9 @@ class Management():
         if root == "/dev/mmcblk1p2":
             mng_info["OS_root"] = "uSD"
         elif root == "/dev/mmcblk0p2":
-            mng_info["OS_root"] = "eMMC-0"
+            mng_info["OS_root"] = "EMMC0"
         elif root == "/dev/mmcblk0p4":
-            mng_info["OS_root"] = "eMMC-1"
+            mng_info["OS_root"] = "EMMC1"
         else:
             mng_info["OS_root"] = "unknown"
 
