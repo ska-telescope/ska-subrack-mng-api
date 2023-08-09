@@ -55,7 +55,7 @@ if [ $CLEAN_VENV == true ]; then
     rm -r $ROOT/venv || { echo 'cmd failed' ; exit 1; }
     mkdir $ROOT/venv || { echo 'cmd failed' ; exit 1; }
     echo "Extract venv"
-    tar -xzf $ROOT/packed-venv.tgz -C $ROOT/venv --checkpoint=.100 || { echo 'cmd failed' ; exit 1; }
+    pv $ROOT/packed-venv.tgz | tar -xz -C $ROOT/venv || { echo 'cmd failed' ; exit 1; }
     echo "Done"
 fi
 
