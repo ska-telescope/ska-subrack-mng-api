@@ -98,6 +98,10 @@ if __name__ == "__main__":
         dest="get",
         default=False,
         help="Get information instead of set")
+    parser.add_option("--boot_sel",
+        dest="boot_sel",
+        default="",
+        help="BOARD boot_sel (b0 = krn, b1 = fs) (eep options required)")
     parser.add_option("--ip",
         dest="ip",
         default="",
@@ -160,7 +164,7 @@ if __name__ == "__main__":
         -- connection to the board you want to set!
         -----------------------------------------------------------------------""")
         print()
-        if options.ip != "" or options.netmask != "" or options.gateway != "":
+        if options.ip != "" or options.netmask != "" or options.gateway != "" or options.boot_sel != "":
             print ("The new IP configuration on the MANAGEMENT board will be:")
         if options.ip != "":
             print ("IP\t\t" + options.ip)
@@ -168,6 +172,8 @@ if __name__ == "__main__":
             print ("Netmask\t\t" + options.netmask)
         if options.gateway != "":
             print ("Gateway\t\t" + options.gateway)
+        if options.boot_sel != "":
+            print ("BOOT_SEL\t\t" + str(int(options.boot_sel,16)&0xff))
         print()
         if options.force==False:
             if input("Press Y to continue, any other key to exit. ") != "Y":
@@ -251,6 +257,7 @@ if __name__ == "__main__":
         print ("Netmask\t\t" + int2ip(inst.bsp.eep_rd32(eep_sec["netmask"]["offset"])))
         print ("Gateway\t\t" + int2ip(inst.bsp.eep_rd32(eep_sec["gateway"]["offset"])))
         inst.bsp.i2c_remove_passwd()
+        print ("BOOT_SEL\t" + hex(inst.bsp.get_field('BOOT_SEL')))
         print()
         print ("==== Volatile Settings =====================")
         print ("IP\t\t" + int2ip(inst.rmp.rd32(CPLD_IP_OFFSET)))
@@ -270,6 +277,9 @@ if __name__ == "__main__":
 
     if options.eep == True:
         #storing network configuration in EEPROM
+
+        if options.boot_sel != "":
+            inst.bsp.set_field('BOOT_SEL',int(options.boot_sel,16)&0xff)
 
         if options.ip != "":
             inst.bsp.i2c_set_passwd()
