@@ -963,9 +963,7 @@ class SubrackMngBoard():
         keys. For example:
         'voltages.5V0'
         'io.udp_interface.crc_error_count.FPGA0'
-
-        More info at https://confluence.skatelescope.org/x/nDhED
-
+        
         :return: list of monitoring points
         :rtype: list of strings
         """
@@ -1006,8 +1004,6 @@ class SubrackMngBoard():
         'io.udp_interface'
         'io.udp_interface.crc_error_count'
         'io.udp_interface.crc_error_count.FPGA0'
-
-        More info at https://confluence.skatelescope.org/x/nDhED
 
         :return: list of categories
         :rtype: list of strings
@@ -1104,36 +1100,20 @@ class SubrackMngBoard():
     
     def get_health_status(self, **kwargs):
         """
-        Returns the current value of TPM monitoring points with the 
-        specified attributes as set in the method set_monitoring_point_attr.
-        If no arguments given, current value of all monitoring points is returned.
+        Returns the current value of SUBRACK monitoring points
+        If no group argument given, current value of all monitoring points is returned.
 
         For example:
-        If configured with:
-        tile.set_monitoring_point_attr('io.udp_interface', my_category='yes', my_other_category=87)
-
-        Subsequent calls to:
-        tile.get_health_status(my_category='yes', my_other_category=87)
-
+        subrack.get_health_status(group='temperatures')
         would return only the health status for:
-        io.udp_interface.arp
-        io.udp_interface.status
-        io.udp_interface.crc_error_count.FPGA0
-        io.udp_interface.crc_error_count.FPGA1
-        io.udp_interface.bip_error_count.FPGA0
-        io.udp_interface.bip_error_count.FPGA1
-        io.udp_interface.decode_error_count.FPGA0
-        io.udp_interface.decode_error_count.FPGA1
-        io.udp_interface.linkup_loss_count.FPGA0
-        io.udp_interface.linkup_loss_count.FPGA1
-
-        A group attribute is provided by default, see tpm_1_X_monitoring_point_lookup.
+        
+        A group attribute is provided by default, see subrack_monitoring_point_lookup.py.
         This can be used like the below example:
-        tile.get_health_status(group='temperatures')
-        tile.get_health_status(group='udp_interface')
-        tile.get_health_status(group='io')
+        subrack.get_health_status(group='temperatures')
+        subrack.get_health_status(group='slots')
+        subrack.get_health_status(group='voltages')
+        
 
-        Full documentation on usage available at https://confluence.skatelescope.org/x/nDhED
         """
         health_status = {}
         health_status['iso_datetime']= datetime.now(timezone.utc).isoformat()
@@ -1158,7 +1138,7 @@ class SubrackMngBoard():
     
     def get_health_dict(self, **kwargs):
         """
-        Returns the dictionary of TPM monitoring points with the 
+        Returns the dictionary of SUBRACK monitoring points with the 
         static key only, no value
         """
         health_dict = {}
