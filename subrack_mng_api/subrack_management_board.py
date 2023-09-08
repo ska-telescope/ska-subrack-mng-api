@@ -416,7 +416,7 @@ class SubrackMngBoard():
             logger.warning("SetTPMIP warning: bypass_check disabled")
         retry = timeout
         while(retry > 0):
-	    logger.info("Wait for TPM finish local network configuration from TPM EEPROM")
+            logger.info("Wait for TPM finish local network configuration from TPM EEPROM")
             reg = self.read_tpm_singlewire(tpm_slot_id, 0x900000e0)
             if reg != 0xdeadbaad and reg > 0:
                 break
