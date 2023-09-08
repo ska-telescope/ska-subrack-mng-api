@@ -114,7 +114,7 @@ class LTC428x_dev():
 # This class contain methods to permit access to major functionality
 # of backplane board from management CPU (iMX6) via registers mapped in filesystem
 class Backplane():
-    def __init__(self, Management_b, simulation=False):
+    def __init__(self, Management_b, simulation=False, get_board_info = True):
         self.data = []
         self.mng = Management_b
         self.simulation = simulation
@@ -136,7 +136,9 @@ class Backplane():
         except:
             self.bkpln_present = False
             logger.error("Error BKPLN not present!")
-        self.board_info=self.get_board_info()
+        self.board_info= None
+        if get_board_info:
+            self.board_info=self.get_board_info()
         
 
     def __del__(self):

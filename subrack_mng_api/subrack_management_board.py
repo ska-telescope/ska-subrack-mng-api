@@ -197,12 +197,13 @@ def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8, wait = '1'):
 class SubrackMngBoard():
     def __init__(self, **kwargs):
         logger.info("SubrackMngBoard init ...")
+        get_board_info = kwargs.get("get_board_info",True)
         self._simulation = kwargs.get("simulation",False)
         self.data = []
         logger.debug("Mng creating..")
-        self.Mng = Management(self._simulation)
+        self.Mng = Management(self._simulation,get_board_info=get_board_info)
         logger.debug("Bkpln creating..")
-        self.Bkpln = Backplane(self.Mng, self._simulation)
+        self.Bkpln = Backplane(self.Mng, self._simulation,get_board_info=get_board_info)
         self.CpldMng = self.Mng.CpldMng
         # logger.debug("MANAGEMENT created")
         self.mode = 0
@@ -322,14 +323,15 @@ class SubrackMngBoard():
                 #     self.PowerOnTPM(tpm_slot_id)
                 #     pass
 
-    def __assign_tpm_ip(self, tpm_slot_id):
+    def __assign_tpm_ip(self, tpm_slot_id, timeout = 100):
         cpu_ip, netmask, gateway = self.Mng.detect_cpu_ip()
         if cpu_ip is not None:
             tpm_ip_add_h = ipstr2hex(cpu_ip) & 0xFFFFFF00
             cpu_ip_l = ipstr2hex(cpu_ip) & 0xFF
             tpm_ip_add = tpm_ip_add_h | (cpu_ip_l + 6 + tpm_slot_id)
-            self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway,bypass_check = True)
+            res=self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway,bypass_check = True, timeout = timeout)
             out,returncode=exec_cmd("sudo arp -d %s"%int2ip(tpm_ip_add),verbose=False)
+            return res
         else:
             logger.debug("Error in CPU IP detection")
             raise SubrackExecFault("Error:TPM Power on Failed")
@@ -395,7 +397,7 @@ class SubrackMngBoard():
             logger.debug("Error TPM IP list")
             raise SubrackExecFault("Error:TPM IP Add List Incomplete")
 
-    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None, bypass_check = False):
+    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None, bypass_check = True, timeout = 100):
         """ method to manually set volatile local ip address of a TPM board present on subrack
         :param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
         :param ip: ip address will be assigned to selected TPM
@@ -410,18 +412,41 @@ class SubrackMngBoard():
                     raise SubrackExecFault("Error:TPM is Powered OFF")
             else:
                 raise SubrackInvalidCmd("TPM not present")
+        else:
+            logger.warning("SetTPMIP warning: bypass_check disabled")
+        retry = timeout
+        while(retry > 0):
+	    logger.info("Wait for TPM finish local network configuration from TPM EEPROM")
+            reg = self.read_tpm_singlewire(tpm_slot_id, 0x900000e0)
+            if reg != 0xdeadbaad and reg > 0:
+                break
+            retry -= 1
+            time.sleep(0.01)
+        if retry == 0:
+            logger.error("SetTPMIP : timeout on checking TPM availability")
+            return False
         self.write_tpm_singlewire(tpm_slot_id, 0x40000028, ipstr2hex(ip))
-        ip_int_rb = self.read_tpm_singlewire(tpm_slot_id, 0x40000028)
-        if ip_int_rb != ipstr2hex(ip):
-                logger.error("SetTPMIP - expected %s, got %s"%(ip,int2ip(ip_int_rb)))
+        rb_val = self.read_tpm_singlewire(tpm_slot_id, 0x40000028)
+        if rb_val != ipstr2hex(ip):
+                logger.error("SetTPMIP - IP expected %s, got %s"%(ip,int2ip(rb_val)))
+                return False
         self.write_tpm_singlewire(tpm_slot_id, 0x4000002C, ipstr2hex(netmask))
+        rb_val = self.read_tpm_singlewire(tpm_slot_id, 0x4000002C)
+        if rb_val != ipstr2hex(netmask):
+                logger.error("SetTPMIP - NETMASK expected %s, got %s"%(netmask,int2ip(rb_val)))
+                return False
         if gateway is not None:
             self.write_tpm_singlewire(tpm_slot_id, 0x40000030, ipstr2hex(gateway))
+            rb_val = self.read_tpm_singlewire(tpm_slot_id, 0x40000030)
+            if rb_val != ipstr2hex(gateway):
+                    logger.error("SetTPMIP - GATEWAY expected %s, got %s"%(gateway,int2ip(rb_val)))
+                    return False
         if len(self.tpm_ip_list) == 8:
             self.tpm_ip_list[tpm_slot_id - 1] = ip
         else:
             logger.debug("SetTPMIP ERROR: TPM IP address list incomplete")
             raise SubrackExecFault("Error:TPM IP address list incomplete")
+        return True
 
     def GetTPMIP(self,tpm_slot_id):
         """ method to manually set volatile local ip address of a TPM board present on subrack
@@ -615,14 +640,32 @@ class SubrackMngBoard():
                     #logger.info("PowerOnTPM wait 0.5s")
                     #time.sleep(0.5)
                     logger.info("PowerOnTPM __assign_tpm_ip")
-                    self.__assign_tpm_ip(tpm_slot_id)
+                    if not self.__assign_tpm_ip(tpm_slot_id):
+                        logger.warning("IP assignament of TPM on slot %d failed, retry" % tpm_slot_id)
+                        raise SubrackExecFault("IP assignament of TPM on slot %d failed, retry" % tpm_slot_id)
+                        logger.info("Wait 2s before power off again")
+                        time.sleep(2)
+                        logger.info("Power off")
+                        self.Bkpln.pwr_off_tpm(tpm_slot_id)
+                        logger.info("Wait 1s before power on again")
+                        time.sleep(1)
+                        if self.Bkpln.pwr_on_tpm(tpm_slot_id):
+                            logger.error("Power TPM on slot %d failed" % tpm_slot_id)
+                            raise SubrackExecFault("ERROR: power on TPM command failed")
+                        else:
+                            logger.info("PowerOnTPM __assign_tpm_ip")
+                            if not self.__assign_tpm_ip(tpm_slot_id):
+                                logger.error("IP assignament of TPM on slot %d failed" % tpm_slot_id)
+                                raise SubrackExecFault("IP assignament of TPM on slot %d failed" % tpm_slot_id)
                     #logger.info("PowerOnTPM wait 2s")
                     #time.sleep(2)
                     tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
                     if ping_check:
                         logger.info("PowerOnTPM Adu_Eth_Ping")
-                        if Adu_Eth_Ping(tpm_ip_str) > 0:
+                        time.sleep(2)
+                        if Adu_Eth_Ping(tpm_ip_str,wait=2) > 0:
                             logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
+                            raise SubrackExecFault("Adu_Eth_Ping failed!")
 
         logger.info("PowerOnTPM End")
 
@@ -723,6 +766,7 @@ class SubrackMngBoard():
         """This method initialize the PLL"""
         logger.info("PllInitialize")
         if self._simulation is False:
+            self.Mng.test_ucp_access(1000)
             self.CpldMng.write_register(0x300,0)
             self.CpldMng.write_register(0x300,1)
             if pll_cfg_file is not None:
@@ -1195,10 +1239,11 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-e", "--emulation", action="store_true", help="enable emulation mode")
     parser.add_option("-i", "--init", action="store_true", default=False, help="performe initialize, required after power up")
+    parser.add_option("-g", "--do_not_get_board_info", action="store_false", default=True, dest = "get_board_info", help="")
     parser.add_option("-s", "--pll_source_internal", action="store_true", default=False, help="Enable internal source for PPS and REF")
     (options, args) = parser.parse_args()
     logger.debug("SubrackMngBoard init ...")
-    subrack=SubrackMngBoard(simulation=False)
+    subrack=SubrackMngBoard(simulation=False,get_board_info = options.get_board_info)
     if options.init:
         logger.debug("SubrackMngBoard Initialize ...")
         subrack.Initialize(pll_source_internal=options.pll_source_internal)

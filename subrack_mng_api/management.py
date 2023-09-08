@@ -342,7 +342,7 @@ class mcu2cplduartbuff():
 @Pyro5.api.expose
 @Pyro5.server.behavior(instance_mode="single")
 class Management():
-    def __init__(self, simulation=False, cpld_timeout=10):
+    def __init__(self, simulation=False, cpld_timeout=10, get_board_info = True):
         self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
@@ -373,7 +373,9 @@ class Management():
         import ska_low_smm_bios.bios
         self.hw_rev=self.get_hardware_revision()
         self.BIOS_REV_list = ska_low_smm_bios.bios.bios_get_dict(hw_rev=self.hw_rev)
-        self.board_info=self.get_board_info()
+        self.board_info = None
+        if get_board_info:
+            self.board_info=self.get_board_info()
 
 
     def __del__(self):
@@ -820,6 +822,25 @@ class Management():
                 rd_data = self.read("UserReg.UserReg0")
                 if rd_data != patterns[k]:
                     logger.error("test_eim_access: ERROR at iteration i, expected %x, read %x " % (i, patterns[k], rd_data))
+                    errors = k+1
+                    return errors, i
+        return errors, i
+    
+    ### test_ucp_access
+    # This method permit to test the access on UCP bus from CPU
+    # @param[in] iteration: number of iteration of the tests pattern are reads and wrtite and verifyed
+    # @return errors: test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
+    # @return i: iterations executed
+    def test_ucp_access(self, iteration=1000):
+        reg_add = 0xf04 #"UserReg.UserReg1"
+        errors = 0
+        patterns = [0x0, 0xffffffff, 0x5555aaaa, 0xaaaa5555]
+        for i in range(0, iteration):
+            for k in range(0, len(patterns)):
+                self.CpldMng.write_register(reg_add, patterns[k])
+                rd_data = self.CpldMng.read_register(reg_add)
+                if rd_data != patterns[k]:
+                    logger.error("test_ucp_access: ERROR at iteration i, expected %x, read %x " % (i, patterns[k], rd_data))
                     errors = k+1
                     return errors, i
         return errors, i
