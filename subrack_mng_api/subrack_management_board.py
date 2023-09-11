@@ -329,7 +329,7 @@ class SubrackMngBoard():
             tpm_ip_add_h = ipstr2hex(cpu_ip) & 0xFFFFFF00
             cpu_ip_l = ipstr2hex(cpu_ip) & 0xFF
             tpm_ip_add = tpm_ip_add_h | (cpu_ip_l + 6 + tpm_slot_id)
-            res=self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway,bypass_check = True, timeout = timeout)
+            res=self.SetTPMIP(tpm_slot_id,int2ip(tpm_ip_add),netmask,gateway, bypass_check = True, timeout = timeout)
             out,returncode=exec_cmd("sudo arp -d %s"%int2ip(tpm_ip_add),verbose=False)
             return res
         else:
@@ -397,7 +397,7 @@ class SubrackMngBoard():
             logger.debug("Error TPM IP list")
             raise SubrackExecFault("Error:TPM IP Add List Incomplete")
 
-    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None, bypass_check = True, timeout = 100):
+    def SetTPMIP(self, tpm_slot_id, ip, netmask, gateway =  None, bypass_check = False, timeout = 100):
         """ method to manually set volatile local ip address of a TPM board present on subrack
         :param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
         :param ip: ip address will be assigned to selected TPM
@@ -412,8 +412,8 @@ class SubrackMngBoard():
                     raise SubrackExecFault("Error:TPM is Powered OFF")
             else:
                 raise SubrackInvalidCmd("TPM not present")
-        else:
-            logger.warning("SetTPMIP warning: bypass_check disabled")
+        # else:
+        #     logger.info("SetTPMIP info: bypass_check disabled")
         retry = timeout
         logger.info("Wait for TPM finish local network configuration from TPM EEPROM")
         while(retry > 0):
@@ -642,7 +642,6 @@ class SubrackMngBoard():
                     logger.info("PowerOnTPM __assign_tpm_ip")
                     if not self.__assign_tpm_ip(tpm_slot_id):
                         logger.warning("IP assignament of TPM on slot %d failed, retry" % tpm_slot_id)
-                        raise SubrackExecFault("IP assignament of TPM on slot %d failed, retry" % tpm_slot_id)
                         logger.info("Wait 2s before power off again")
                         time.sleep(2)
                         logger.info("Power off")
@@ -656,7 +655,6 @@ class SubrackMngBoard():
                             logger.info("PowerOnTPM __assign_tpm_ip")
                             if not self.__assign_tpm_ip(tpm_slot_id):
                                 logger.error("IP assignament of TPM on slot %d failed" % tpm_slot_id)
-                                raise SubrackExecFault("IP assignament of TPM on slot %d failed" % tpm_slot_id)
                     #logger.info("PowerOnTPM wait 2s")
                     #time.sleep(2)
                     tpm_ip_str = self.tpm_ip_list[tpm_slot_id - 1]
@@ -664,8 +662,8 @@ class SubrackMngBoard():
                         logger.info("PowerOnTPM Adu_Eth_Ping")
                         time.sleep(2)
                         if Adu_Eth_Ping(tpm_ip_str,wait=2) > 0:
-                            logger.warning("Exception during TPM connection at SLOT-%d"%tpm_slot_id)
-                            raise SubrackExecFault("Adu_Eth_Ping failed!")
+                            logger.error("Adu_Eth_Ping failed at SLOT-%d"%tpm_slot_id)
+                            # raise SubrackExecFault("Adu_Eth_Ping failed!")
 
         logger.info("PowerOnTPM End")
 
