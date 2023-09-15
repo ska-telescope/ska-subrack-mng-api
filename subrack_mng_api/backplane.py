@@ -120,6 +120,8 @@ class Backplane():
         self.simulation = simulation
         self.ps_vout_mode=[]
         self.ps_vout_n=[]
+        self.ps_status_last = [None, None]
+        self.ps_status_res = [{}, {}]
         self.eep_sec = eep_sec
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
@@ -630,12 +632,19 @@ class Backplane():
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return status_reg: register value
     # return status: status of operation
-    def get_ps_status(self, ps_id):
-        present = self.get_ps_present(ps_id)
-        if present is None:
+    def get_ps_status(self, ps_id, key = None):
+        now = time.time()
+        if self.ps_status_last[ps_id-1] is not None:
+            if now - self.ps_status_last[ps_id-1] < 1:
+                if key is None:
+                    return self.ps_status_res[ps_id-1]
+                return self.ps_status_res[ps_id-1][key]
+        logger.info("Refresh get_ps_status of PSU%d"%ps_id)
+        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
+        if status != 0:
             return None
-        if present is False:
-            res = {
+        if bool(ioexp_value & (0b1<<(ps_id-1))):
+            self.ps_status_res[ps_id-1] = {
                 "present" :       False,
                 "busy" :          False,
                 "off" :           False,
@@ -652,13 +661,16 @@ class Backplane():
                 "other" :         False,
                 "unknown" :       False,
             }
-            return res
+            if key is None:
+                return self.ps_status_res[ps_id-1]
+            return self.ps_status_res[ps_id-1][key]
         i2c_add = 0xb0+((ps_id-1)*2)
         #status_reg, status = self.mng.fpgai2c_read8(i2c_add, 0x78, FPGA_I2CBUS.i2c3)
         status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+        self.ps_status_last[ps_id-1] = time.time()
         if status != 0:
             return None
-        res = {
+        self.ps_status_res[ps_id-1] = {
             "present" :       True,
             "busy" :          bool(status_reg & (0b1<<7)),
             "off" :           bool(status_reg & (0b1<<6)),
@@ -675,7 +687,9 @@ class Backplane():
             "other" :         bool(status_reg & (0b1<<9)),
             "unknown" :       bool(status_reg & (0b1<<8)),
         }
-        return res
+        if key is None:
+            return self.ps_status_res[ps_id-1]
+        return self.ps_status_res[ps_id-1][key]
         
     def get_ps_vout_mode(self, ps_id):
         if self.get_ps_present(ps_id) != True:

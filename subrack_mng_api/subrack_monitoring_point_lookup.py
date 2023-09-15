@@ -101,9 +101,65 @@ def load_subrack_lookup(obj):
             
         },
         'psus': {
-            'status' : {
-                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
-                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            'present' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'present', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'present', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'busy' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'busy', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'busy', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'off' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'off', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'off', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'vout_ov_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'vout_ov_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'vout_ov_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'iout_oc_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'iout_oc_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'iout_oc_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'vin_uv_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'vin_uv_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'vin_uv_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'temp_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'temp_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'temp_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'cml_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'cml_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'cml_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'vout_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'vout_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'vout_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'iout_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'iout_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'iout_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'input_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'input_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'input_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'pwr_gd' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'pwr_gd', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'pwr_gd', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'fan_fault' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'fan_fault', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'fan_fault', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'other' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'other', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'other', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+            },
+            'unknown' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'unknown', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'] , 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'unknown', ps_id = 2), 'group' : ['psus', 'status',  'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
             },
             'voltages' : {
                 'PSU1'   : {'method': partial(obj.GetPSVout, ps_id = 1), 'group' : ['psus', 'voltages',  'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'V'},
