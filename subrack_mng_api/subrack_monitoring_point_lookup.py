@@ -175,7 +175,7 @@ def load_subrack_lookup(obj):
             },
         },
         'pings' : {
-            'CPLD'   : {'method': obj.GetPingCpld, 'group' : ['pings', 'CPLD'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
+            'pings_CPLD'   : {'method': obj.GetPingCpld, 'group' : ['pings', 'CPLD'], 'exp_value': { 'min' : None, 'max': None}, 'unit' : ''},
         },
         'slots': {
             'presence' : {
