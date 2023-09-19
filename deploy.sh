@@ -43,9 +43,10 @@ fi
 if [ $UPDATE == true ]; then
     echo "Updating API repository with online version"
     git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
+    git -C $ROOT checkout $BRANCH || { echo 'cmd failed' ; exit 1; }
+    ./deploy.sh -u || { echo 'cmd failed' ; exit 1; }
+    exit 0
 fi
-
-git -C $ROOT checkout $BRANCH || { echo 'cmd failed' ; exit 1; }
 
 rm -r $ROOT/build
 rm -r $ROOT/subrack_mng_api.egg-info
@@ -56,6 +57,8 @@ if [ $CLEAN_VENV == true ]; then
     mkdir $ROOT/venv || { echo 'cmd failed' ; exit 1; }
     echo "Extract venv"
     pv $ROOT/packed-venv.tgz | tar -xz -C $ROOT/venv || { echo 'cmd failed' ; exit 1; }
+    echo "Install requirements"
+    pip install -r requirements.txt || { echo 'cmd failed' ; exit 1; }
     echo "Done"
 fi
 
