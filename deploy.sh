@@ -69,3 +69,6 @@ fi
 
 $ROOT/venv/bin/python -m pip install -U $ROOT || { echo 'cmd failed' ; exit 1; }
 
+echo "Web server service restarting"
+sudo systemctl restart web_server
+
