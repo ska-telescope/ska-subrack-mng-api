@@ -44,7 +44,11 @@ if [ $UPDATE == true ]; then
     echo "Updating API repository with online version"
     git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
     git -C $ROOT checkout $BRANCH || { echo 'cmd failed' ; exit 1; }
-    ./deploy.sh -u -b $BRANCH || { echo 'cmd failed' ; exit 1; }
+    if [ $CLEAN_VENV == true ]; then
+        ./deploy.sh -u -b $BRANCH || { echo 'cmd failed' ; exit 1; }
+    else
+        ./deploy.sh -v -u -b $BRANCH || { echo 'cmd failed' ; exit 1; }
+    fi
     exit 0
 fi
 
@@ -60,9 +64,6 @@ if [ $CLEAN_VENV == true ]; then
     echo "Install requirements"
     pip install -r requirements.txt || { echo 'cmd failed' ; exit 1; }
     echo "Done"
-fi
-
-if [ $UPDATE == true ]; then
     echo "Updating BIOS repository with online version"
     pip install --upgrade git+https://gitlab.com/sanitaseg/ska-low-smm-bios.git || { echo 'cmd failed' ; exit 1; }
 fi
