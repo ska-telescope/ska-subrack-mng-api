@@ -558,6 +558,7 @@ class SubrackMngBoard():
         """
         if (self.GetTPMPresent() & (1 << (tpm_slot_id-1))) != 0 or force:
             pwr = self.Bkpln.get_power_tpm(tpm_slot_id)
+            pwr = round(pwr, 2)
             return pwr
         else:
             raise SubrackInvalidCmd("Impossible to get Power Value, TPM is not present")
@@ -575,7 +576,7 @@ class SubrackMngBoard():
                 curr = 0
             else:
                 curr = float(pwr/volt)
-            curr = round(curr, 3)
+            curr = round(curr, 2)
             return curr
         else:
             raise SubrackInvalidCmd("Impossible to get Power Value, TPM is not present")
@@ -588,6 +589,7 @@ class SubrackMngBoard():
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0 or force:
             if self.Bkpln.is_tpm_on(tpm_slot_id):
                 volt = self.Bkpln.get_voltage_tpm(tpm_slot_id)
+                volt = round(volt, 2)
                 return volt
             else:
                 return None
