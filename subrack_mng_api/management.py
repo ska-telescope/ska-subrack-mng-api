@@ -1392,6 +1392,11 @@ class Management():
                 f_voltage = float(voltage / value["divider"])
                 f_voltage = round(f_voltage, 2)
                 break
+        if measure == "V_3V":
+            #workaround to fix MCU bug on resistor partitor (1000-925 instead of 1000-1150) for V_3V
+            f_voltage = f_voltage / (1150 / ( 1000 + 1150))
+            f_voltage = f_voltage * (925 / ( 1000 + 925))
+        f_voltage = round(f_voltage,2)
         return f_voltage
 
     def check_board_supplies(self):
@@ -1472,7 +1477,7 @@ class Management():
         data_l, status = self.fpgai2c_read8(dev["ICadd"], 0x3b, dev["i2cbus_id"])
         voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
         vout = float(voltage * 16.64) / 65535
-        vout = round(vout, 3)
+        vout = round(vout, 2)
         if print_debug:
             logger.info("voltage, " + str(vout))
         return vout
