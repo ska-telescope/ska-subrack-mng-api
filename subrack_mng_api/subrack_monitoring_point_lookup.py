@@ -247,7 +247,7 @@ def load_subrack_lookup(obj):
             'V_CORE': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_CORE"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': _exp_value(1.2,3), 'unit': 'V'},
             'V_1V5': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_1V5"), 'group': ['internal_voltages', 'voltages'],
-                      'exp_value': _exp_value(1.,3), 'unit': 'V'},
+                      'exp_value': _exp_value(1.5,3), 'unit': 'V'},
             'V_3V3': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_3V3"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': _exp_value(3.3,5), 'unit': 'V'},
             'V_5V': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_5V"), 'group': ['internal_voltages', 'voltages'],
