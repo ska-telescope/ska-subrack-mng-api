@@ -42,8 +42,8 @@ fi
 
 if [ $UPDATE == true ]; then
     echo "Updating API repository with online version"
-    git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
     git -C $ROOT checkout $BRANCH || { echo 'cmd failed' ; exit 1; }
+    git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
     if [ $CLEAN_VENV == true ]; then
         ./deploy.sh -u -b $BRANCH || { echo 'cmd failed' ; exit 1; }
     else
