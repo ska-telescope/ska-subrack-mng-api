@@ -174,6 +174,15 @@ def exec_cmd(cmd,dir=None,verbose=True, exclude_line=""):
         print("...CTRL+C...")
         raise NameError("exec_cmd fails: \""+cmd+"\"")
 
+def flatten_dict(d, parent_key='', sep='_'):
+    rows = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, dict):
+            rows.extend(flatten_dict(v, new_key, sep=sep))
+        elif isinstance(v, (int, float, bool, str)):
+            rows.append((new_key, v))
+    return rows
 
 def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8, wait = '1'):
     cmd='ping ' + ip + ' -c %d'%count + ' -i ' + interval
@@ -672,7 +681,7 @@ class SubrackMngBoard():
     def GetPingTPM(self, tpm_slot_id):
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) > 0:
             if self.Bkpln.is_tpm_on(tpm_slot_id):
-                ip = self.GetTPMIP(tpm_slot_id)
+                ip = self.tpm_ip_list[tpm_slot_id - 1]
                 if Adu_Eth_Ping(ip) == 0:
                     return True
                 else:
@@ -1178,6 +1187,49 @@ class SubrackMngBoard():
                 value = list(value.values())[0]
             # Create dictionary of monitoring points in same format as lookup
             health_status = self._create_nested_dict(lookup, value, health_status)
+        return health_status
+    
+    def get_health_status_w_elapsed(self, **kwargs):
+        """
+        Returns the current value of SUBRACK monitoring points
+        If no group argument given, current value of all monitoring points is returned.
+
+        For example:
+        subrack.get_health_status(group='temperatures')
+        would return only the health status for:
+        
+        A group attribute is provided by default, see subrack_monitoring_point_lookup.py.
+        This can be used like the below example:
+        subrack.get_health_status(group='temperatures')
+        subrack.get_health_status(group='slots')
+        subrack.get_health_status(group='voltages')
+        
+
+        """
+        all_start = time.time()
+        health_status = {}
+        health_status['iso_datetime']= datetime.now(timezone.utc).isoformat()
+        mon_point_list = self._kwargs_handler(kwargs)
+        for monitoring_point in mon_point_list:
+            lookup = monitoring_point.split('.')
+            lookup_entry = self._parse_dict_by_path(self.monitoring_point_lookup_dict, lookup)
+            # call method stored in lookup entry
+            start = time.time()
+            value = lookup_entry["method"]()
+            end = time.time()
+            value = {'val':value,'ms':round((end-start)*1000,1)}
+            # Resolve nested values with only one value i.e
+            # get_voltage("voltage_name") returns {"voltage_name": voltage}
+            # get_clock_manager_status(fpga_id, name) returns {"FPGAid": {"name": status}}
+            while True:
+                if not isinstance(value, dict):
+                    break
+                if len(value) != 1:
+                    break
+                value = list(value.values())[0]
+            # Create dictionary of monitoring points in same format as lookup
+            health_status = self._create_nested_dict(lookup, value, health_status)
+        print(time.time()-all_start)
         return health_status
     
     def get_health_dict(self, **kwargs):

@@ -1029,7 +1029,7 @@ class Management():
         # print "Command %x" %command
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
         run(cmd)
-        time.sleep(0.01)
+        time.sleep(0.001)
         retry = 0
         while (retry < 1000):
             value=self.read("MCUR.GPReg3")
@@ -1097,7 +1097,7 @@ class Management():
         # print "Read data swapped %x " %datarx
         cmd = "echo 1 > /sys/class/gpio/gpio134/value"
         run(cmd)
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
         os.remove("/run/lock/mngfpgai2c.lock")
         logger.debug("fpgai2c_op - End I2C OP")
@@ -1473,9 +1473,10 @@ class Management():
     # return vout: voltage value in V
     def get_voltage_smb(self):
         dev = self.smm_i2c_devices_dict["LTC4281"]
-        data_h, status = self.fpgai2c_read8(dev["ICadd"], 0x3A, dev["i2cbus_id"])
-        data_l, status = self.fpgai2c_read8(dev["ICadd"], 0x3b, dev["i2cbus_id"])
-        voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
+        # data_h, status = self.fpgai2c_read8(dev["ICadd"], 0x3A, dev["i2cbus_id"])
+        # data_l, status = self.fpgai2c_read8(dev["ICadd"], 0x3b, dev["i2cbus_id"])
+        # voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
+        voltage, status = self.fpgai2c_read16(dev["ICadd"], 0x3A, dev["i2cbus_id"])
         vout = float(voltage * 16.64) / 65535
         vout = round(vout, 2)
         if print_debug:

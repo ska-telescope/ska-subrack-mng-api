@@ -120,8 +120,12 @@ class Backplane():
         self.simulation = simulation
         self.ps_vout_mode=[]
         self.ps_vout_n=[]
+        self.ps_present_last = [None, None]
+        self.ps_present_data = [None, None]
         self.ps_status_last = [None, None]
         self.ps_status_res = [{}, {}]
+        self.is_tpm_on_last = [None] * 8
+        self.is_tpm_on_data = [None] * 8
         self.eep_sec = eep_sec
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
@@ -361,10 +365,14 @@ class Backplane():
     # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     # return status: status of operation: True board is turned on, False board is turned off
     def is_tpm_on(self, tpm_id):
-        data, status = self.power_supply[tpm_id-1].read('CONTROL_B1') # power off tpm
+        now = time.time()
+        if self.is_tpm_on_data[tpm_id-1] is None or now - self.is_tpm_on_last[tpm_id-1] > 2:
+            logger.info("Refresh is_tpm_on of SLOT%d"%tpm_id)
+            self.is_tpm_on_data[tpm_id-1], status = self.power_supply[tpm_id-1].read('CONTROL_B1') # power off tpm
+            self.is_tpm_on_last[tpm_id-1] = time.time()
         if print_debug:
-            logger.debug("is_tpm_on " + hex(data & 0xff))
-        if (data & 0xff) == 0xbb:
+            logger.debug("is_tpm_on " + hex(self.is_tpm_on_data[tpm_id-1] & 0xff))
+        if (self.is_tpm_on_data[tpm_id-1] & 0xff) == 0xbb:
             if print_debug:
                 logger.debug("tpm on")
             return True
@@ -383,11 +391,11 @@ class Backplane():
                 power = self.mng.read("Fram.LTC4281_B" + str(tpm_id) + "_power")
             else:
                 power = 0.0
-            pwr = round(power, 3)
+            pwr = round(power, 2)
         else:
             power = self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_power")
             pwr = float(power*0.04*16.64*65536)/((65535*65535)*0.0025)
-            pwr = round(pwr, 3)
+            pwr = round(pwr, 2)
         if print_debug:
             logger.debug("power, "+str(pwr))
         return pwr
@@ -403,11 +411,11 @@ class Backplane():
             else:
                 voltage = 0.0
             vout = float(voltage * 16.64) / 65535
-            vout = round(vout, 3)
+            vout = round(vout, 2)
         else:
             voltage = self.mng.read("Fram.LTC4281_B"+str(tpm_id)+"_Vsource")
             vout = float(voltage*16.64)/65535
-            vout = round(vout, 3)
+            vout = round(vout, 2)
         if print_debug:
             logger.info("voltage, " + str(vout))
         return vout
@@ -620,10 +628,16 @@ class Backplane():
 
 
     def get_ps_present(self, ps_id):
-        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
-        if status != 0:
-            return None
-        if bool(ioexp_value & (0b1<<(ps_id-1))):
+        now = time.time()
+        if self.ps_present_data[ps_id-1] is None or now - self.ps_present_last[ps_id-1] > 2:
+            logger.info("Refresh get_ps_present of PSU%d"%ps_id)
+            ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
+            if status != 0:
+                self.ps_present_data[ps_id-1] = None
+                return None
+            self.ps_present_data[ps_id-1] = bool(ioexp_value & (0b1<<(ps_id-1)))
+            self.ps_present_last[ps_id-1] = time.time()
+        if self.ps_present_data[ps_id-1]:
             return False
         return True
 
@@ -640,10 +654,7 @@ class Backplane():
                     return self.ps_status_res[ps_id-1]
                 return self.ps_status_res[ps_id-1][key]
         logger.info("Refresh get_ps_status of PSU%d"%ps_id)
-        ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
-        if status != 0:
-            return None
-        if bool(ioexp_value & (0b1<<(ps_id-1))):
+        if not self.get_ps_present(ps_id):
             self.ps_status_res[ps_id-1] = {
                 "present" :       False,
                 "busy" :          False,
@@ -709,7 +720,7 @@ class Backplane():
             return 0
         vout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vout")
         v = float(vout*pow(2, self.ps_vout_n[ps_id-1]))
-        v = round(v, 3)
+        v = round(v, 2)
         return v
 
     # This method get the selected power supply iout value evaluated on read from iout register
@@ -724,7 +735,7 @@ class Backplane():
             return 0
         iout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iout")
         i = _decodePMBus(iout)
-        i = round(i, 3)
+        i = round(i, 2)
         return i
 
     # This method get the selected power supply power value evaluated on read from iout and vout registers
@@ -737,7 +748,7 @@ class Backplane():
         i = self.get_ps_iout(ps_id)
         v = self.get_ps_vout(ps_id)
         pw = float(v*i)
-        pw = round(pw, 3)
+        pw = round(pw, 2)
         return pw
 
     # This method set the fan_spped
