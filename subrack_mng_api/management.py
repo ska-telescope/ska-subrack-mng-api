@@ -1473,10 +1473,9 @@ class Management():
     # return vout: voltage value in V
     def get_voltage_smb(self):
         dev = self.smm_i2c_devices_dict["LTC4281"]
-        # data_h, status = self.fpgai2c_read8(dev["ICadd"], 0x3A, dev["i2cbus_id"])
-        # data_l, status = self.fpgai2c_read8(dev["ICadd"], 0x3b, dev["i2cbus_id"])
-        # voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
-        voltage, status = self.fpgai2c_read16(dev["ICadd"], 0x3A, dev["i2cbus_id"])
+        data_h = self.read("Fram.LTCVsourceH")
+        data_l = self.read("Fram.LTCVsourceL")
+        voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
         vout = float(voltage * 16.64) / 65535
         vout = round(vout, 2)
         if print_debug:

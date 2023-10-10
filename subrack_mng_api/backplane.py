@@ -124,8 +124,6 @@ class Backplane():
         self.ps_present_data = [None, None]
         self.ps_status_last = [None, None]
         self.ps_status_res = [{}, {}]
-        self.is_tpm_on_last = [None] * 8
-        self.is_tpm_on_data = [None] * 8
         self.eep_sec = eep_sec
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
@@ -333,7 +331,7 @@ class Backplane():
         if status != 0:
             logger.error("Error writing on device " + self.power_supply[tpm_id-1].get_name())
         else:
-            if self.is_tpm_on(tpm_id):
+            if self.is_tpm_on(tpm_id,direct=True):
                 status = 0
             else:
                 status = 1
@@ -354,7 +352,7 @@ class Backplane():
         if status != 0:
             logger.error("Error writing on device " + self.power_supply[tpm_id-1].get_name())
         else:
-            if self.is_tpm_on(tpm_id) is False:
+            if self.is_tpm_on(tpm_id,direct=True) is False:
                 status = 0
             else:
                 status = 1
@@ -364,15 +362,14 @@ class Backplane():
     # This method detect if the selected TPM board power control has powewred on the TPM
     # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     # return status: status of operation: True board is turned on, False board is turned off
-    def is_tpm_on(self, tpm_id):
-        now = time.time()
-        if self.is_tpm_on_data[tpm_id-1] is None or now - self.is_tpm_on_last[tpm_id-1] > 2:
-            logger.info("Refresh is_tpm_on of SLOT%d"%tpm_id)
-            self.is_tpm_on_data[tpm_id-1], status = self.power_supply[tpm_id-1].read('CONTROL_B1') # power off tpm
-            self.is_tpm_on_last[tpm_id-1] = time.time()
+    def is_tpm_on(self, tpm_id, direct = False):
+        if direct:
+            value, status = self.power_supply[tpm_id-1].read('CONTROL_B1') # power off tpm
+        else:
+            value = (self.mng.read("Fram.LTC4281_B%d_control"%tpm_id) >> 8)
         if print_debug:
-            logger.debug("is_tpm_on " + hex(self.is_tpm_on_data[tpm_id-1] & 0xff))
-        if (self.is_tpm_on_data[tpm_id-1] & 0xff) == 0xbb:
+            logger.debug("is_tpm_on " + hex(value & 0xff))
+        if (value & 0xff) == 0xbb:
             if print_debug:
                 logger.debug("tpm on")
             return True
