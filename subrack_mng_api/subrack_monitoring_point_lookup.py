@@ -232,6 +232,8 @@ def load_subrack_lookup(obj):
             },
         },
         'internal_voltages': {
+            'V_POWERIN': {'method': obj.Mng.get_voltage_smb, 'group': ['internal_voltages', 'voltages'],
+                      'exp_value': _exp_value(12.0,5), 'unit': 'V'},
             'V_SOC': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_SOC"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': _exp_value(1.35,3), 'unit': 'V'},
             'V_ARM': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_ARM"), 'group': ['internal_voltages', 'voltages'],
@@ -240,8 +242,8 @@ def load_subrack_lookup(obj):
                       'exp_value': _exp_value(1.35,3), 'unit': 'V'},
             'V_2V5': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_2V5"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': _exp_value(2.5,5), 'unit': 'V'},
-            'V_1V0': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_1V0"), 'group': ['internal_voltages', 'voltages'],
-                      'exp_value': _exp_value(1.0,3), 'unit': 'V'},
+            # 'V_1V0': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_1V0"), 'group': ['internal_voltages', 'voltages'],
+            #           'exp_value': _exp_value(1.0,3), 'unit': 'V'},
             'V_1V1': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_1V1"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': _exp_value(1.1,3), 'unit': 'V'},
             'V_CORE': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_CORE"), 'group': ['internal_voltages', 'voltages'],
@@ -256,9 +258,5 @@ def load_subrack_lookup(obj):
                       'exp_value': _exp_value(3.0,5), 'unit': 'V'},
             'V_2V8': {'method': partial(obj.Mng.get_monitored_board_supplies, "V_2V8"), 'group': ['internal_voltages', 'voltages'],
                       'exp_value': _exp_value(2.8,5), 'unit': 'V'},
-        },
-        'smb_powerin_voltage': {
-            '12V0': {'method': obj.Mng.get_voltage_smb, 'group': ['smb_powerin_voltage', 'voltages'],
-                      'exp_value': _exp_value(12.0,5), 'unit': 'V'},
         },
     }
