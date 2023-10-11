@@ -626,7 +626,7 @@ class Backplane():
 
     def get_ps_present(self, ps_id, force_refresh = False):
         now = time.time()
-        if self.ps_present_data[ps_id-1] is None or now - self.ps_present_last[ps_id-1] > 2 or force_refresh:
+        if self.ps_present_data[ps_id-1] is None or now - self.ps_present_last[ps_id-1] > 1 or force_refresh:
             logger.info("Refresh get_ps_present of PSU%d"%ps_id)
             ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
             if status != 0:
