@@ -624,9 +624,9 @@ class Backplane():
         return 0
 
 
-    def get_ps_present(self, ps_id):
+    def get_ps_present(self, ps_id, force_refresh = False):
         now = time.time()
-        if self.ps_present_data[ps_id-1] is None or now - self.ps_present_last[ps_id-1] > 2:
+        if self.ps_present_data[ps_id-1] is None or now - self.ps_present_last[ps_id-1] > 2 or force_refresh:
             logger.info("Refresh get_ps_present of PSU%d"%ps_id)
             ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
             if status != 0:
@@ -643,15 +643,15 @@ class Backplane():
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return status_reg: register value
     # return status: status of operation
-    def get_ps_status(self, ps_id, key = None):
+    def get_ps_status(self, ps_id, key = None, force_refresh = False):
         now = time.time()
-        if self.ps_status_last[ps_id-1] is not None:
+        if self.ps_status_last[ps_id-1] is not None and not force_refresh:
             if now - self.ps_status_last[ps_id-1] < 1:
                 if key is None:
                     return self.ps_status_res[ps_id-1]
                 return self.ps_status_res[ps_id-1][key]
         logger.info("Refresh get_ps_status of PSU%d"%ps_id)
-        if not self.get_ps_present(ps_id):
+        if not self.get_ps_present(ps_id,force_refresh):
             self.ps_status_res[ps_id-1] = {
                 "present" :       False,
                 "busy" :          False,
@@ -677,6 +677,7 @@ class Backplane():
         status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
         self.ps_status_last[ps_id-1] = time.time()
         if status != 0:
+            logger.error("get_ps_status access failed!")
             return None
         self.ps_status_res[ps_id-1] = {
             "present" :       True,
@@ -695,6 +696,34 @@ class Backplane():
             "other" :         bool(status_reg & (0b1<<9)),
             "unknown" :       bool(status_reg & (0b1<<8)),
         }
+        if self.ps_status_res[ps_id-1]["off"]:
+            logger.error("Error:PSU%d is off"%ps_id)
+            logger.error("status_reg: "+hex(status_reg))
+            logger.error("status: "+str(status))
+            logger.error(str(self.ps_status_res[ps_id-1]))
+            logger.error("Force retry")
+            self.get_ps_present(ps_id,force_refresh=True)
+            status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+            logger.error("status_reg: "+hex(status_reg))
+            logger.error("status: "+str(status))
+            self.ps_status_res[ps_id-1] = {
+                "present" :       True,
+                "busy" :          bool(status_reg & (0b1<<7)),
+                "off" :           bool(status_reg & (0b1<<6)),
+                "vout_ov_fault" : bool(status_reg & (0b1<<5)),
+                "iout_oc_fault" : bool(status_reg & (0b1<<4)),
+                "vin_uv_fault" :  bool(status_reg & (0b1<<3)),
+                "temp_fault" :    bool(status_reg & (0b1<<2)),
+                "cml_fault" :     bool(status_reg & (0b1<<1)),
+                "vout_fault" :    bool(status_reg & (0b1<<15)),
+                "iout_fault" :    bool(status_reg & (0b1<<14)),
+                "input_fault" :   bool(status_reg & (0b1<<13)),
+                "pwr_gd" :        not bool(status_reg & (0b1<<11)),
+                "fan_fault" :     bool(status_reg & (0b1<<10)),
+                "other" :         bool(status_reg & (0b1<<9)),
+                "unknown" :       bool(status_reg & (0b1<<8)),
+            }
+            logger.error(str(self.ps_status_res[ps_id-1]))
         if key is None:
             return self.ps_status_res[ps_id-1]
         return self.ps_status_res[ps_id-1][key]
