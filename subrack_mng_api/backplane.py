@@ -31,13 +31,9 @@ def twos_comp(val, bits):
 
 #Decode/encode Linear data format => X=Y*2^N
 def _decodePMBus(message):
-    print(hex(message))
     messageN = message >> 11
-    print(hex(messageN),messageN)
     messageY = message & 0b0000011111111111
-    print(hex(messageY),messageY)
     message = messageY*(2.0**(twos_comp(messageN, 5))) #calculate real values (everything but VOUT works)
-    print(message)
     return message
 
 eep_sec = {
