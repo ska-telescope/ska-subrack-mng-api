@@ -31,9 +31,13 @@ def twos_comp(val, bits):
 
 #Decode/encode Linear data format => X=Y*2^N
 def _decodePMBus(message):
+    print(hex(message))
     messageN = message >> 11
+    print(hex(messageN),messageN)
     messageY = message & 0b0000011111111111
+    print(hex(messageY),messageY)
     message = messageY*(2.0**(twos_comp(messageN, 5))) #calculate real values (everything but VOUT works)
+    print(message)
     return message
 
 eep_sec = {
@@ -696,8 +700,8 @@ class Backplane():
             "other" :         bool(status_reg & (0b1<<9)),
             "unknown" :       bool(status_reg & (0b1<<8)),
         }
-        if self.ps_status_res[ps_id-1]["off"]:
-            logger.error("Error:PSU%d is off"%ps_id)
+        if self.ps_status_res[ps_id-1] != 0:
+            logger.error("Error:PSU%d"%ps_id)
             logger.error("status_reg: "+hex(status_reg))
             logger.error("status: "+str(status))
             logger.error(str(self.ps_status_res[ps_id-1]))
@@ -727,7 +731,18 @@ class Backplane():
         if key is None:
             return self.ps_status_res[ps_id-1]
         return self.ps_status_res[ps_id-1][key]
-        
+    
+    def get_ps_temp(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
+        temp_list = []
+        for _add in [ 0x8d, 0x8e, 0x8f ]:
+            i2c_add = 0xb0+((ps_id-1)*2)
+            temp_reg, status = self.mng.fpgai2c_read16(i2c_add, _add, FPGA_I2CBUS.i2c3)
+            temp = float(_decodePMBus(temp_reg))
+            temp_list.append(temp)
+        return temp_list, status
+
     def get_ps_vout_mode(self, ps_id):
         if self.get_ps_present(ps_id) != True:
             return 0, 1
@@ -800,10 +815,11 @@ class Backplane():
     # return status: status of operation
     def get_ps_fanspeed(self, ps_id):
         if self.get_ps_present(ps_id) != True:
-            return float('nan'), 1
-        i2c_add = 0xb0+((ps_id-1)*2)
-        speed_param, status = self.mng.fpgai2c_read16(i2c_add, 0x3B, FPGA_I2CBUS.i2c3)
-        return speed_param, status
+            return float('nan')
+        speed = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Fan_Speed")
+        speed_param = _decodePMBus(speed)
+        speed_param = round(speed_param, 2)
+        return speed_param
 
     def close(self):
         self.__del__()

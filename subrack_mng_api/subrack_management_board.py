@@ -975,11 +975,11 @@ class SubrackMngBoard():
         """
         if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
-        fanspeed, status = self.Bkpln.get_ps_fanspeed(ps_id)
-        if status != 0:
-            raise SubrackExecFault("ERROR: Get PS Fan speed operation failed")
-        else:
-            return fanspeed
+        fanspeed = self.Bkpln.get_ps_fanspeed(ps_id)
+        # if status != 0:
+        #     raise SubrackExecFault("ERROR: Get PS Fan speed operation failed")
+        # else:
+        return fanspeed
 
     def SetPSFanSpeed(self, ps_id, speed_percent):
         """This method set the fan speed of selected Power Supply of subrack
