@@ -166,10 +166,10 @@ def load_subrack_lookup(obj):
                 'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 1), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
                 'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 1), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
             },
-            'temp_outlet' : {
-                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 2), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
-                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 2), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
-            },
+            # 'temp_outlet' : { # available only in old PSU (PET1300)
+            #     'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 2), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+            #     'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 2), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+            # },
             'temp_fet' : {
                 'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 3), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
                 'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 3), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
