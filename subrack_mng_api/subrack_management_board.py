@@ -372,6 +372,13 @@ class SubrackMngBoard():
         """ method to get the Version of the API
         :return string with API version
         """
+        note=""
+        if self.board_info['SMM']['bios'] == 'v?.?.?':
+            note = " [WARNING SMM bios in beta]"
+        else:
+            if [int(x) for x in self.board_info['SMM']['bios'].lstrip('v').split(".")] < [int(x) for x in minimum_SMM_bios_required.lstrip('v').split(".")]:
+                note += " [WARNING minimum SMM bios required %s]"%minimum_SMM_bios_required
+            
         try:
             cmd="git -C %s describe --tags --dirty --always"%os.path.dirname(__file__)
         except:
@@ -380,10 +387,10 @@ class SubrackMngBoard():
         try:
             result = subprocess.run(cmd.split(" "), stdout=subprocess.PIPE)
             if result.returncode == 0:
-                return get_version() + " (%s)"%str(result.stdout.decode('utf-8').strip())
-            return get_version()
+                return get_version() + " (%s)"%str(result.stdout.decode('utf-8').strip()) + note
+            return get_version() + note
         except:
-            return get_version()
+            return get_version() + note
 
     def Get_Subrack_TimeTS(self):
         """ method to get the subrack Time in timestamp format

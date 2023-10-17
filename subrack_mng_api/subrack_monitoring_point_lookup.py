@@ -69,7 +69,7 @@ def _exp_value(nominal, tolerance_perc):
     return {'min': round(nominal*(1-tolerance_perc/100),2),'max': round(nominal*(1+tolerance_perc/100),2)}
 
 def load_subrack_lookup(obj):
-    return{
+    val = {
         'temperatures' : {
             'SMM1'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 1),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 50.00}, 'unit' : '°C'},
             'SMM2'   : {'method': partial(obj.Mng.GetMngTemp, sens_id = 2),      'group' : 'temperatures', 'exp_value': { 'min': 10.00, 'max': 50.00}, 'unit' : '°C'},
@@ -80,27 +80,6 @@ def load_subrack_lookup(obj):
             'BoardPllLock' : {'method': obj.GetLockedPLL,     'group' : 'plls', 'exp_value': { 'min': True, 'max': True}, 'unit' : ''},
             'CPLDPllLock'  : {'method': obj.GetCPLDLockedPLL, 'group' : 'plls', 'exp_value': { 'min': True, 'max': True}, 'unit' : ''},
             'PllSource'    : {'method': obj.GetPllSource,     'group' : 'plls', 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
-        },
-        'fans' : {
-            'speed' : {
-                'FAN1'   : {'method': partial(obj.GetFanRpm, fan_id = 1), 'group' : ['fans', 'FAN1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
-                'FAN2'   : {'method': partial(obj.GetFanRpm, fan_id = 2), 'group' : ['fans', 'FAN2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
-                'FAN3'   : {'method': partial(obj.GetFanRpm, fan_id = 3), 'group' : ['fans', 'FAN3'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
-                'FAN4'   : {'method': partial(obj.GetFanRpm, fan_id = 4), 'group' : ['fans', 'FAN4'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
-            },
-            'pwm_duty' : {
-                'FAN1'   : {'method': partial(obj.GetFanPwm, fan_id = 1), 'group' : ['fans', 'FAN1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '%'},
-                'FAN2'   : {'method': partial(obj.GetFanPwm, fan_id = 2), 'group' : ['fans', 'FAN2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '%'},
-                'FAN3'   : {'method': partial(obj.GetFanPwm, fan_id = 3), 'group' : ['fans', 'FAN3'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '%'},
-                'FAN4'   : {'method': partial(obj.GetFanPwm, fan_id = 4), 'group' : ['fans', 'FAN4'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '%'},
-            },
-            'mode' : {
-                'FAN1'   : {'method': partial(obj.GetFanMode, fan_id = 1), 'group' : ['fans', 'FAN1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
-                'FAN2'   : {'method': partial(obj.GetFanMode, fan_id = 2), 'group' : ['fans', 'FAN2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
-                'FAN3'   : {'method': partial(obj.GetFanMode, fan_id = 3), 'group' : ['fans', 'FAN3'], 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
-                'FAN4'   : {'method': partial(obj.GetFanMode, fan_id = 4), 'group' : ['fans', 'FAN4'], 'exp_value': { 'min': None, 'max': None}, 'unit' : ''},
-            },
-            
         },
         'psus': {
             'present' : {
@@ -163,17 +142,37 @@ def load_subrack_lookup(obj):
                 'PSU1'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'unknown', ps_id = 1), 'group' : ['psus', 'status', 'PSU1'], 'exp_value': { 'min': False, 'max': False}, 'unit' : 'V'},
                 'PSU2'   : {'method': partial(obj.Bkpln.get_ps_status, key = 'unknown', ps_id = 2), 'group' : ['psus', 'status', 'PSU2'], 'exp_value': { 'min': False, 'max': False}, 'unit' : 'V'},
             },
-            'voltages' : {
+            'voltage_out' : {
                 'PSU1'   : {'method': partial(obj.GetPSVout, ps_id = 1), 'group' : ['psus', 'voltages', 'PSU1'], 'exp_value': _exp_value(12,5), 'unit' : 'V'},
                 'PSU2'   : {'method': partial(obj.GetPSVout, ps_id = 2), 'group' : ['psus', 'voltages', 'PSU2'], 'exp_value': _exp_value(12,5), 'unit' : 'V'},
             },
-            'currents' : {
-                'PSU1'   : {'method': partial(obj.GetPSIout, ps_id = 1), 'group' : ['psus', 'currents', 'PSU1'], 'exp_value': { 'min': None, 'max': 50}, 'unit' : 'A'},
-                'PSU2'   : {'method': partial(obj.GetPSIout, ps_id = 2), 'group' : ['psus', 'currents', 'PSU2'], 'exp_value': { 'min': None, 'max': 50}, 'unit' : 'A'},
+            'power_out' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_pout, ps_id = 1), 'group' : ['psus', 'powers', 'PSU1'], 'exp_value': { 'min': None, 'max': 600}, 'unit' : 'A'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_pout, ps_id = 2), 'group' : ['psus', 'powers', 'PSU2'], 'exp_value': { 'min': None, 'max': 600}, 'unit' : 'A'},
             },
-            'fan_pwm_override' : {
-                'PSU1'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 1), 'group' : ['psus', 'fan_pwm_or', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
-                'PSU2'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 2), 'group' : ['psus', 'fan_pwm_or', 'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
+            'voltage_in' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_vin, ps_id = 1), 'group' : ['psus', 'voltages', 'PSU1'], 'exp_value': _exp_value(230,10), 'unit' : 'V'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_vin, ps_id = 2), 'group' : ['psus', 'voltages', 'PSU2'], 'exp_value': _exp_value(230,10), 'unit' : 'V'},
+            },
+            'power_in' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_pin, ps_id = 1), 'group' : ['psus', 'powers', 'PSU1'], 'exp_value': { 'min': None, 'max': 600}, 'unit' : 'A'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_pin, ps_id = 2), 'group' : ['psus', 'powers', 'PSU2'], 'exp_value': { 'min': None, 'max': 600}, 'unit' : 'A'},
+            },
+            'fan_speed' : {
+                'PSU1'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 1), 'group' : ['psus', 'fan_speed', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
+                'PSU2'   : {'method': partial(obj.GetPSFanSpeed, ps_id = 2), 'group' : ['psus', 'fan_speed', 'PSU2'], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'},
+            },
+            'temp_inlet' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 1), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 1), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+            },
+            'temp_outlet' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 2), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 2), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+            },
+            'temp_fet' : {
+                'PSU1'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 1, temp_id = 3), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
+                'PSU2'   : {'method': partial(obj.Bkpln.get_ps_temp, ps_id = 2, temp_id = 3), 'group' : ['psus', 'temperatures', 'PSU1'], 'exp_value': { 'min': None, 'max': None}, 'unit' : '°C'},
             },
         },
         'pings' : {
@@ -260,3 +259,9 @@ def load_subrack_lookup(obj):
                       'exp_value': _exp_value(2.8,5), 'unit': 'V'},
         },
     }
+    val['fans']={}
+    val['fans']['speed']={'FAN%d'%i :{'method': partial(obj.GetFanRpm, fan_id = i), 'group' : ['fans', 'FAN%d'%i], 'exp_value': { 'min': None, 'max': None}, 'unit' : 'rpm'} for i in range(1,5)}
+    val['fans']['pwm_duty']={'FAN%d'%i :{'method': partial(obj.GetFanPwm, fan_id = i), 'group' : ['fans', 'FAN%d'%i], 'exp_value': { 'min': None, 'max': None}, 'unit' : '%'} for i in range(1,5)}
+    val['fans']['mode']={'FAN%d'%i :{'method': partial(obj.GetFanMode, fan_id = i), 'group' : ['fans', 'FAN%d'%i], 'exp_value': { 'min': None, 'max': None}, 'unit' : ''} for i in range(1,5)}
+
+    return val

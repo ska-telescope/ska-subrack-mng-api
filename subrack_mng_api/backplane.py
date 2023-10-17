@@ -120,10 +120,6 @@ class Backplane():
         self.simulation = simulation
         self.ps_vout_mode=[]
         self.ps_vout_n=[]
-        self.ps_present_last = [None, None]
-        self.ps_present_data = [None, None]
-        self.ps_status_last = [None, None]
-        self.ps_status_res = [{}, {}]
         self.eep_sec = eep_sec
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
@@ -624,17 +620,10 @@ class Backplane():
         return 0
 
 
-    def get_ps_present(self, ps_id, force_refresh = False):
-        now = time.time()
-        if self.ps_present_data[ps_id-1] is None or now - self.ps_present_last[ps_id-1] > 1 or force_refresh:
-            logger.info("Refresh get_ps_present of PSU%d"%ps_id)
-            ioexp_value, status = self.mng.fpgai2c_read8(0x40, None, FPGA_I2CBUS.i2c3)
-            if status != 0:
-                self.ps_present_data[ps_id-1] = None
-                return None
-            self.ps_present_data[ps_id-1] = bool(ioexp_value & (0b1<<(ps_id-1)))
-            self.ps_present_last[ps_id-1] = time.time()
-        if self.ps_present_data[ps_id-1]:
+    def get_ps_present(self, ps_id):
+        ioexp_value = self.mng.read("Fram.PSU_ioexp_pre")
+        result = bool(ioexp_value & (0b1<<(ps_id-1)))
+        if result:
             return False
         return True
 
@@ -643,16 +632,9 @@ class Backplane():
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
     # return status_reg: register value
     # return status: status of operation
-    def get_ps_status(self, ps_id, key = None, force_refresh = False):
-        now = time.time()
-        if self.ps_status_last[ps_id-1] is not None and not force_refresh:
-            if now - self.ps_status_last[ps_id-1] < 1:
-                if key is None:
-                    return self.ps_status_res[ps_id-1]
-                return self.ps_status_res[ps_id-1][key]
-        logger.info("Refresh get_ps_status of PSU%d"%ps_id)
-        if not self.get_ps_present(ps_id,force_refresh):
-            self.ps_status_res[ps_id-1] = {
+    def get_ps_status(self, ps_id, key = None):
+        if not self.get_ps_present(ps_id):
+            result = {
                 "present" :       False,
                 "busy" :          False,
                 "off" :           False,
@@ -670,16 +652,17 @@ class Backplane():
                 "unknown" :       False,
             }
             if key is None:
-                return self.ps_status_res[ps_id-1]
-            return self.ps_status_res[ps_id-1][key]
+                return result
+            return result[key]
         i2c_add = 0xb0+((ps_id-1)*2)
         #status_reg, status = self.mng.fpgai2c_read8(i2c_add, 0x78, FPGA_I2CBUS.i2c3)
-        status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
-        self.ps_status_last[ps_id-1] = time.time()
+        # status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+        status = 0
+        status_reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_status")
         if status != 0:
             logger.error("get_ps_status access failed!")
             return None
-        self.ps_status_res[ps_id-1] = {
+        result = {
             "present" :       True,
             "busy" :          bool(status_reg & (0b1<<7)),
             "off" :           bool(status_reg & (0b1<<6)),
@@ -696,17 +679,19 @@ class Backplane():
             "other" :         bool(status_reg & (0b1<<9)),
             "unknown" :       bool(status_reg & (0b1<<8)),
         }
-        if self.ps_status_res[ps_id-1] != 0:
+        if status_reg != 0:
             logger.error("Error:PSU%d"%ps_id)
             logger.error("status_reg: "+hex(status_reg))
             logger.error("status: "+str(status))
-            logger.error(str(self.ps_status_res[ps_id-1]))
+            logger.error(str(result))
             logger.error("Force retry")
-            self.get_ps_present(ps_id,force_refresh=True)
-            status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+            self.get_ps_present(ps_id)
+            # status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+            status = 0
+            status_reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_status")
             logger.error("status_reg: "+hex(status_reg))
             logger.error("status: "+str(status))
-            self.ps_status_res[ps_id-1] = {
+            result = {
                 "present" :       True,
                 "busy" :          bool(status_reg & (0b1<<7)),
                 "off" :           bool(status_reg & (0b1<<6)),
@@ -723,21 +708,32 @@ class Backplane():
                 "other" :         bool(status_reg & (0b1<<9)),
                 "unknown" :       bool(status_reg & (0b1<<8)),
             }
-            logger.error(str(self.ps_status_res[ps_id-1]))
+            logger.error(str(result))
         if key is None:
-            return self.ps_status_res[ps_id-1]
-        return self.ps_status_res[ps_id-1][key]
-    
-    def get_ps_temp(self, ps_id):
+            return result
+        return result[key]
+
+    def get_ps_temp(self, ps_id, temp_id = None):
         if self.get_ps_present(ps_id) != True:
-            return 0, 1
+            if temp_id is not None:
+                return None
+            else:
+                return [None]*3
+        if temp_id is not None:
+            reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_temp"+str(temp_id))
+            val = round(_decodePMBus(reg),2)
+            return val
         temp_list = []
-        for _add in [ 0x8d, 0x8e, 0x8f ]:
-            i2c_add = 0xb0+((ps_id-1)*2)
-            temp_reg, status = self.mng.fpgai2c_read16(i2c_add, _add, FPGA_I2CBUS.i2c3)
-            temp = float(_decodePMBus(temp_reg))
-            temp_list.append(temp)
-        return temp_list, status
+        # for _add in [ 0x8d, 0x8e, 0x8f ]:
+        #     i2c_add = 0xb0+((ps_id-1)*2)
+        #     temp_reg, status = self.mng.fpgai2c_read16(i2c_add, _add, FPGA_I2CBUS.i2c3)
+        #     temp = float(_decodePMBus(temp_reg))
+        #     temp_list.append(temp)
+        for temp_id in range(1,4):
+            reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_temp"+str(temp_id))
+            val = round(_decodePMBus(reg),2)
+            temp_list.append(val)
+        return temp_list
 
     def get_ps_vout_mode(self, ps_id):
         if self.get_ps_present(ps_id) != True:
@@ -770,10 +766,9 @@ class Backplane():
         status = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Status_Iout")
         if status == 255:
             return 0
-        iout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iout")
-        i = _decodePMBus(iout)
-        i = round(i, 2)
-        return i
+        reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iout")
+        val = round(_decodePMBus(reg),2)
+        return val
 
     # This method get the selected power supply power value evaluated on read from iout and vout registers
     # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
@@ -782,10 +777,7 @@ class Backplane():
     def get_ps_power(self, ps_id):
         if self.get_ps_present(ps_id) != True:
             return float('nan')
-        i = self.get_ps_iout(ps_id)
-        v = self.get_ps_vout(ps_id)
-        pw = float(v*i)
-        pw = round(pw, 2)
+        pw = self.get_ps_pout(ps_id)
         return pw
 
     # This method set the fan_spped
@@ -812,10 +804,45 @@ class Backplane():
     def get_ps_fanspeed(self, ps_id):
         if self.get_ps_present(ps_id) != True:
             return float('nan')
-        speed = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Fan_Speed")
-        speed_param = _decodePMBus(speed)
-        speed_param = round(speed_param, 2)
-        return speed_param
+        reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Fan_Speed")
+        val = round(_decodePMBus(reg),2)
+        return val
+    
+    def get_ps_vin(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
+        # i2c_add = 0xb0+((ps_id-1)*2)
+        # reg, status = self.mng.fpgai2c_read16(i2c_add, 0x88, FPGA_I2CBUS.i2c3)
+        reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vin")
+        val = round(_decodePMBus(reg),2)
+        return val
+    
+    def get_ps_iin(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
+        # i2c_add = 0xb0+((ps_id-1)*2)
+        # reg, status = self.mng.fpgai2c_read16(i2c_add, 0x89, FPGA_I2CBUS.i2c3)
+        reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Iin")
+        val = round(_decodePMBus(reg),2)
+        return val
+
+    def get_ps_pout(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
+        # i2c_add = 0xb0+((ps_id-1)*2)
+        # reg, status = self.mng.fpgai2c_read16(i2c_add, 0x96, FPGA_I2CBUS.i2c3)
+        reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Pout")
+        val = round(_decodePMBus(reg),2)
+        return val
+    
+    def get_ps_pin(self, ps_id):
+        if self.get_ps_present(ps_id) != True:
+            return 0, 1
+        # i2c_add = 0xb0+((ps_id-1)*2)
+        # reg, status = self.mng.fpgai2c_read16(i2c_add, 0x97, FPGA_I2CBUS.i2c3)
+        reg = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Pin")
+        val = round(_decodePMBus(reg),2)
+        return val
 
     def close(self):
         self.__del__()
