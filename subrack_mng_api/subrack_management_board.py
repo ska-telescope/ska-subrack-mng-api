@@ -375,9 +375,11 @@ class SubrackMngBoard():
         note=""
         if self.board_info['SMM']['bios'] == 'v?.?.?':
             note = " [WARNING SMM bios in beta]"
+            logger.warning(note)
         else:
             if [int(x) for x in self.board_info['SMM']['bios'].lstrip('v').split(".")] < [int(x) for x in minimum_SMM_bios_required.lstrip('v').split(".")]:
                 note += " [WARNING minimum SMM bios required %s]"%minimum_SMM_bios_required
+                logger.warning(note)
             
         try:
             cmd="git -C %s describe --tags --dirty --always"%os.path.dirname(__file__)
