@@ -748,7 +748,7 @@ class Backplane():
             return 0
         vout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vout")
         if self.ps_vout_n[ps_id-1] is None:
-            ps_vout_mode = self.get_ps_vout_mode(ps_id)
+            ps_vout_mode,status = self.get_ps_vout_mode(ps_id)
             self.ps_vout_n[ps_id-1] = (twos_comp(ps_vout_mode,5))
         v = float(vout*pow(2, self.ps_vout_n[ps_id-1]))
         v = round(v, 2)
