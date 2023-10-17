@@ -118,14 +118,9 @@ class Backplane():
         self.data = []
         self.mng = Management_b
         self.simulation = simulation
-        self.ps_vout_mode=[]
-        self.ps_vout_n=[]
         self.eep_sec = eep_sec
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
-        for i in range(2):
-            vout,status=self.get_ps_vout_mode(i+1)
-            self.ps_vout_mode.append(vout)
-            self.ps_vout_n.append(twos_comp(self.ps_vout_mode[i],5))
+        self.ps_vout_n = [None]*2
         try:
             data, status = self.power_supply[0].read('CONTROL_B1')
             if status == 0:
@@ -752,6 +747,9 @@ class Backplane():
         if status == 255:
             return 0
         vout = self.mng.read("Fram.PSU"+str(ps_id-1)+"_Vout")
+        if self.ps_vout_n[ps_id-1] is None:
+            ps_vout_mode = self.get_ps_vout_mode(ps_id)
+            self.ps_vout_n[ps_id-1] = (twos_comp(ps_vout_mode,5))
         v = float(vout*pow(2, self.ps_vout_n[ps_id-1]))
         v = round(v, 2)
         return v
