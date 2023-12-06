@@ -380,6 +380,13 @@ class SubrackMngBoard:
     """
 
     def __detect_ups(self):
+        """
+        Detects the presence of an uninterruptible power supply (UPS).
+
+        This method reads data from a serial connection and checks the elapsed time
+        to determine if a UPS is present within a specified time window.
+
+        """
         start = time.time()
         data = self.ser.read(32)
         if len(data) == 0 or (time.time() - start) >= 5:
@@ -389,6 +396,13 @@ class SubrackMngBoard:
         self.ups_status["ups_detected"] = self.ups_present
 
     def __startup(self):
+        """
+        Performs startup procedures.
+
+        This method initializes the startup sequence, including checking TPM slots,
+        assigning IP addresses, and handling exceptions during TPM connection.
+
+        """
         logger.warning("__startup")
         vecton = self.GetTPMOnOffVect()
         for i in range(0, 8):
@@ -425,6 +439,17 @@ class SubrackMngBoard:
                 #     pass
 
     def __assign_tpm_ip(self, tpm_slot_id, timeout=100):
+        """
+        Assigns an IP address to a TPM slot.
+
+        This method detects the CPU IP, calculates the TPM IP address, and assigns it
+        to the specified TPM slot.
+
+        :param tpm_slot_id: The TPM slot identifier.
+        :param timeout: The timeout value for the assignment operation.
+
+        :return: The result of the IP assignment operation.
+        """
         cpu_ip, netmask, gateway = self.Mng.detect_cpu_ip()
         if cpu_ip is not None:
             tpm_ip_add_h = ipstr2hex(cpu_ip) & 0xFFFFFF00
@@ -447,6 +472,13 @@ class SubrackMngBoard:
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def __populate_tpm_ip_list(self):
+        """
+        Populates the TPM IP list.
+
+        This method detects the CPU IP and calculates the TPM IP addresses for all
+        available TPM slots.
+
+        """
         cpu_ip, netmask, gateway = self.Mng.detect_cpu_ip()
         if cpu_ip is not None:
             self.cpu_ip = cpu_ip
@@ -460,11 +492,32 @@ class SubrackMngBoard:
             raise SubrackExecFault("Error:TPM Power on Failed")
 
     def read_tpm_singlewire(self, tpm_id, address):
+        """
+        Reads a value from the single-wire interface of a TPM.
+
+        This method selects a TPM by psnt_mux and reads a register value from the
+        specified address in the single-wire interface.
+
+        :param tpm_id: The TPM identifier.
+        :param address: The register address in the single-wire interface.
+
+        :return: The value read from the specified register.
+        """
         self.Mng.write("HKeep.PsntMux", tpm_id - 1)  # select tpm by psnt_mux
         regval = self.CpldMng.read_register(address)
         return regval
 
     def write_tpm_singlewire(self, tpm_id, address, value):
+        """
+        Writes a value to the single-wire interface of a TPM.
+
+        This method selects a TPM by psnt_mux and writes a value to the specified
+        address in the single-wire interface.
+
+        :param tpm_id: The TPM identifier.
+        :param address: The register address in the single-wire interface.
+        :param value: The value to be written to the register.
+        """
         self.Mng.write("HKeep.PsntMux", tpm_id - 1)  # select tpm by psnt_mux
         self.CpldMng.write_register(address, value)
 
@@ -612,31 +665,85 @@ class SubrackMngBoard:
         return tpm_ip_str
 
     def GetTPMInfo(self, tpm_slot_id, forceread=False):
+        """
+        Deprecated method to retrieve TPM information.
+
+        :param tpm_slot_id: The TPM slot identifier.
+        :param forceread: (Optional) If True, forces a read even if deprecated.
+
+        :raise SubrackExecFault: Indicates that the method is deprecated, and
+                                subrack no longer accesses TPM.
+
+        """
         raise SubrackExecFault(
             "Error: this method is deprecated, subrack do not access TPM anymore"
         )
 
     def GetTPMGlobalStatusAlarm(self, tpm_slot_id, forceread=False):
+        """
+        Deprecated method to retrieve TPM global status alarms.
+
+        :param tpm_slot_id: The TPM slot identifier.
+        :param forceread: (Optional) If True, forces a read even if deprecated.
+
+        :raise SubrackExecFault: Indicates that the method is deprecated, and
+                                subrack no longer accesses TPM.
+
+        """
         raise SubrackExecFault(
             "Error: this method is deprecated, subrack do not access TPM anymore"
         )
 
     def Get_tpm_alarms_vector(self):
+        """
+        Deprecated method to retrieve TPM alarms vector.
+
+        :raise SubrackExecFault: Indicates that the method is deprecated, and
+                                subrack no longer accesses TPM.
+
+        """
         raise SubrackExecFault(
             "Error: this method is deprecated, subrack do not access TPM anymore"
         )
 
     def GetTPMTemperatures(self, tpm_slot_id, forceread=False):
+        """
+        Deprecated method to retrieve TPM temperatures.
+
+        :param tpm_slot_id: The TPM slot identifier.
+        :param forceread: (Optional) If True, forces a read even if deprecated.
+
+        :raise SubrackExecFault: Indicates that the method is deprecated, and
+                                subrack no longer accesses TPM.
+
+        """
         raise SubrackExecFault(
             "Error: this method is deprecated, subrack do not access TPM anymore"
         )
 
     def Get_TPM_temperature_vector(self):
+        """
+        Deprecated method to retrieve TPM temperature vector.
+
+        :raise SubrackExecFault: Indicates that the method is deprecated, and
+                                subrack no longer accesses TPM.
+
+        """
         raise SubrackExecFault(
             "Error: this method is deprecated, subrack do not access TPM anymore"
         )
 
     def GetTPMMCUTemperature(self, tpm_slot_id, forceread=False):
+        """
+        Deprecated method to retrieve TPM MCU temperature.
+
+        :param tpm_slot_id: The TPM slot identifier.
+        :param forceread: (Optional) If True, forces a read even if deprecated.
+
+        :raise SubrackExecFault: Indicates that the method is deprecated, and
+                                subrack no longer accesses TPM.
+
+        """
         raise SubrackExecFault(
             "Error: this method is deprecated, subrack do not access TPM anymore"
         )
