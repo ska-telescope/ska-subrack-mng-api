@@ -1,3 +1,3 @@
-__author__ = 'Riccardo Chiello'
+__author__ = "Riccardo Chiello"
 
 from .rmp import *

@@ -1,4 +1,4 @@
-__author__ = 'Gabriele Sorrenti'
+__author__ = "Gabriele Sorrenti"
 """
 import os
 
@@ -28,58 +28,67 @@ import time
 from optparse import OptionParser
 from sys import argv, stdout
 
-ba = 0x60000 # MDIO baseaddress
+ba = 0x60000  # MDIO baseaddress
 
 
 def wr(address, value):
-	# print "WR "+hex(address)+"-"+hex(value)
-	mng[address] = value
+    # print "WR "+hex(address)+"-"+hex(value)
+    mng[address] = value
 
 
 def rd(address):
-	value=None
-	value = mng[address]
-	# if value is not None:
-	# 	print "RD "+hex(address)+"-"+hex(value)
-	# else:
-	# 	print "RD "+hex(address)+"-"+"Dummy"
-	return value
+    value = None
+    value = mng[address]
+    # if value is not None:
+    # 	print "RD "+hex(address)+"-"+hex(value)
+    # else:
+    # 	print "RD "+hex(address)+"-"+"Dummy"
+    return value
 
 
 def read45(mux, phy_adr, device, register):
-	wr(ba + 0, ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5) | (0x1f & device))
-	wr(ba + 4, register)
-	value = rd(ba + 0x18) & 0xffff
-	# print "read45 " +hex(mux)+", "+hex(phy_adr)+", "+hex(device)+", "+hex(register)+", "+hex(value)
-	return value
+    wr(ba + 0, ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5) | (0x1F & device))
+    wr(ba + 4, register)
+    value = rd(ba + 0x18) & 0xFFFF
+    # print "read45 " +hex(mux)+", "+hex(phy_adr)+", "+hex(device)+", "+hex(register)+", "+hex(value)
+    return value
 
 
 def write45(mux, phy_adr, device, register, value):
-	# print "write45 " +hex(mux)+", "+hex(phy_adr)+", "+hex(device)+", "+hex(register)+", "+hex(value)
-	wr(ba + 0, ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5) | (0x1f & device))
-	wr(ba + 4, register)
-	wr(ba + 0x18, value)
+    # print "write45 " +hex(mux)+", "+hex(phy_adr)+", "+hex(device)+", "+hex(register)+", "+hex(value)
+    wr(ba + 0, ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5) | (0x1F & device))
+    wr(ba + 4, register)
+    wr(ba + 0x18, value)
 
 
 def read22(mux, phy_adr, register):
-	wr(ba + 0, 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
-	wr(ba + 4, register)
-	value = rd(ba + 0x08) & 0xffff
-	#print("read22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
-	return value
+    wr(ba + 0, 0xC000 | ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5))
+    wr(ba + 4, register)
+    value = rd(ba + 0x08) & 0xFFFF
+    # print("read22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
+    return value
 
 
 def write22(mux, phy_adr, register, value):
-	print("write22 " + hex(mux) + ", " + hex(phy_adr) + ", " + hex(register) + ", " + hex(value))
-	wr(ba + 0, 0xc000 | ((0x3 & mux) << 10) | ((0x1f & phy_adr) << 5))
-	wr(ba + 4, register)
-	wr(ba + 0x08, value)
+    print(
+        "write22 "
+        + hex(mux)
+        + ", "
+        + hex(phy_adr)
+        + ", "
+        + hex(register)
+        + ", "
+        + hex(value)
+    )
+    wr(ba + 0, 0xC000 | ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5))
+    wr(ba + 4, register)
+    wr(ba + 0x08, value)
 
 
 def readmodifywrite(mux, phy_adr, device, register, value, select):
-	read_value = read45(mux, phy_adr, device, register)
-	write_value = (value & select) | (read_value & ~select)
-	write45(mux, phy_adr, device, register, write_value)
+    read_value = read45(mux, phy_adr, device, register)
+    write_value = (value & select) | (read_value & ~select)
+    write45(mux, phy_adr, device, register, write_value)
 
 
 # test to acces switches
@@ -89,135 +98,163 @@ def readmodifywrite(mux, phy_adr, device, register, value, select):
 # 		print hex(i) + " " +hex(read22(mux,0,i)&0xffff)
 # exit(0)
 
-port_status_reg = {'name': "Port Status", 'offset': 0x0, 'fields': [
-	["TxPause En", 15, 0x1],
-	["RxPause En", 14, 0x1],
-	["PHYDetect", 12, 0x1],
-	["Link", 11, 0x1],
-	["Duplex", 10, 0x1],
-	["Speed", 8, 0x3],
-	["DuplexFixed", 7, 0x1],
-	["EEEEnabled", 6, 0x1],
-	["TxPaused", 5, 0x1],
-	["FlowCtrl", 4, 0x1],
-	["C_Mode", 0, 0xf],
-]}
+port_status_reg = {
+    "name": "Port Status",
+    "offset": 0x0,
+    "fields": [
+        ["TxPause En", 15, 0x1],
+        ["RxPause En", 14, 0x1],
+        ["PHYDetect", 12, 0x1],
+        ["Link", 11, 0x1],
+        ["Duplex", 10, 0x1],
+        ["Speed", 8, 0x3],
+        ["DuplexFixed", 7, 0x1],
+        ["EEEEnabled", 6, 0x1],
+        ["TxPaused", 5, 0x1],
+        ["FlowCtrl", 4, 0x1],
+        ["C_Mode", 0, 0xF],
+    ],
+}
 
-phy_control_reg = {'name': "PHY Control", 'offset': 0x1, 'fields': [
-	["RGMII TxTiming", 15, 0x1],
-	["RGMII RxTiming", 14, 0x1],
-	["ForcedSpd", 13, 0x1],
-	["AltSpeed", 12, 0x1],
-	["MII PHY", 11, 0x1],
-	["EEEValue", 9, 0x1],
-	["ForceEEE", 8, 0x1],
-	["LinkValue", 5, 0x1],
-	["ForcedLink", 4, 0x1],
-	["DpxValue", 3, 0x1],
-	["ForcedDpx", 2, 0x1],
-	["SpdValue", 0, 0x3],
-]}
+phy_control_reg = {
+    "name": "PHY Control",
+    "offset": 0x1,
+    "fields": [
+        ["RGMII TxTiming", 15, 0x1],
+        ["RGMII RxTiming", 14, 0x1],
+        ["ForcedSpd", 13, 0x1],
+        ["AltSpeed", 12, 0x1],
+        ["MII PHY", 11, 0x1],
+        ["EEEValue", 9, 0x1],
+        ["ForceEEE", 8, 0x1],
+        ["LinkValue", 5, 0x1],
+        ["ForcedLink", 4, 0x1],
+        ["DpxValue", 3, 0x1],
+        ["ForcedDpx", 2, 0x1],
+        ["SpdValue", 0, 0x3],
+    ],
+}
 
-port_control_reg = {'name': "Port Control", 'offset': 0x4, 'fields': [
-	["SAFiltering", 14, 0x3],
-	["EgressMode", 12, 0x3],
-	["Header", 11, 0x1],
-	["IGMP/MLD Snoop", 10, 0x1],
-	["FrameMode", 8, 0x3],
-	["VLANTunnel", 7, 0x1],
-	["TaglfBoth", 6, 0x1],
-	["InitialPri", 4, 0x3],
-	["EgressFloods", 2, 0x3],
-	["PortState", 0, 0x3],
-]}
+port_control_reg = {
+    "name": "Port Control",
+    "offset": 0x4,
+    "fields": [
+        ["SAFiltering", 14, 0x3],
+        ["EgressMode", 12, 0x3],
+        ["Header", 11, 0x1],
+        ["IGMP/MLD Snoop", 10, 0x1],
+        ["FrameMode", 8, 0x3],
+        ["VLANTunnel", 7, 0x1],
+        ["TaglfBoth", 6, 0x1],
+        ["InitialPri", 4, 0x3],
+        ["EgressFloods", 2, 0x3],
+        ["PortState", 0, 0x3],
+    ],
+}
 
-debug_reg = {'name': "Debug Register", 'offset': 0x1f, 'fields': [
-	["RxGood", 0, 0xff],
-	["RxBad", 8, 0xff],
-]}
+debug_reg = {
+    "name": "Debug Register",
+    "offset": 0x1F,
+    "fields": [
+        ["RxGood", 0, 0xFF],
+        ["RxBad", 8, 0xFF],
+    ],
+}
 
 
-def read_and_decode(port, reg_def, mdio_mux=2, field = None):
-	reg_value = read22(mdio_mux, port, reg_def['offset'])
-	decode_register(port, reg_def, reg_value, field)
+def read_and_decode(port, reg_def, mdio_mux=2, field=None):
+    reg_value = read22(mdio_mux, port, reg_def["offset"])
+    decode_register(port, reg_def, reg_value, field)
 
 
 def write22_reg(port, reg_def, reg_value):
-	write22(2, port, reg_def['offset'], reg_value)
+    write22(2, port, reg_def["offset"], reg_value)
 
 
 def set_field(port, reg_def, field_name, field_value):
-	reg_value = read22(2, port, reg_def['offset'])
-	for _field in reg_def['fields']:
-		if _field[0] == field_name:
-			field = _field
-			break
-	reg_value = reg_value & (~(field[2] << field[1])) | ((field_value & field[2]) << field[1])
-	write22(2, port, reg_def['offset'], reg_value)
+    reg_value = read22(2, port, reg_def["offset"])
+    for _field in reg_def["fields"]:
+        if _field[0] == field_name:
+            field = _field
+            break
+    reg_value = reg_value & (~(field[2] << field[1])) | (
+        (field_value & field[2]) << field[1]
+    )
+    write22(2, port, reg_def["offset"], reg_value)
 
 
-def decode_register(port, reg_def, reg_value, field = None):
-	if field is None:
-		print("=== P" + str(port) + " R" + str(reg_def['offset']) + " " + reg_def['name'] + " = " + hex(reg_value) + " ===")
-	for _field in reg_def['fields']:
-		if field is None:
-			print(_field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
-		else:
-			if field == _field[0]:
-				return reg_value >> _field[1] & _field[2]
-				# print("=== P" + str(port) + _field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
+def decode_register(port, reg_def, reg_value, field=None):
+    if field is None:
+        print(
+            "=== P"
+            + str(port)
+            + " R"
+            + str(reg_def["offset"])
+            + " "
+            + reg_def["name"]
+            + " = "
+            + hex(reg_value)
+            + " ==="
+        )
+    for _field in reg_def["fields"]:
+        if field is None:
+            print(_field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
+        else:
+            if field == _field[0]:
+                return reg_value >> _field[1] & _field[2]
+                # print("=== P" + str(port) + _field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
 
 
 def get_port_cfg(port, mdio_mux=2):
-	read_and_decode(port, port_status_reg, mdio_mux)
-	read_and_decode(port, phy_control_reg, mdio_mux)
-	read_and_decode(port, port_control_reg, mdio_mux)
+    read_and_decode(port, port_status_reg, mdio_mux)
+    read_and_decode(port, phy_control_reg, mdio_mux)
+    read_and_decode(port, port_control_reg, mdio_mux)
 
 
 def read_scratch(mux, offset):
-	write22(mux, 0x1c, 0x1a, (offset & 0x7f) << 8)
-	value = read22(mux, 0x1c, 0x1a) & 0xff
-	return value
+    write22(mux, 0x1C, 0x1A, (offset & 0x7F) << 8)
+    value = read22(mux, 0x1C, 0x1A) & 0xFF
+    return value
 
 
 def write_scratch(mux, offset, value):
-	write22(mux, 0x1c, 0x1a, 0x8000 | ((offset & 0x7f) << 8) | (value & 0xff))
-	# print "wr status " + hex(read22(mux,0x1c,0x1a))
-	while (read22(mux, 0x1c, 0x1a) & 0x8000) != 0:
-		time.sleep(0.001)
-		print(".")
-	return
+    write22(mux, 0x1C, 0x1A, 0x8000 | ((offset & 0x7F) << 8) | (value & 0xFF))
+    # print "wr status " + hex(read22(mux,0x1c,0x1a))
+    while (read22(mux, 0x1C, 0x1A) & 0x8000) != 0:
+        time.sleep(0.001)
+        print(".")
+    return
 
 
 def set_SFP(mdio_mux=2):
-	get_port_cfg(9, mdio_mux)
-	# /* Set Ports in 1000Base-X
-	write22(mdio_mux, 9, 0x0, 0x9)
-	# /* P9
-	write22(mdio_mux, 0x1c, 25, 0xF054)
-	write22(mdio_mux, 0x1c, 24, 0x8124)
-	write22(mdio_mux, 0x1c, 25, 0x400c)
-	write22(mdio_mux, 0x1c, 24, 0x8524)
-	write22(mdio_mux, 0x1c, 25, 0xF054)
-	write22(mdio_mux, 0x1c, 24, 0x8124)
-	write22(mdio_mux, 0x1c, 25, 0x4000)
-	write22(mdio_mux, 0x1c, 24, 0x8524)
-	# /*Start configuring ports for traffic
-	# /*Clear power down bit and reset SERDES P9
-	write22(mdio_mux, 0x1c, 25, 0x2000)
-	write22(mdio_mux, 0x1c, 24, 0x8124)
-	write22(mdio_mux, 0x1c, 25, 0xa040)
-	write22(mdio_mux, 0x1c, 24, 0x8524)
-	# /*Fix 1000Base-X AN advertisement
-	# /*write45 4.2004.5 to 1
-	# /* ADDR 0x09
-	write22(mdio_mux, 0x1c, 25, 0x2004)
-	write22(mdio_mux, 0x1c, 24, 0x8124)
-	write22(mdio_mux, 0x1c, 25, 0x20)
-	write22(mdio_mux, 0x1c, 24, 0x8524)
-	# /*Enable Forwarding on ports:
-	write22(mdio_mux, 9, 4, 0x007F)
-	get_port_cfg(9, mdio_mux)
+    get_port_cfg(9, mdio_mux)
+    # /* Set Ports in 1000Base-X
+    write22(mdio_mux, 9, 0x0, 0x9)
+    # /* P9
+    write22(mdio_mux, 0x1C, 25, 0xF054)
+    write22(mdio_mux, 0x1C, 24, 0x8124)
+    write22(mdio_mux, 0x1C, 25, 0x400C)
+    write22(mdio_mux, 0x1C, 24, 0x8524)
+    write22(mdio_mux, 0x1C, 25, 0xF054)
+    write22(mdio_mux, 0x1C, 24, 0x8124)
+    write22(mdio_mux, 0x1C, 25, 0x4000)
+    write22(mdio_mux, 0x1C, 24, 0x8524)
+    # /*Start configuring ports for traffic
+    # /*Clear power down bit and reset SERDES P9
+    write22(mdio_mux, 0x1C, 25, 0x2000)
+    write22(mdio_mux, 0x1C, 24, 0x8124)
+    write22(mdio_mux, 0x1C, 25, 0xA040)
+    write22(mdio_mux, 0x1C, 24, 0x8524)
+    # /*Fix 1000Base-X AN advertisement
+    # /*write45 4.2004.5 to 1
+    # /* ADDR 0x09
+    write22(mdio_mux, 0x1C, 25, 0x2004)
+    write22(mdio_mux, 0x1C, 24, 0x8124)
+    write22(mdio_mux, 0x1C, 25, 0x20)
+    write22(mdio_mux, 0x1C, 24, 0x8524)
+    # /*Enable Forwarding on ports:
+    write22(mdio_mux, 9, 4, 0x007F)
+    get_port_cfg(9, mdio_mux)
 
 
 # parser = OptionParser(usage="usage: %test_tpm [options]")
@@ -270,7 +307,7 @@ def set_SFP(mdio_mux=2):
 # 	for switch_mdio in range(1, 2):
 # 		get_port_cfg(9, switch_mdio)
 # 		print(hex(read22(switch_mdio, 9, 0x1f)))
-#	time.sleep(1)
+# 	time.sleep(1)
 
 """
 set_SFP(2)
@@ -317,146 +354,168 @@ time.sleep(0.100)
 
 
 def read_wis(mdio_mux=3):
-	WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xffff
-	WIS_Device_Identifier_2 = read45(mdio_mux, 0, 2, 0x0003) & 0xffff
+    WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xFFFF
+    WIS_Device_Identifier_2 = read45(mdio_mux, 0, 2, 0x0003) & 0xFFFF
 
-	print("WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1))
-	print("WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2))
-	if WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0f15:
-		print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver")
-	elif WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0d99:
-		print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP")
-	else:
-		print("Unknown PHY")
+    print("WIS Device Identifier 1: " + hex(WIS_Device_Identifier_1))
+    print("WIS Device Identifier 2: " + hex(WIS_Device_Identifier_2))
+    if WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0F15:
+        print("Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver")
+    elif WIS_Device_Identifier_1 == 0x0141 and WIS_Device_Identifier_2 == 0x0D99:
+        print(
+            "Marvell 88X2222 Integrated Dual-port Multi-speed Ethernet Transceiver with MACsec, IEEE 1588 PTP"
+        )
+    else:
+        print("Unknown PHY")
 
 
-def cfg_10g(port=0,mdio_mux=3):
-	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
-	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
-	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
-	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
-	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
-	# mgdPDStatePowerUp()
-	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
-	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
-	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
-	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
-	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
-	# 31,0xf403
+def cfg_10g(port=0, mdio_mux=3):
+    print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xF400)))
+    print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xF401)))
+    print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xF402)))
+    print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xF403)))
+    print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xF002)))
+    # mgdPDStatePowerUp()
+    print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xF400)))
+    print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xF401)))
+    print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xF403)))
+    print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xF402)))
+    print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xF002)))
+    # 31,0xf403
 
-	# /*10GR - XAUI mode*/
+    # /*10GR - XAUI mode*/
 
-	print("=== PORT " + str(port) + " ===")
-	write45(mdio_mux, 0, 31, 0xF404, 0x4000)
-	write45(mdio_mux, port, 31, 0xf002, 0x7173)
-	write45(mdio_mux, port, 30, 0xb841, 0xe000)
-	write45(mdio_mux, port, 30, 0x9041, 0x03fe)
-	write45(mdio_mux, port, 30, 0xb108, 0xf8d0)
-	readmodifywrite(mdio_mux, port, 30, 0xb1e7, 0b0000000000000000, 0b1100000000000000)
-	readmodifywrite(mdio_mux, port, 30, 0xb1e8, 0b0010000000000000, 0b0111111100000000)
-	readmodifywrite(mdio_mux, port, 30, 0xb042, 0b0000000010110000, 0b0000000011110000)
-	write45(mdio_mux, port, 30, 0xb1a2, 0x00b0)
-	write45(mdio_mux, port, 30, 0xb19c, 0x00a0)
-	readmodifywrite(mdio_mux, port, 30, 0xb1b5, 0b0000000000000000, 0b0001000000000000)
-	readmodifywrite(mdio_mux, port, 30, 0xb1b4, 0b0001000000000000, 0b0001000000000000)
-	write45(mdio_mux, port, 30, 0xb181, 0x0011)
-	write45(mdio_mux, port, 30, 0x8141, 0x8f1a)
-	write45(mdio_mux, port, 30, 0x8131, 0x8f1a)
-	write45(mdio_mux, port, 30, 0x8077, 0x820a)
-	readmodifywrite(mdio_mux, port, 30, 0x80a0, 0b0000000100000000, 0b0000000111111111)
-	readmodifywrite(mdio_mux, port, 30, 0x8085, 0b0000011100000000, 0b0011111100000000)
-	readmodifywrite(mdio_mux, port, 30, 0x807B, 0b0000001010110010, 0b0000111111111111)
-	readmodifywrite(mdio_mux, port, 30, 0x80b0, 0b0000001000100000, 0b0000011101110000)
-	readmodifywrite(mdio_mux, port, 30, 0x80b1, 0b0000100000100000, 0b0000110000110000)
-	readmodifywrite(mdio_mux, port, 30, 0x8093, 0b0100011000000000, 0b0111111100000000)
-	readmodifywrite(mdio_mux, port, 30, 0x809F, 0b0000000001111001, 0b0000000001111111)
-	write45(mdio_mux, port, 30, 0x805e, 0x4759)
-	write45(mdio_mux, port, 30, 0x805f, 0x5900)
-	write45(mdio_mux, port, 31, 0xf016, 0x0010)
-	write45(mdio_mux, port, 31, 0xf003, 0x8080)
-	time.sleep(0.2000)
-	readmodifywrite(mdio_mux, port, 30, 0xb1b5, 0b0001000000000000, 0b0001000000000000)
-	readmodifywrite(mdio_mux, port, 30, 0xb1b4, 0b0001000000000000, 0b0001000000000000)
-	print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xf400)))
-	print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xf401)))
-	print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xf403)))
-	print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
-	print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
+    print("=== PORT " + str(port) + " ===")
+    write45(mdio_mux, 0, 31, 0xF404, 0x4000)
+    write45(mdio_mux, port, 31, 0xF002, 0x7173)
+    write45(mdio_mux, port, 30, 0xB841, 0xE000)
+    write45(mdio_mux, port, 30, 0x9041, 0x03FE)
+    write45(mdio_mux, port, 30, 0xB108, 0xF8D0)
+    readmodifywrite(mdio_mux, port, 30, 0xB1E7, 0b0000000000000000, 0b1100000000000000)
+    readmodifywrite(mdio_mux, port, 30, 0xB1E8, 0b0010000000000000, 0b0111111100000000)
+    readmodifywrite(mdio_mux, port, 30, 0xB042, 0b0000000010110000, 0b0000000011110000)
+    write45(mdio_mux, port, 30, 0xB1A2, 0x00B0)
+    write45(mdio_mux, port, 30, 0xB19C, 0x00A0)
+    readmodifywrite(mdio_mux, port, 30, 0xB1B5, 0b0000000000000000, 0b0001000000000000)
+    readmodifywrite(mdio_mux, port, 30, 0xB1B4, 0b0001000000000000, 0b0001000000000000)
+    write45(mdio_mux, port, 30, 0xB181, 0x0011)
+    write45(mdio_mux, port, 30, 0x8141, 0x8F1A)
+    write45(mdio_mux, port, 30, 0x8131, 0x8F1A)
+    write45(mdio_mux, port, 30, 0x8077, 0x820A)
+    readmodifywrite(mdio_mux, port, 30, 0x80A0, 0b0000000100000000, 0b0000000111111111)
+    readmodifywrite(mdio_mux, port, 30, 0x8085, 0b0000011100000000, 0b0011111100000000)
+    readmodifywrite(mdio_mux, port, 30, 0x807B, 0b0000001010110010, 0b0000111111111111)
+    readmodifywrite(mdio_mux, port, 30, 0x80B0, 0b0000001000100000, 0b0000011101110000)
+    readmodifywrite(mdio_mux, port, 30, 0x80B1, 0b0000100000100000, 0b0000110000110000)
+    readmodifywrite(mdio_mux, port, 30, 0x8093, 0b0100011000000000, 0b0111111100000000)
+    readmodifywrite(mdio_mux, port, 30, 0x809F, 0b0000000001111001, 0b0000000001111111)
+    write45(mdio_mux, port, 30, 0x805E, 0x4759)
+    write45(mdio_mux, port, 30, 0x805F, 0x5900)
+    write45(mdio_mux, port, 31, 0xF016, 0x0010)
+    write45(mdio_mux, port, 31, 0xF003, 0x8080)
+    time.sleep(0.2000)
+    readmodifywrite(mdio_mux, port, 30, 0xB1B5, 0b0001000000000000, 0b0001000000000000)
+    readmodifywrite(mdio_mux, port, 30, 0xB1B4, 0b0001000000000000, 0b0001000000000000)
+    print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xF400)))
+    print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xF401)))
+    print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xF403)))
+    print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xF402)))
+    print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xF002)))
+
 
 def get_switch_status():
-	ports=[
-	{'name' : 'CPU',    'mdio_mux' : 1, 'port' : 0},# MCU U4-P0
-	{'name' : 'CPLD',   'mdio_mux' : 2, 'port' : 0},# CPLD U5-P0
-	{'name' : 'SLOT-1', 'mdio_mux' : 1, 'port' : 1},# SLOT-1 U4-P1
-	{'name' : 'SLOT-2', 'mdio_mux' : 1, 'port' : 2},# SLOT-2 U4-P2
-	{'name' : 'SLOT-3', 'mdio_mux' : 1, 'port' : 3},# SLOT-3 U4-P3
-	{'name' : 'SLOT-4', 'mdio_mux' : 1, 'port' : 4},# SLOT-4 U4-P4
-	{'name' : 'SLOT-5', 'mdio_mux' : 1, 'port' : 5},# SLOT-5 U4-P5
-	{'name' : 'SLOT-6', 'mdio_mux' : 1, 'port' : 6},# SLOT-6 U4-P6
-	{'name' : 'SLOT-7', 'mdio_mux' : 1, 'port' : 7},# SLOT-7 U4-P7
-	{'name' : 'SLOT-8', 'mdio_mux' : 1, 'port' : 8},# SLOT-8 U4-P8
-	{'name' : 'P1',     'mdio_mux' : 2, 'port' : 9},# U53 U5-P9
-	{'name' : 'P2',     'mdio_mux' : 1, 'port' : 9},# U52 U4-P9
-	{'name' : 'P3',     'mdio_mux' : 2, 'port' : 5},# J8-B U5-P5
-	{'name' : 'P4',     'mdio_mux' : 2, 'port' : 6},# J8-A U5-P6
-	]
-	status={}
-	for port in ports:
-		_status={}
-		if port['mdio_mux'] in [1,2]:
-			reg_value = read22(port['mdio_mux'], port['port'], port_status_reg['offset'])
-			reg_value = read22(port['mdio_mux'], port['port'], port_status_reg['offset'])
-			_status['link'] = decode_register(port, port_status_reg, reg_value, 'Link')
-			if _status['link'] == 1:
-				_speed=decode_register(port, port_status_reg, reg_value, 'Speed')
-				_duplex=decode_register(port, port_status_reg, reg_value, 'Duplex')
-				if _speed == 0:
-					_status['speed']="10"
-				elif _speed == 1:
-					_status['speed']="100"
-				elif _speed == 2:
-					_status['speed']="1000"
-				else:
-					_status['speed']="10G"
+    ports = [
+        {"name": "CPU", "mdio_mux": 1, "port": 0},  # MCU U4-P0
+        {"name": "CPLD", "mdio_mux": 2, "port": 0},  # CPLD U5-P0
+        {"name": "SLOT-1", "mdio_mux": 1, "port": 1},  # SLOT-1 U4-P1
+        {"name": "SLOT-2", "mdio_mux": 1, "port": 2},  # SLOT-2 U4-P2
+        {"name": "SLOT-3", "mdio_mux": 1, "port": 3},  # SLOT-3 U4-P3
+        {"name": "SLOT-4", "mdio_mux": 1, "port": 4},  # SLOT-4 U4-P4
+        {"name": "SLOT-5", "mdio_mux": 1, "port": 5},  # SLOT-5 U4-P5
+        {"name": "SLOT-6", "mdio_mux": 1, "port": 6},  # SLOT-6 U4-P6
+        {"name": "SLOT-7", "mdio_mux": 1, "port": 7},  # SLOT-7 U4-P7
+        {"name": "SLOT-8", "mdio_mux": 1, "port": 8},  # SLOT-8 U4-P8
+        {"name": "P1", "mdio_mux": 2, "port": 9},  # U53 U5-P9
+        {"name": "P2", "mdio_mux": 1, "port": 9},  # U52 U4-P9
+        {"name": "P3", "mdio_mux": 2, "port": 5},  # J8-B U5-P5
+        {"name": "P4", "mdio_mux": 2, "port": 6},  # J8-A U5-P6
+    ]
+    status = {}
+    for port in ports:
+        _status = {}
+        if port["mdio_mux"] in [1, 2]:
+            reg_value = read22(
+                port["mdio_mux"], port["port"], port_status_reg["offset"]
+            )
+            reg_value = read22(
+                port["mdio_mux"], port["port"], port_status_reg["offset"]
+            )
+            _status["link"] = decode_register(port, port_status_reg, reg_value, "Link")
+            if _status["link"] == 1:
+                _speed = decode_register(port, port_status_reg, reg_value, "Speed")
+                _duplex = decode_register(port, port_status_reg, reg_value, "Duplex")
+                if _speed == 0:
+                    _status["speed"] = "10"
+                elif _speed == 1:
+                    _status["speed"] = "100"
+                elif _speed == 2:
+                    _status["speed"] = "1000"
+                else:
+                    _status["speed"] = "10G"
 
-				if _duplex == 0:
-					_status['speed']+=" HD"
-				else:
-					_status['speed']+=" FD"
+                if _duplex == 0:
+                    _status["speed"] += " HD"
+                else:
+                    _status["speed"] += " FD"
 
-				reg_value = read22(port['mdio_mux'], port['port'], debug_reg['offset'])
-				reg_value = read22(port['mdio_mux'], port['port'], debug_reg['offset'])
-				_status['rxGood'] = decode_register(port, debug_reg, reg_value, 'RxGood')
-				_status['rxBad'] = decode_register(port, debug_reg, reg_value, 'RxBad')
-			else:
-				_status['speed'] = ""
-				_status['rxGood'] = ""
-				_status['rxBad'] = ""
-		status[port['name']]=_status
-	return status
+                reg_value = read22(port["mdio_mux"], port["port"], debug_reg["offset"])
+                reg_value = read22(port["mdio_mux"], port["port"], debug_reg["offset"])
+                _status["rxGood"] = decode_register(
+                    port, debug_reg, reg_value, "RxGood"
+                )
+                _status["rxBad"] = decode_register(port, debug_reg, reg_value, "RxBad")
+            else:
+                _status["speed"] = ""
+                _status["rxGood"] = ""
+                _status["rxBad"] = ""
+        status[port["name"]] = _status
+    return status
 
 
 import tabulate
 
 if __name__ == "__main__":
 
-	parser = OptionParser(usage="usage: %test_tpm [options]")
-	parser.add_option("--ip", action="store", dest="ip", default="10.0.10.10", help="IP [default: 10.0.10.10]")
-	parser.add_option("--port", action="store", dest="port", type="int", default="10000", help="Port [default: 10000]")
+    parser = OptionParser(usage="usage: %test_tpm [options]")
+    parser.add_option(
+        "--ip",
+        action="store",
+        dest="ip",
+        default="10.0.10.10",
+        help="IP [default: 10.0.10.10]",
+    )
+    parser.add_option(
+        "--port",
+        action="store",
+        dest="port",
+        type="int",
+        default="10000",
+        help="Port [default: 10000]",
+    )
 
-	(conf, args) = parser.parse_args(argv[1:])
+    (conf, args) = parser.parse_args(argv[1:])
 
-	# tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
-	mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
-	# decode_register(10, port_status_reg, 0x7fff)
-	# fw_ver = 0
-	fw_ver = mng[0x8]
-	print("Fw ver: " + hex(fw_ver))
-	if (fw_ver & 0xffff) < 0x0009:
-		print("Error, minimum version required 0x0009")
-		exit(1)
-	status=get_switch_status()
-	headers = ["name", "link", "speed","rxGood", "rxBad"]
-	status = [[name, *inner.values()] for name, inner in status.items()]
-	print(tabulate.tabulate(status, headers=headers, tablefmt="pipe"))
-	# read_wis()
+    # tpm_inst = TPM(ip="10.0.10.2", port=10000, timeout=5)
+    mng = MANAGEMENT(ip=conf.ip, port=conf.port, timeout=5)
+    # decode_register(10, port_status_reg, 0x7fff)
+    # fw_ver = 0
+    fw_ver = mng[0x8]
+    print("Fw ver: " + hex(fw_ver))
+    if (fw_ver & 0xFFFF) < 0x0009:
+        print("Error, minimum version required 0x0009")
+        exit(1)
+    status = get_switch_status()
+    headers = ["name", "link", "speed", "rxGood", "rxBad"]
+    status = [[name, *inner.values()] for name, inner in status.items()]
+    print(tabulate.tabulate(status, headers=headers, tablefmt="pipe"))
+    # read_wis()

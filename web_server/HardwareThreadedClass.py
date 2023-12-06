@@ -140,7 +140,7 @@ class IsCompletedCommand(HardwareCommand):
     or the blocking thread is currently running
     """
 
-    def do(self, param=''):
+    def do(self, param=""):
         """
         :param: Command to check or None
         :type: class.ThreadedHardwareCommand
@@ -149,7 +149,7 @@ class IsCompletedCommand(HardwareCommand):
         device = self._hardware
         completed = True
         # print('Debug: IsCompleted with param '+str(param))
-        if param == '':
+        if param == "":
             if device._blocked:
                 if device._runningCommand is None:
                     # print('Debug: IsCompleted - blocked by none')

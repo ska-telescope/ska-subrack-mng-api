@@ -1,71 +1,90 @@
-__author__ = 'Bubs'
+__author__ = "Bubs"
 
-__author__ = 'Cristian Albanese'
+__author__ = "Cristian Albanese"
 """This Script permit to on_off Selected TPM inserted in Backplane Board"""
 import sys
 import time
 from optparse import OptionParser
 from subrack_mng_api.subrack_management_board import *
 
-subrack=SubrackMngBoard()
+subrack = SubrackMngBoard()
 
-usage_string="usage: %prog [options] \n"
-usage_hexample="(es power off TPM1 and TPM3). %prog --t1 --t3\n" \
-               "(es power off all TPM). %prog --all\n"
+usage_string = "usage: %prog [options] \n"
+usage_hexample = (
+    "(es power off TPM1 and TPM3). %prog --t1 --t3\n"
+    "(es power off all TPM). %prog --all\n"
+)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    parser = OptionParser(usage =(usage_string+usage_hexample))
-    parser.add_option("--t1",
-                      action="store_true",
-                      dest="tpm1",
-                      default=False,
-                      help="select TPM1 to power off")
-    parser.add_option("--t2",
-                      action="store_true",
-                      dest="tpm2",
-                      default=False,
-                      help="select TPM2 to power off")
-    parser.add_option("--t3",
-                      action="store_true",
-                      dest="tpm3",
-                      default=False,
-                      help="select TPM3 to power off")
-    parser.add_option("--t4",
-                      action="store_true",
-                      dest="tpm4",
-                      default=False,
-                      help="select TPM4 to power off")
-    parser.add_option("--t5",
-                      action="store_true",
-                      dest="tpm5",
-                      default=False,
-                      help="select TPM5 to power off")
-    parser.add_option("--t6",
-                      action="store_true",
-                      dest="tpm6",
-                      default=False,
-                      help="select TPM6 to power off")
-    parser.add_option("--t7",
-                      action="store_true",
-                      dest="tpm7",
-                      default=False,
-                      help="select TPM7 to power off")
-    parser.add_option("--t8",
-                      action="store_true",
-                      dest="tpm8",
-                      default=False,
-                      help="select TPM8 to power off")
-    parser.add_option("--all",
-                      action="store_true",
-                      dest="all",
-                      default=False,
-                      help="select all TPM to power off")
+    parser = OptionParser(usage=(usage_string + usage_hexample))
+    parser.add_option(
+        "--t1",
+        action="store_true",
+        dest="tpm1",
+        default=False,
+        help="select TPM1 to power off",
+    )
+    parser.add_option(
+        "--t2",
+        action="store_true",
+        dest="tpm2",
+        default=False,
+        help="select TPM2 to power off",
+    )
+    parser.add_option(
+        "--t3",
+        action="store_true",
+        dest="tpm3",
+        default=False,
+        help="select TPM3 to power off",
+    )
+    parser.add_option(
+        "--t4",
+        action="store_true",
+        dest="tpm4",
+        default=False,
+        help="select TPM4 to power off",
+    )
+    parser.add_option(
+        "--t5",
+        action="store_true",
+        dest="tpm5",
+        default=False,
+        help="select TPM5 to power off",
+    )
+    parser.add_option(
+        "--t6",
+        action="store_true",
+        dest="tpm6",
+        default=False,
+        help="select TPM6 to power off",
+    )
+    parser.add_option(
+        "--t7",
+        action="store_true",
+        dest="tpm7",
+        default=False,
+        help="select TPM7 to power off",
+    )
+    parser.add_option(
+        "--t8",
+        action="store_true",
+        dest="tpm8",
+        default=False,
+        help="select TPM8 to power off",
+    )
+    parser.add_option(
+        "--all",
+        action="store_true",
+        dest="all",
+        default=False,
+        help="select all TPM to power off",
+    )
     (options, args) = parser.parse_args()
 
-
     if options.all is True:
-        for i in range (1,9):
+        for i in range(1, 9):
             print("Power Off TPM " + str(i))
             try:
                 subrack.PowerOffTPM(i)

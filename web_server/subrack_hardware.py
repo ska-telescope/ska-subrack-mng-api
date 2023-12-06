@@ -285,6 +285,7 @@ class TpmInfo(HardwareCommand):
         answer["retvalue"] = tpm_info
         return answer
 
+
 class GetHealthDict(HardwareCommand):
     """
     Return subrack health status dictionary.
@@ -292,9 +293,9 @@ class GetHealthDict(HardwareCommand):
 
     def do(self, params):
         """
-        Info about subrack health status 
+        Info about subrack health status
         :param params: group of monitor points to report
-        :type params: str 
+        :type params: str
 
         :return:dictionary  of monitor points
         :rtype: dict
@@ -306,6 +307,7 @@ class GetHealthDict(HardwareCommand):
             answer["retvalue"] = self._hardware.get_health_dict(group=params)
         return answer
 
+
 class GetHealthStatus(HardwareCommand):
     """
     Return info about subrack health status.
@@ -313,9 +315,9 @@ class GetHealthStatus(HardwareCommand):
 
     def do(self, params):
         """
-        Info about subrack health status 
+        Info about subrack health status
         :param params: group of monitor points to report
-        :type params: str 
+        :type params: str
 
         :return: dictionary of monitor point values
         :rtype: dict
@@ -578,92 +580,115 @@ class PSVoltage(HardwareAttribute):
         ]
         return fan_speed
 
+
 class TPM_Add_List(HardwareAttribute):
     """
     TPM IP Address Will Be Assigned.
     Returns 8 IP address, address will be assigned to each TPM in subrack slots
     """
+
     def read_value(self):
         ip_add_list = self._hardware.GetTPM_Add_List()
         return ip_add_list
+
 
 class TPM_Temperature_Alarms(HardwareAttribute):
     """
     TPMs Temperature alarm status
     Returns 8 temeprature alarms
     """
+
     def read_value(self):
         temp_alms = self._hardware.Get_tpm_alarms_vector()[0]
         return temp_alms
+
 
 class TPM_Voltage_Alarms(HardwareAttribute):
     """
     TPMs Voltage alarm status
     Returns 8 voltage alarms
     """
+
     def read_value(self):
         voltage_alms = self._hardware.Get_tpm_alarms_vector()[1]
         return voltage_alms
+
 
 class CPLD_PLL_Locked(HardwareAttribute):
     """
     Subrack CPLD PLL Lock status
     Returns status of CPLD internal PLL lock
     """
+
     def read_value(self):
         cpld_pll_lock = self._hardware.GetCPLDLockedPLL()
         return cpld_pll_lock
+
 
 class Subrack_PLL_Locked(HardwareAttribute):
     """
     Subrack PLL Lock status
     Returns status of Subrack PLL lock
     """
+
     def read_value(self):
         cpld_pll_lock = self._hardware.GetLockedPLL()
         return cpld_pll_lock
+
 
 class Subrack_Timestamp(HardwareAttribute):
     """
     Subrack Time in timestamp
     Returns Time of Subrack in timrstamp format
     """
+
     def read_value(self):
         tstamp = self._hardware.Get_Subrack_TimeTS()
         return tstamp
+
 
 class API_Version(HardwareAttribute):
     """
     API version
     Returns version of API
     """
+
     def read_value(self):
         version = self._hardware.Get_API_version()
         return version
+
 
 class TPM_Temperatures(HardwareAttribute):
     """
     TPMs Temperature vectors
     Returns 8 TPMBoard temepratures , 8 TPM FPGA1 temperatures, 8 TPM FPGA2 temperatures
     """
-    def read_value(self):
-        board_temps, fpga1_temps,fpga2_temps = self._hardware.Get_TPM_temperature_vector()
-        return board_temps, fpga1_temps,fpga2_temps
 
-class ups_status(HardwareAttribute) :
+    def read_value(self):
+        (
+            board_temps,
+            fpga1_temps,
+            fpga2_temps,
+        ) = self._hardware.Get_TPM_temperature_vector()
+        return board_temps, fpga1_temps, fpga2_temps
+
+
+class ups_status(HardwareAttribute):
     """
     UPS board status
     Returns UPS Board Status: ups_status = {"alarm":False,"warning":False,"charging":False}
     """
+
     def read_value(self):
         ups_status = self._hardware.GetUPSStatus()
         return ups_status
+
 
 class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
         subrack = SubrackMngBoard(simulation=emulation)
         self.subrack = subrack
-        
+
         # Add Commands
         self.add_command(PowerOnTpmCommand("turn_on_tpm", subrack, 1, blocking=True))
         self.add_command(PowerOffTpmCommand("turn_off_tpm", subrack, 1, blocking=True))
@@ -712,7 +737,7 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_attribute(API_Version("api_version", 0, subrack))
         self.add_attribute(Subrack_Timestamp("subrack_timestamp", 0, subrack))
 
-        self.subrack.Mng.write("Led.Led_3", 1) 
+        self.subrack.Mng.write("Led.Led_3", 1)
 
     def execute_command(self, command, params=None):
         try:

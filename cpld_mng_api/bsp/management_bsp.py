@@ -15,39 +15,118 @@ BOARD_MODE = {
 
 
 eep_sec = {
-            "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
-            "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
-            "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
-            "SN":           {"offset": 0x20, "size": 16, "name": "SN", "type": "string", "protected": True},
-            "PN":           {"offset": 0x40, "size": 20, "name": "PN", "type": "string", "protected": True},
-            "BOARD_MODE":   {"offset": 0x60, "size": 1, "name": "BOARD_MODE", "type": "uint", "protected": True},
-            # 1 subrack, 2 cabinet
-            "HARDWARE_REV": {"offset": 0x61, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
-            "PCB_REV":      {"offset": 0x64, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
-            "DDR_SIZE_GB":  {"offset": 0x65, "size": 1, "name": "DDR_SIZE_GB", "type": "uint", "protected": True},
-            "CABINET_LOCATION": {"offset": 0x66, "size": 2, "name": "CABINET_LOCATION", "type": "uint",
-                                 "protected": False},
-            "SUBRACK_LOCATION": {"offset": 0x68, "size": 1, "name": "SUBRACK_LOCATION", "type": "uint",
-                                 "protected": False},
-            "SLOT_LOCATION": {"offset": 0x69, "size": 1, "name": "SLOT_LOCATION", "type": "uint",
-                              "protected": False},
-            "BOOT_SEL":     {"offset": 0x70, "size": 1, "name": "BOOT_SEL", "type": "uint",
-                              "protected": False},
-            "MAC": {"offset": 0xFA, "size": 6, "name": "MAC", "type": "bytearray",
-                    "protected": True},  # READ-ONLY
-        }
+    "ip_address": {
+        "offset": 0x00,
+        "size": 4,
+        "name": "ip_address",
+        "type": "ip",
+        "protected": False,
+    },
+    "netmask": {
+        "offset": 0x04,
+        "size": 4,
+        "name": "netmask",
+        "type": "ip",
+        "protected": False,
+    },
+    "gateway": {
+        "offset": 0x08,
+        "size": 4,
+        "name": "gateway",
+        "type": "ip",
+        "protected": False,
+    },
+    "SN": {
+        "offset": 0x20,
+        "size": 16,
+        "name": "SN",
+        "type": "string",
+        "protected": True,
+    },
+    "PN": {
+        "offset": 0x40,
+        "size": 20,
+        "name": "PN",
+        "type": "string",
+        "protected": True,
+    },
+    "BOARD_MODE": {
+        "offset": 0x60,
+        "size": 1,
+        "name": "BOARD_MODE",
+        "type": "uint",
+        "protected": True,
+    },
+    # 1 subrack, 2 cabinet
+    "HARDWARE_REV": {
+        "offset": 0x61,
+        "size": 3,
+        "name": "HARDWARE_REV",
+        "type": "bytearray",
+        "protected": True,
+    },
+    "PCB_REV": {
+        "offset": 0x64,
+        "size": 1,
+        "name": "PCB_REV",
+        "type": "string",
+        "protected": True,
+    },
+    "DDR_SIZE_GB": {
+        "offset": 0x65,
+        "size": 1,
+        "name": "DDR_SIZE_GB",
+        "type": "uint",
+        "protected": True,
+    },
+    "CABINET_LOCATION": {
+        "offset": 0x66,
+        "size": 2,
+        "name": "CABINET_LOCATION",
+        "type": "uint",
+        "protected": False,
+    },
+    "SUBRACK_LOCATION": {
+        "offset": 0x68,
+        "size": 1,
+        "name": "SUBRACK_LOCATION",
+        "type": "uint",
+        "protected": False,
+    },
+    "SLOT_LOCATION": {
+        "offset": 0x69,
+        "size": 1,
+        "name": "SLOT_LOCATION",
+        "type": "uint",
+        "protected": False,
+    },
+    "BOOT_SEL": {
+        "offset": 0x70,
+        "size": 1,
+        "name": "BOOT_SEL",
+        "type": "uint",
+        "protected": False,
+    },
+    "MAC": {
+        "offset": 0xFA,
+        "size": 6,
+        "name": "MAC",
+        "type": "bytearray",
+        "protected": True,
+    },  # READ-ONLY
+}
 
 
-class MANAGEMENT_BSP():
+class MANAGEMENT_BSP:
     def __init__(self, board, rmp):
         self.rmp = rmp
         self.board = board
         # print("creating bsp")
-        self.mode=self.rmp.rd32(0x120)
-        if self.mode == BOARD_MODE['subrack']:
+        self.mode = self.rmp.rd32(0x120)
+        if self.mode == BOARD_MODE["subrack"]:
             # print("mode: SUBRACK")
             self.spi = MANAGEMENT_SPI(board, rmp, subrack_pll_cs)
-        elif self.mode == BOARD_MODE['cabinet']:
+        elif self.mode == BOARD_MODE["cabinet"]:
             # print("mode: CABINET")
             self.spi = MANAGEMENT_SPI(board, rmp, cabinet_pll_cs)
         else:
@@ -60,7 +139,6 @@ class MANAGEMENT_BSP():
         # self.hw_rev.append((hw_rev >> 0) & 0xff)
         # print("HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2]))
         self.eep_sec = eep_sec
-
 
     def ip2long(self, ip):
         """
@@ -90,9 +168,9 @@ class MANAGEMENT_BSP():
         self.rmp.wr32(ba + 0x4, (offset & 0xFF))
         self.rmp.wr32(ba + 0x0, cmd)
         retry = 0
-        while (retry < 1000):
+        while retry < 1000:
             status = self.rmp.rd32(ba + 0xC)
-            if (status == 0):
+            if status == 0:
                 break
             else:
                 if status == 2 or status == 3:
@@ -136,24 +214,24 @@ class MANAGEMENT_BSP():
         rd = 0
         for n in range(2):
             rd = rd << 8
-            rd = rd | self.eep_rd8(offset+n, phy_addr)
+            rd = rd | self.eep_rd8(offset + n, phy_addr)
         return rd
 
     def eep_rd32(self, offset, phy_addr=eep_addr_0):
         rd = 0
         for n in range(4):
             rd = rd << 8
-            rd = rd | self.eep_rd8(offset+n, phy_addr)
+            rd = rd | self.eep_rd8(offset + n, phy_addr)
         return rd
 
     def eep_wr16(self, offset, data, phy_addr=eep_addr_0):
         for n in range(2):
-            self.eep_wr8(offset+n, (data >> 8*(1-n)) & 0xFF, phy_addr)
+            self.eep_wr8(offset + n, (data >> 8 * (1 - n)) & 0xFF, phy_addr)
         return
 
     def eep_wr32(self, offset, data, phy_addr=eep_addr_0):
         for n in range(4):
-            self.eep_wr8(offset+n, (data >> 8*(3-n)) & 0xFF, phy_addr)
+            self.eep_wr8(offset + n, (data >> 8 * (3 - n)) & 0xFF, phy_addr)
         return
 
     def wr_string(self, partition, string):
@@ -177,11 +255,12 @@ class MANAGEMENT_BSP():
         string = ""
         for i in range(max_len):
             byte = self.eep_rd8(addr)
-            if byte == ord("\n") or byte == 0xff:
+            if byte == ord("\n") or byte == 0xFF:
                 break
             string += chr(byte)
             addr += 1
         return string
+
     """
     def get_field(self, key):
         if self.eep_sec[key]["type"] == "ip":
@@ -213,20 +292,21 @@ class MANAGEMENT_BSP():
                 self.eep_wr8(self.eep_sec[key]["offset"]+offset, val & 0xff)
                 val = val >> 8
     """
+
     def get_field(self, key):
         if self.eep_sec[key]["type"] == "ip":
             return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
         elif self.eep_sec[key]["type"] == "bytearray":
             arr = bytearray()
             for offset in range(self.eep_sec[key]["size"]):
-                arr.append(self.eep_rd8(self.eep_sec[key]["offset"]+offset))
+                arr.append(self.eep_rd8(self.eep_sec[key]["offset"] + offset))
             return arr
         elif self.eep_sec[key]["type"] == "string":
             return self.rd_string(self.eep_sec[key])
         elif self.eep_sec[key]["type"] == "uint":
             val = 0
             for offset in range(self.eep_sec[key]["size"]):
-                val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"]+offset)
+                val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"] + offset)
             return val
 
     def set_field(self, key, value, override_protected=False):
@@ -235,19 +315,29 @@ class MANAGEMENT_BSP():
                 self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
             elif self.eep_sec[key]["type"] == "bytearray":
                 for offset in range(self.eep_sec[key]["size"]):
-                    self.eep_wr8(self.eep_sec[key]["offset"] + offset,
-                             ((value & (0xff << (8*(self.eep_sec[key]["size"]-1-offset))))
-                              >> (8*(self.eep_sec[key]["size"]-1-offset))) & 0xff)
+                    self.eep_wr8(
+                        self.eep_sec[key]["offset"] + offset,
+                        (
+                            (
+                                value
+                                & (
+                                    0xFF
+                                    << (8 * (self.eep_sec[key]["size"] - 1 - offset))
+                                )
+                            )
+                            >> (8 * (self.eep_sec[key]["size"] - 1 - offset))
+                        )
+                        & 0xFF,
+                    )
             elif self.eep_sec[key]["type"] == "string":
                 self.wr_string(self.eep_sec[key], value)
             elif self.eep_sec[key]["type"] == "uint":
                 val = value
                 for offset in range(self.eep_sec[key]["size"]):
-                    self.eep_wr8(self.eep_sec[key]["offset"]+offset, val & 0xff)
+                    self.eep_wr8(self.eep_sec[key]["offset"] + offset, val & 0xFF)
                     val = val >> 8
         else:
             print("Writing attempt on protected sector %s" % key)
-
 
     def cpld_efb_wr(self, dat):
         while self.rmp.rd32(0x90000000 + 0x72 * 4) & 0x10 == 0x10:
@@ -257,7 +347,7 @@ class MANAGEMENT_BSP():
     def cpld_flash_read(self, bitfile="cpld_dump.bit"):
         dump = []
 
-        self.rmp.wr32(0x90000000 + 0x70*4, 0x80)    # enable wishbone connection
+        self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x74)  #
         self.cpld_efb_wr(0x08)  #
         self.cpld_efb_wr(0x00)  #
@@ -334,8 +424,13 @@ class MANAGEMENT_BSP():
         dump = bytearray(f.read())
         f.close()
         start_idx = -1
-        for n in range(len(dump)-8):
-            if dump[n] == 0xFF and dump[n+1] == 0xFF and dump[n+2] == 0xBD and dump[n+3] == 0xB3:
+        for n in range(len(dump) - 8):
+            if (
+                dump[n] == 0xFF
+                and dump[n + 1] == 0xFF
+                and dump[n + 2] == 0xBD
+                and dump[n + 3] == 0xB3
+            ):
                 start_idx = n
                 break
         if start_idx == -1:
@@ -343,9 +438,9 @@ class MANAGEMENT_BSP():
             exit(1)
         if start_idx > 0:
             dump = dump[start_idx:]
-            dump = dump[:10] + dump[10+8:]
+            dump = dump[:10] + dump[10 + 8 :]
         if len(dump) % 16 != 0:
-            dump = dump + bytearray([0xFF]*(16 - len(dump) % 16))
+            dump = dump + bytearray([0xFF] * (16 - len(dump) % 16))
         # enable configuration access
         print("Enable CPLD configuration access")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
@@ -395,7 +490,7 @@ class MANAGEMENT_BSP():
         while self.rmp.rd32(0x90000000 + 0x72 * 4) & 0x20 == 0:
             pass
 
-        nof_frame = (len(dump))/16
+        nof_frame = (len(dump)) / 16
         idx = 0
         print("Write configuration flash")
         for n in range(nof_frame):
@@ -471,8 +566,10 @@ class MANAGEMENT_BSP():
                 print("CPLD Verify Flash error!")
                 print("Address ", str(n))
                 print("CPLD doesn't have a good bitstream, it will not boot!")
-                print("Write a valid bistream into the Flash before rebooting, "
-                      "otherwise you will need to use then JTAG!")
+                print(
+                    "Write a valid bistream into the Flash before rebooting, "
+                    "otherwise you will need to use then JTAG!"
+                )
                 exit(1)
 
         # Refresh

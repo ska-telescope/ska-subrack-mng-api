@@ -10,7 +10,7 @@ import array
 from struct import *
 
 
-class rmpNetwork():
+class rmpNetwork:
     def __init__(self, this_ip, fpga_ip, udp_port, timeout):
         """!@brief Initialize the network
 
@@ -23,7 +23,7 @@ class rmpNetwork():
 
         Returns -- int -- socket handle
         """
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  # Internet # UDP
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet # UDP
 
         self.sock.settimeout(1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)
@@ -41,8 +41,7 @@ class rmpNetwork():
         # print("self.fpga.ip %s" %self.fpga_ip)
 
     def CloseNetwork(self):
-        """!@brief Close previously opened socket.
-        """
+        """!@brief Close previously opened socket."""
         self.sock.close()
         return
 
@@ -69,7 +68,7 @@ class rmpNetwork():
 
                 self.psn += 1
 
-                pkt = array.array('I')
+                pkt = array.array("I")
                 pkt.append(self.psn)  # psn
                 pkt.append(2)  # opcode
                 if type(dat) == list:
@@ -83,13 +82,15 @@ class rmpNetwork():
                 else:
                     pkt.append(dat)  # dat
 
-                self.sock.sendto(bytes(pkt.tostring()), (self.fpga_ip, self.remote_udp_port))
+                self.sock.sendto(
+                    bytes(pkt.tostring()), (self.fpga_ip, self.remote_udp_port)
+                )
                 data, addr = self.recvfrom_to(10240)
 
                 data = bytes(data)
 
-                psn = unpack('I', data[0:4])[0]
-                add = unpack('I', data[4:8])[0]
+                psn = unpack("I", data[0:4])[0]
+                add = unpack("I", data[4:8])[0]
 
                 if psn == self.psn and add == req_add:
                     return
@@ -151,24 +152,26 @@ class rmpNetwork():
             self.psn += 1
 
             try:
-                pkt = array.array('I')
-                pkt.append(self.psn)    # psn
-                pkt.append(1)           # opcode
-                pkt.append(n)           # noo
-                pkt.append(req_add)     # sa
+                pkt = array.array("I")
+                pkt.append(self.psn)  # psn
+                pkt.append(1)  # opcode
+                pkt.append(n)  # noo
+                pkt.append(req_add)  # sa
 
                 # print("self.fpga.ip %s" % self.fpga_ip)
-                self.sock.sendto(bytes(pkt.tostring()), (self.fpga_ip, self.remote_udp_port))
+                self.sock.sendto(
+                    bytes(pkt.tostring()), (self.fpga_ip, self.remote_udp_port)
+                )
 
                 data, addr = self.recvfrom_to(10240)
 
                 data = bytes(data)
 
-                psn = unpack('I', data[0:4])[0]
-                add = unpack('I', data[4:8])[0]
+                psn = unpack("I", data[0:4])[0]
+                add = unpack("I", data[4:8])[0]
 
                 if psn == self.psn and add == req_add:
-                    dat = unpack('I' * n, data[8:])
+                    dat = unpack("I" * n, data[8:])
                     dat_list = []
                     for k in range(n):
                         dat_list.append(dat[k])

@@ -1,6 +1,12 @@
-__author__ = 'Cristian Albanese'
+__author__ = "Cristian Albanese"
 
-__all__ = ['MANAGEMENT', 'MANAGEMENT_BSP', 'MngProgFlash', 'MANAGEMENT_SPI', 'MngMcuUart']
+__all__ = [
+    "MANAGEMENT",
+    "MANAGEMENT_BSP",
+    "MngProgFlash",
+    "MANAGEMENT_SPI",
+    "MngMcuUart",
+]
 
 from .management_spi import MANAGEMENT_SPI
 from .management_bsp import MANAGEMENT_BSP

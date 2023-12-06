@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+
 # import netproto.rmp as rmp
 import lxml.etree as ET
 from .management_bsp import MANAGEMENT_BSP
@@ -11,17 +12,18 @@ import zlib
 import binascii
 
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import netproto.rmp as rmp
 
-MAX_PLL_REG_ADD = 0x3a3c
+MAX_PLL_REG_ADD = 0x3A3C
+
 
 def hexstring2ascii(hexstring, xor=0):
-    """ Convert a hexstring to an ASCII-String. If you like to XOR it, give the
-        xor value as an integer. If not, leave it blank """
+    """Convert a hexstring to an ASCII-String. If you like to XOR it, give the
+    xor value as an integer. If not, leave it blank"""
     ascii = ""
     for i in xrange(0, len(hexstring) / 2):
-        ascii = ascii + chr(int(hexstring[2 * i:2 * i + 2], 16) ^ xor)
+        ascii = ascii + chr(int(hexstring[2 * i : 2 * i + 2], 16) ^ xor)
     return ascii
 
 
@@ -46,11 +48,15 @@ def pprint_table(table):
     for row in table:
         # print row
         # left col
-        print (row[0].ljust(col_paddings[0] + 1)(),)
+        print(
+            row[0].ljust(col_paddings[0] + 1)(),
+        )
         # rest of the cols
         for i in range(1, len(row)):
             col = format_num(row[i]).rjust(col_paddings[i] + 2)
-            print(col,)
+            print(
+                col,
+            )
         print("")
 
 
@@ -82,32 +88,34 @@ class MANAGEMENT:
         self.state = "Created"
         self.extended_info = ""
 
-        if not 'ip' in kwargs.keys():
+        if not "ip" in kwargs.keys():
             print("Error! An IP address must be specified!")
             sys.exit()
         else:
-            ip = kwargs['ip']
+            ip = kwargs["ip"]
             # print("provided ip %s" %(ip) )
-        if not 'port' in kwargs.keys():
+        if not "port" in kwargs.keys():
             print("Assuming UDP port 10000")
             port = 10000
         else:
-            port = int(kwargs['port'])
-        if not 'timeout' in kwargs.keys():
+            port = int(kwargs["port"])
+        if not "timeout" in kwargs.keys():
             print("Assuming UDP socket timeout 1 second")
             timeout = 1
         else:
-            timeout = int(kwargs['timeout'])
-        if 'host_ip' in kwargs.keys():
-            self.rmp = rmp.rmpNetwork(kwargs['host_ip'], ip, port, timeout)
+            timeout = int(kwargs["timeout"])
+        if "host_ip" in kwargs.keys():
+            self.rmp = rmp.rmpNetwork(kwargs["host_ip"], ip, port, timeout)
         else:
             self.rmp = rmp.rmpNetwork("", ip, port, timeout)
         # print "IP init: " + ip
         self.state = "Connected"
-        if 'board_reg' in kwargs.keys():
-            raise NameError("board_reg is not supported, board name must be retrived from extended info string!")
-        elif 'board' in kwargs.keys():
-            self.board = kwargs['board']
+        if "board_reg" in kwargs.keys():
+            raise NameError(
+                "board_reg is not supported, board name must be retrived from extended info string!"
+            )
+        elif "board" in kwargs.keys():
+            self.board = kwargs["board"]
         else:
             # self.board = self.get_board(0x10)
             self.board = "MNG"
@@ -119,8 +127,8 @@ class MANAGEMENT:
         self.mcuuart = MngMcuUart(self, self.rmp)
 
     def __getitem__(self, key):
-        """ Override __getitem__, return value from board """
-        if type(key).__name__ == 'tuple':
+        """Override __getitem__, return value from board"""
+        if type(key).__name__ == "tuple":
             k = key[0]
             h = 1
         else:
@@ -133,12 +141,12 @@ class MANAGEMENT:
             return rd
 
     def __setitem__(self, key, value):
-        """ Override __setitem__, set value on board"""
+        """Override __setitem__, set value on board"""
         self.write_register(key, value)
         return
 
     def __len__(self):
-        """ Override __len__, return number of registers """
+        """Override __len__, return number of registers"""
         self.checkLoad()
         return len(self.reg_dict.keys())
 
@@ -166,16 +174,16 @@ class MANAGEMENT:
                 byte_offset += req_len * 4
             if type(rd) == list:
                 for n in rd:
-                    xml_hex_str += format(n, '08x')
+                    xml_hex_str += format(n, "08x")
             else:
                 print(str(rd))
-                xml_hex_str += format(rd, '08x')
+                xml_hex_str += format(rd, "08x")
             if byte_to_read == 0:
                 break
         # for n in range(xml_len/(8)+1):
         #   xml_hex_str += format(self.read_register(xml_off+4*(n+1)),'08x')
         # decompress zipped XML
-        xml = zlib.decompress(binascii.unhexlify(xml_hex_str[:2 * xml_len]))
+        xml = zlib.decompress(binascii.unhexlify(xml_hex_str[: 2 * xml_len]))
         # this string contains the decompressed XML
         return xml
 
@@ -199,13 +207,13 @@ class MANAGEMENT:
                 byte_offset += req_len * 4
             if type(rd) == list:
                 for n in rd:
-                    hex_str += format(n, '08x')
+                    hex_str += format(n, "08x")
             else:
                 print(str(rd))
-                hex_str += format(rd, '08x')
+                hex_str += format(rd, "08x")
             if byte_to_read == 0:
                 break
-        info = zlib.decompress(binascii.unhexlify(hex_str[:2 * ext_len]))
+        info = zlib.decompress(binascii.unhexlify(hex_str[: 2 * ext_len]))
         # print info
         return info
 
@@ -228,7 +236,7 @@ class MANAGEMENT:
             tree = ET.parse(path_to_xml_file)
             root = tree.getroot()
 
-        for node in root.iter('node'):
+        for node in root.iter("node"):
             if node.get("absolute_id") is not None:
                 # reg = {
                 # 'name'        : '%s.%s' % (names[dev], registers[i].name),
@@ -244,33 +252,37 @@ class MANAGEMENT:
                 # }
 
                 local_dict = {}
-                local_dict['name'] = None
-                local_dict['address'] = "None"
-                local_dict['bitmask'] = "None"
-                local_dict['size'] = "None"
-                local_dict['permission'] = "None"
-                local_dict['description'] = "None"
+                local_dict["name"] = None
+                local_dict["address"] = "None"
+                local_dict["bitmask"] = "None"
+                local_dict["size"] = "None"
+                local_dict["permission"] = "None"
+                local_dict["description"] = "None"
 
                 if node.get("absolute_id") != None:
-                    local_dict['name'] = node.get("absolute_id")
+                    local_dict["name"] = node.get("absolute_id")
                 if node.get("absolute_offset") != None:
-                    local_dict['address'] = node.get("absolute_offset")
+                    local_dict["address"] = node.get("absolute_offset")
                 if node.get("mask") != None:
-                    local_dict['bitmask'] = node.get("mask")
+                    local_dict["bitmask"] = node.get("mask")
                 if node.get("size") != None:
-                    local_dict['size'] = node.get("size")
+                    local_dict["size"] = node.get("size")
                 if node.get("permission") != None:
-                    local_dict['permission'] = node.get("permission")
+                    local_dict["permission"] = node.get("permission")
                 if node.get("description") != None:
-                    local_dict['description'] = node.get("description")
+                    local_dict["description"] = node.get("description")
 
                 self.reg_list.append(local_dict)
                 self.reg_dict[node.get("absolute_id")] = local_dict
 
         for reg in self.reg_list:
-            if reg['name'] != None and reg['bitmask'] != "None" and reg['size'] != "None":
+            if (
+                reg["name"] != None
+                and reg["bitmask"] != "None"
+                and reg["size"] != "None"
+            ):
                 self.reg_sel_list.append(reg)
-                self.reg_sel_dict[reg['name']] = reg
+                self.reg_sel_dict[reg["name"]] = reg
         for register in self.reg_dict.keys():
             if register != None:
                 reg_str = "."
@@ -279,9 +291,12 @@ class MANAGEMENT:
                 regs = filter_list_by_level(regs, register)
                 is_bitfield = 0
                 for reg in regs:
-                    if self.reg_dict[reg]['address'] == self.reg_dict[register]['address']:
+                    if (
+                        self.reg_dict[reg]["address"]
+                        == self.reg_dict[register]["address"]
+                    ):
                         is_bitfield = 1
-                self.reg_dict[register]['is_bitfield'] = is_bitfield
+                self.reg_dict[register]["is_bitfield"] = is_bitfield
 
     def checkLoad(self):
         if self.reg_list == []:
@@ -293,33 +308,35 @@ class MANAGEMENT:
         self.checkLoad()
         lines = []
         for reg in self.reg_list:
-            if reg['name'] != None:
+            if reg["name"] != None:
                 if lines == []:
                     lines.append(["Name", "Address", "Bitmask", "Size"])
-                lines.append([reg['name'], "0x" + reg['address'], reg['bitmask'], reg['size']])
+                lines.append(
+                    [reg["name"], "0x" + reg["address"], reg["bitmask"], reg["size"]]
+                )
         if lines != []:
             pprint_table(lines)
 
     def get_register_name_by_address(self, add):
         for reg in self.reg_list:
-            if int(reg['address'], 16) == add:
-                return reg['name']
+            if int(reg["address"], 16) == add:
+                return reg["name"]
         return "Unknown register address"
 
     def find_register(self, register_name, display=False):
-        """ Return register information for provided search string
-           :param register_name: Regular expression to search against
-           :param display: True to output result to console
-           :return: List of found registers
-           """
+        """Return register information for provided search string
+        :param register_name: Regular expression to search against
+        :param display: True to output result to console
+        :return: List of found registers
+        """
         # Run checks
         self.checkLoad()
         # Go through all registers and store the name of registers
         # which generate a match
         matches = []
         for reg in self.reg_list:
-            if reg['name'] != None:
-                if re.search(register_name, reg['name']) != None:
+            if reg["name"] != None:
+                if re.search(register_name, reg["name"]) != None:
                     matches.append(reg)
         # Display to screen if required
         if display:
@@ -328,7 +345,7 @@ class MANAGEMENT:
                 if lines == []:
                     lines.append(["Name", "Address", "Mask", "Size"])
                 print(str(m))
-                lines.append([m['name'], "0x" + m['address'], m['bitmask'], m['size']])
+                lines.append([m["name"], "0x" + m["address"], m["bitmask"], m["size"]])
             if lines != []:
                 pprint_table(lines)
         # Return matches
@@ -338,13 +355,13 @@ class MANAGEMENT:
         found_reg = self.find_register(register_name, False)
         name_list = []
         for n in found_reg:
-            name_list.append(n['name'])
+            name_list.append(n["name"])
             if display == True:
-                print(n['name'])
+                print(n["name"])
         return name_list
 
     def read_register(self, register, n=1, offset=0, device=None):
-        """ Get register value
+        """Get register value
         :param register: Register name
         :param n: Number of words to read
         :param offset: Memory address offset to read from
@@ -361,18 +378,23 @@ class MANAGEMENT:
                 print("Error: register " + register + " not found!")
             else:
                 # check if it is a bitfield and other bitfields are present
-                is_bitfield = self.reg_dict[register]['is_bitfield']
+                is_bitfield = self.reg_dict[register]["is_bitfield"]
 
                 if is_bitfield == 0:
-                    return self.rmp.rd32(int(self.reg_dict[register]['address'], 16) + offset, n)
+                    return self.rmp.rd32(
+                        int(self.reg_dict[register]["address"], 16) + offset, n
+                    )
                 else:
-                    rd = self.rmp.rd32(int(self.reg_dict[register]['address'], 16) + offset, 1)
-                    rd = (rd & int(self.reg_dict[register]['bitmask'], 16)) >> get_shift_from_mask(
-                        self.reg_dict[register]['bitmask'])
+                    rd = self.rmp.rd32(
+                        int(self.reg_dict[register]["address"], 16) + offset, 1
+                    )
+                    rd = (
+                        rd & int(self.reg_dict[register]["bitmask"], 16)
+                    ) >> get_shift_from_mask(self.reg_dict[register]["bitmask"])
                     return rd
 
     def write_register(self, register, values, offset=0, device=None):
-        """ Set register value
+        """Set register value
         :param register: Register name
         :param values: Values to write
         :param offset: Memory address offset to write to
@@ -386,25 +408,41 @@ class MANAGEMENT:
                 print("Error: register " + register + " not found!")
             else:
                 # check if it is a bitfield and other bitfields are present
-                is_bitfield = self.reg_dict[register]['is_bitfield']
+                is_bitfield = self.reg_dict[register]["is_bitfield"]
 
                 if is_bitfield == 0:
-                    self.rmp.wr32(int(self.reg_dict[register]['address'], 16) + offset, values)
+                    self.rmp.wr32(
+                        int(self.reg_dict[register]["address"], 16) + offset, values
+                    )
                 else:
-                    rd = self.rmp.rd32(int(self.reg_dict[register]['address'], 16) + offset, 1)
+                    rd = self.rmp.rd32(
+                        int(self.reg_dict[register]["address"], 16) + offset, 1
+                    )
                     if type(values) == list:
                         wdat = values[0]
                     else:
                         wdat = values
-                    wdat = wdat << get_shift_from_mask(self.reg_dict[register]['bitmask'])
-                    self.rmp.wr32(int(self.reg_dict[register]['address'], 16) + offset, wdat | rd)
+                    wdat = wdat << get_shift_from_mask(
+                        self.reg_dict[register]["bitmask"]
+                    )
+                    self.rmp.wr32(
+                        int(self.reg_dict[register]["address"], 16) + offset, wdat | rd
+                    )
                 return
 
     def get_bios(self):
         string = "CPLD_"
-        string += hex(self.rmp.rd32(0x8)) + "_" + hex(self.rmp.rd32(0x4) << 32 | self.rmp.rd32(0x0))
+        string += (
+            hex(self.rmp.rd32(0x8))
+            + "_"
+            + hex(self.rmp.rd32(0x4) << 32 | self.rmp.rd32(0x0))
+        )
         string += "-MCU_"
-        string += hex(self.rmp.rd32(0x30000)) + "_" + hex(self.rmp.rd32(0x30008) << 32 | self.rmp.rd32(0x30004))
+        string += (
+            hex(self.rmp.rd32(0x30000))
+            + "_"
+            + hex(self.rmp.rd32(0x30008) << 32 | self.rmp.rd32(0x30004))
+        )
         final_string = "v?.?.? (%s)" % string
         """
         for BIOS_REV in self.BIOS_REV_list:
@@ -417,23 +455,24 @@ class MANAGEMENT:
     def get_mac(self):
         mac = self.bsp.get_field("MAC")
         mac_str = ""
-        for i in range(0,len(mac)-1):
-            mac_str += '{0:02x}'.format(mac[i])+":"
-        mac_str += '{0:02x}'.format(mac[len(mac)-1])
+        for i in range(0, len(mac) - 1):
+            mac_str += "{0:02x}".format(mac[i]) + ":"
+        mac_str += "{0:02x}".format(mac[len(mac) - 1])
         return mac_str
 
     def get_board_info(self):
-        mng_info = {"ip_address": self.bsp.long2ip(self.rmp.rd32(0x110)),
-                    "netmask": self.bsp.long2ip(self.rmp.rd32(0x114)),
-                    "gateway": self.bsp.long2ip(self.rmp.rd32(0x118)),
-                    "ip_address_eep": self.bsp.get_field("ip_address"),
-                    "netmask_eep": self.bsp.get_field("netmask"),
-                    "gateway_eep": self.bsp.get_field("gateway"),
-                    "MAC": self.get_mac(),
-                    "SN": self.bsp.get_field("SN"),
-                    "PN": self.bsp.get_field("PN"),
-                    "bios": self.get_bios()
-                    }
+        mng_info = {
+            "ip_address": self.bsp.long2ip(self.rmp.rd32(0x110)),
+            "netmask": self.bsp.long2ip(self.rmp.rd32(0x114)),
+            "gateway": self.bsp.long2ip(self.rmp.rd32(0x118)),
+            "ip_address_eep": self.bsp.get_field("ip_address"),
+            "netmask_eep": self.bsp.get_field("netmask"),
+            "gateway_eep": self.bsp.get_field("gateway"),
+            "MAC": self.get_mac(),
+            "SN": self.bsp.get_field("SN"),
+            "PN": self.bsp.get_field("PN"),
+            "bios": self.get_bios(),
+        }
         if self.bsp.get_field("BOARD_MODE") == 0x1:
             mng_info["BOARD_MODE"] = "SUBRACK"
         elif self.bsp.get_field("BOARD_MODE") == 0x2:
@@ -442,19 +481,31 @@ class MANAGEMENT:
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.bsp.get_field("BOARD_MODE"))
 
-        location = [self.bsp.get_field("CABINET_LOCATION"),
-                    self.bsp.get_field("SUBRACK_LOCATION"),
-                    self.bsp.get_field("SLOT_LOCATION")]
-        mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
+        location = [
+            self.bsp.get_field("CABINET_LOCATION"),
+            self.bsp.get_field("SUBRACK_LOCATION"),
+            self.bsp.get_field("SLOT_LOCATION"),
+        ]
+        mng_info["LOCATION"] = (
+            str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
+        )
 
         pcb_rev = self.bsp.get_field("PCB_REV")
-        if pcb_rev == 0xff:
+        if pcb_rev == 0xFF:
             pcb_rev_string = ""
         else:
             pcb_rev_string = str(pcb_rev)
 
         hw_rev = self.bsp.get_field("HARDWARE_REV")
-        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
+        mng_info["HARDWARE_REV"] = (
+            "v"
+            + str(hw_rev[0])
+            + "."
+            + str(hw_rev[1])
+            + "."
+            + str(hw_rev[2])
+            + pcb_rev_string
+        )
 
         return mng_info
 
@@ -465,28 +516,28 @@ class MANAGEMENT:
         self.bsp.spi.spi_access("wr", address, value)
 
     def pll_read_with_update(self, address):
-        self.write_spi(0xf, 0x1)
+        self.write_spi(0xF, 0x1)
         return self.bsp.spi.spi_access("rd", address, 0)
 
     def pll_write_with_update(self, address, value):
         self.bsp.spi.spi_access("wr", address, value)
-        self.write_spi(0xf, 0x1)
+        self.write_spi(0xF, 0x1)
 
-    def pll_ldcfg(self,cfg_filename):
+    def pll_ldcfg(self, cfg_filename):
         cfgfile = open(cfg_filename, "r")
         cfglines = cfgfile.readlines()
         cfgfile.close()
         opnum = len(cfglines)
-        print ("Writing PLL configuration...")
+        print("Writing PLL configuration...")
         for i in range(1, opnum):
             address = cfglines[i].split(",")[0]
             value = cfglines[i].split(",")[1].splitlines()[0]
             self.write_spi(int(address, 16), int(value, 16))
-        self.write_spi(0xf, 0x1)
+        self.write_spi(0xF, 0x1)
 
-    def pll_dumpcfg(self,cfg_filename):
+    def pll_dumpcfg(self, cfg_filename):
         cfgfile = open(cfg_filename, "w")
-        print ("Reading PLL configuration...")
+        print("Reading PLL configuration...")
         cfgfile.write("Address,Data\n")
         for address in range(0, MAX_PLL_REG_ADD):
             data = self.read_spi(address)
@@ -497,17 +548,17 @@ class MANAGEMENT:
             cfgfile.write("0x" + haddress.upper() + "," + "0x" + hdata.upper() + "\n")
 
     def pll_calib(self):
-        print ("Calibrating PLL...")
+        print("Calibrating PLL...")
         self.write_spi(0x2000, 0x0)
-        self.write_spi(0xf, 0x1)
+        self.write_spi(0xF, 0x1)
         self.write_spi(0x2000, 0x2)
-        self.write_spi(0xf, 0x1)
+        self.write_spi(0xF, 0x1)
         self.write_spi(0x2000, 0x0)
-        self.write_spi(0xf, 0x1)
+        self.write_spi(0xF, 0x1)
 
     def pll_ioupdate(self):
-        self.write_spi(0xf, 0x1)
-        print ("PLL IO Updated ")
+        self.write_spi(0xF, 0x1)
+        print("PLL IO Updated ")
 
     def disconnect(self):
         self.rmp.CloseNetwork()

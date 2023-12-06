@@ -1,4 +1,3 @@
-__author__ = 'bubs'
+__author__ = "bubs"
 from .netproto import *
 from .bsp import *
-
