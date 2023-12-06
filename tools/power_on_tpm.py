@@ -14,6 +14,23 @@ usage_hexample = (
     "(es power on all TPM). %prog --all\n"
 )
 
+"""
+TPM Power Control Script
+
+This script provides a command-line interface for controlling the power state of TPMs (Trusted Platform Modules) in a SKALAB Subrack. It uses the OptionParser module to parse command-line options for selecting TPMs to power on.
+
+Command-Line Options:
+  --t1, --t2, ..., --t8: Select individual TPMs (1 to 8) to power on.
+  --all: Select all TPMs to power on.
+
+Usage Example:
+  $ python script_name.py --t1 --t3 --all
+
+Note: Replace 'script_name.py' with the actual name of the script file.
+
+"""
+
+
 if __name__ == "__main__":
 
     parser = OptionParser(usage=(usage_string + usage_hexample))

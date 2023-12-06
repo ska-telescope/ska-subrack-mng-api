@@ -546,7 +546,25 @@ class TpmPresent(HardwareAttribute):
 
 
 class PSFanSpeed(HardwareAttribute):
+    """
+    Hardware attribute class for reading power supply fan speeds.
+
+    Reads fan speeds for power supplies 1 and 2 and returns a list of values.
+
+    Attributes:
+    - _hardware: Reference to the SubrackMngBoard hardware object.
+
+    Methods:
+    - read_value(): Reads power supply fan speeds and returns a list.
+    """
+
     def read_value(self):
+        """
+        Reads power supply fan speeds.
+
+        Returns:
+        list: List of fan speeds for power supplies 1 and 2.
+        """
         fan_speed = [
             self._hardware.GetPSFanSpeed(1),
             self._hardware.GetPSFanSpeed(2),
@@ -555,7 +573,25 @@ class PSFanSpeed(HardwareAttribute):
 
 
 class PSCurrent(HardwareAttribute):
+    """
+    Hardware attribute class for reading power supply currents.
+
+    Reads current values for power supplies 1 and 2 and returns a list.
+
+    Attributes:
+    - _hardware: Reference to the SubrackMngBoard hardware object.
+
+    Methods:
+    - read_value(): Reads power supply currents and returns a list.
+    """
+
     def read_value(self):
+        """
+        Reads power supply currents.
+
+        Returns:
+        list: List of current values for power supplies 1 and 2.
+        """
         fan_speed = [
             self._hardware.GetPSIout(1),
             self._hardware.GetPSIout(2),
@@ -564,7 +600,25 @@ class PSCurrent(HardwareAttribute):
 
 
 class PSPower(HardwareAttribute):
+    """
+    Hardware attribute class for reading power supply powers.
+
+    Reads power values for power supplies 1 and 2 and returns a list.
+
+    Attributes:
+    - _hardware: Reference to the SubrackMngBoard hardware object.
+
+    Methods:
+    - read_value(): Reads power supply powers and returns a list.
+    """
+
     def read_value(self):
+        """
+        Reads power supply powers.
+
+        Returns:
+        list: List of power values for power supplies 1 and 2.
+        """
         fan_speed = [
             self._hardware.GetPSPower(1),
             self._hardware.GetPSPower(2),
@@ -573,7 +627,25 @@ class PSPower(HardwareAttribute):
 
 
 class PSVoltage(HardwareAttribute):
+    """
+    Hardware attribute class for reading power supply voltages.
+
+    Reads voltage values for power supplies 1 and 2 and returns a list.
+
+    Attributes:
+    - _hardware: Reference to the SubrackMngBoard hardware object.
+
+    Methods:
+    - read_value(): Reads power supply voltages and returns a list.
+    """
+
     def read_value(self):
+        """
+        Reads power supply voltages.
+
+        Returns:
+        list: List of voltage values for power supplies 1 and 2.
+        """
         fan_speed = [
             self._hardware.GetPSVout(1),
             self._hardware.GetPSVout(2),
@@ -685,7 +757,29 @@ class ups_status(HardwareAttribute):
 
 
 class SubrackHardware(HardwareThreadedDevice):
+    """
+    Hardware device class representing the Subrack.
+
+    Initializes the SubrackMngBoard object and adds commands and attributes related to the Subrack.
+
+    Attributes:
+    - subrack: Reference to the SubrackMngBoard hardware object.
+
+    Methods:
+    - initialize(emulation=False): Initializes the SubrackMngBoard object.
+    - execute_command(command, params=None): Executes the specified command.
+    """
+
     def initialize(self, emulation=False):
+        """
+        Initializes the SubrackMngBoard object.
+
+        Args:
+        - emulation (bool): Indicates whether the Subrack is in emulation mode.
+
+        Returns:
+        None
+        """
         subrack = SubrackMngBoard(simulation=emulation)
         self.subrack = subrack
 
@@ -740,6 +834,16 @@ class SubrackHardware(HardwareThreadedDevice):
         self.subrack.Mng.write("Led.Led_3", 1)
 
     def execute_command(self, command, params=None):
+        """
+        Executes the specified command.
+
+        Args:
+        - command (str): The command to be executed.
+        - params (dict): Optional parameters for the command.
+
+        Returns:
+        dict: Dictionary containing the command execution result.
+        """
         try:
             answer = super().execute_command(command, params)
         except SubrackExecFault as message:

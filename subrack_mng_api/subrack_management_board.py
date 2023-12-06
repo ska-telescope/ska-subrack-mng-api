@@ -119,26 +119,32 @@ PLL_CFG_FILE_INTERNAL = os.path.abspath(
 
 
 def dt_to_timestamp(d):
+    """Convert a datetime object to a Unix timestamp."""
     return calendar.timegm(d.timetuple())
 
-
 def detect_ip(tpm_slot_id):
+    """Detect the IP address of a TPM board based on its slot ID."""
     try:
         f = open(subrack_slot_config_file, "r")
     except:
         logger.debug("Configuration File not Found")
         return 1
+    
     cfg_lines = f.readlines()
     f.close()
+    
     subrack_cpu_ip = cfg_lines[0].split(":")[1]
     subrack_cpld_ip = cfg_lines[1].split(":")[1]
     subrack_tpm_first_ip = cfg_lines[2].split(":")[1]
     subrack_netmask = cfg_lines[4].split(":")[1]
+    
     tpm_ip_part = []
     for i in range(0, 3):
         tpm_ip_part.append(subrack_tpm_first_ip.split(".")[i])
+    
     tpm_last_part = subrack_tpm_first_ip.split(".")[3]
     tpm_new_last = str(int(tpm_last_part) + tpm_slot_id - 1)
+    
     tpm_board_ip = (
         tpm_ip_part[0]
         + "."
@@ -150,8 +156,8 @@ def detect_ip(tpm_slot_id):
     )
     return tpm_board_ip, subrack_cpu_ip
 
-
 def int2ip(value):
+    """Convert an integer value to an IP address."""
     ip = str((value >> 24) & 0xFF)
     ip += "."
     ip += str((value >> 16) & 0xFF)
@@ -161,8 +167,8 @@ def int2ip(value):
     ip += str((value >> 0) & 0xFF)
     return ip
 
-
 def ipstr2hex(ip):
+    """Convert an IP address string to a hexadecimal representation."""
     ip_part = ip.split(".")
     hexip = (
         ((int(ip_part[0]) & 0xFF) << 24)
@@ -172,8 +178,8 @@ def ipstr2hex(ip):
     )
     return hexip
 
-
 def exec_cmd(cmd, dir=None, verbose=True, exclude_line=""):
+    """Execute a shell command and capture its output."""
     start_time = time.time()
     try:
         if verbose:
@@ -214,8 +220,8 @@ def exec_cmd(cmd, dir=None, verbose=True, exclude_line=""):
         print("...CTRL+C...")
         raise NameError('exec_cmd fails: "' + cmd + '"')
 
-
 def flatten_dict(d, parent_key="", sep="_"):
+    """Flatten a nested dictionary."""
     rows = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -225,8 +231,8 @@ def flatten_dict(d, parent_key="", sep="_"):
             rows.append((new_key, v))
     return rows
 
-
 def Adu_Eth_Ping(ip, count=1, interval="0.2", size=8, wait="1"):
+    """Perform a ping on a specified IP address."""
     cmd = "ping " + ip + " -c %d" % count + " -i " + interval
     if size is not None:
         cmd += " -s %d" % size
@@ -242,14 +248,20 @@ def Adu_Eth_Ping(ip, count=1, interval="0.2", size=8, wait="1"):
         if out.count("100% packet loss"):
             ping_loss = count
     return ping_loss
+```
 
 
-# ##Subrack Management Board Class
-# This class implements methods to manage and to monitor the subrack management board
 @Pyro5.api.expose
 @Pyro5.server.behavior(instance_mode="single")
 class SubrackMngBoard:
+    """This class implements methods to manage and to monitor the subrack management board"""
+
     def __init__(self, **kwargs):
+        """Initialize SubrackMngBoard.
+
+        Parameters:
+        - kwargs (dict): Additional keyword arguments.
+        """
         logger.info("SubrackMngBoard init ...")
         get_board_info = kwargs.get("get_board_info", True)
         self._simulation = kwargs.get("simulation", False)
@@ -322,20 +334,31 @@ class SubrackMngBoard:
             logger.warning("Cannot create '/tmp/board_info' -  Permission error")
 
     def __del__(self):
+        """Destructor to clean up resources."""
         self.data = []
 
     def Initialize(self, pll_source_internal=False):
+        """Initialize the Subrack.
+
+        Parameters:
+        - pll_source_internal (bool): Set to True to use internal PLL source.
+        """
         logger.info("SUBRACK initialize start ...")
         self.Mng.set_SFP()
         self.PllInitialize(source_internal=pll_source_internal)
         # power on the backplane
         if self.Bkpln.get_bkpln_is_onoff() == 0:
             self.Bkpln.power_on_bkpln()
-        if self.powermon_cfgd == False:
+        if not self.powermon_cfgd:
             self.SubrackInitialConfiguration()
         logger.info("SUBRACK initialize done.")
 
     def get_board_info(self):
+        """Get information about the Subrack board.
+
+        Returns:
+        dict: Board information.
+        """
         return self.board_info
 
     """

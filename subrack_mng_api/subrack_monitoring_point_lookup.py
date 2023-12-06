@@ -8,6 +8,7 @@ class partial:
     __slots__ = "func", "args", "keywords", "__dict__", "__weakref__"
 
     def __new__(cls, func, /, *args, **keywords):
+        """Create a new partial function."""
         if not callable(func):
             raise TypeError("the first argument must be callable")
 
@@ -24,11 +25,13 @@ class partial:
         return self
 
     def __call__(self, /, *args, **keywords):
+        """Call the partial function with additional arguments and keywords."""
         keywords = {**self.keywords, **keywords}
         return self.func(*self.args, *args, **keywords)
 
     @recursive_repr()
     def __repr__(self):
+        """Return a string representation of the partial function."""
         qualname = type(self).__qualname__
         args = [repr(self.func)]
         args.extend(repr(x) for x in self.args)
@@ -38,10 +41,12 @@ class partial:
         return f"{qualname}({', '.join(args)})"
 
     def __reduce__(self):
+        """Reduce the partial function to its components for pickling."""
         return type(self), (self.func,), (self.func, self.args,
                self.keywords or None, self.__dict__ or None)
 
     def __setstate__(self, state):
+        """Set the state of the partial function during unpickling."""
         if not isinstance(state, tuple):
             raise TypeError("argument to __setstate__ must be a tuple")
         if len(state) != 4:
@@ -66,7 +71,9 @@ class partial:
         self.keywords = kwds
 
 def _exp_value(nominal, tolerance_perc):
+    """Calculate the expected value range based on nominal and tolerance percentage."""
     return {'min': round(nominal*(1-tolerance_perc/100),2),'max': round(nominal*(1+tolerance_perc/100),2)}
+
 
 def load_subrack_lookup(obj):
     val = {
