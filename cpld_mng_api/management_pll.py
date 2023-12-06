@@ -14,6 +14,18 @@ usage_hexample = (
 )
 
 if __name__ == "__main__":
+    """
+    Main script for PLL configuration and control.
+
+    Example Usages:
+    - Load configuration from file: ./script.py -l -f our_pll_cfg.txt
+    - Dump configuration to file: ./script.py -d -f dump_pll_cfg.txt
+    - Write register: ./script.py 0x24 0x3
+    - Read register: ./script.py 0x24
+    - Execute PLL calibration sequence: ./script.py -c
+    - Execute IO Update command: ./script.py -u <register_address> <value>
+    - Command without IO Update: ./script.py <register_address>
+    """
     parser = OptionParser(usage=(usage_string + usage_hexample))
     parser.add_option(
         "-l",
@@ -63,6 +75,9 @@ if __name__ == "__main__":
     inst = MANAGEMENT(ip=options.ip, port=options.udp_port, timeout=5)
 
     if options.pll_ldcfg:
+        """
+        Load PLL configuration from a file.
+        """
         cfgfile = open(options.cfg_filename, "r")
         cfglines = cfgfile.readlines()
         cfgfile.close()
@@ -75,6 +90,9 @@ if __name__ == "__main__":
         inst.write_spi(0xF, 0x1)
 
     elif options.pll_dumpcfg:
+        """
+        Dump PLL configuration to a file.
+        """
         cfgfile = open(options.cfg_filename, "w")
         print("Reading configuration...")
         cfgfile.write("Address,Data\n")
@@ -87,6 +105,9 @@ if __name__ == "__main__":
             cfgfile.write("0x" + haddress.upper() + "," + "0x" + hdata.upper() + "\n")
 
     elif options.pll_calib:
+        """
+        Execute PLL calibration sequence.
+        """
         print("Calibrating...")
         inst.write_spi(0x2000, 0x0)
         inst.write_spi(0xF, 0x1)
@@ -96,6 +117,9 @@ if __name__ == "__main__":
         inst.write_spi(0xF, 0x1)
 
     elif options.ioupdate:
+        """
+        Execute IO Update command.
+        """
         print("Command WITH update IO")
         if len(args) == 1:
             inst.write_spi(0xF, 0x1)
@@ -108,6 +132,9 @@ if __name__ == "__main__":
             print("IO Updated. No command issued.")
 
     else:
+        """
+        Command WITHOUT update IO.
+        """
         print("Command WITHOUT update IO")
         if len(args) == 1:
             print(hex(inst.read_spi(int(args[0], 16))))

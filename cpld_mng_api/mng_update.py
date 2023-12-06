@@ -1,5 +1,9 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+"""
+Test TPM script.
+
 __author__ = "Bubs"
+"""
 
 import os
 import sys
@@ -7,12 +11,10 @@ import time
 import datetime
 import struct
 
-
 from sys import exit
 import logging
 import os
 from bsp.management import *
-
 
 if __name__ == "__main__":
 

@@ -46,6 +46,12 @@ class rmpNetwork:
         return
 
     def recvfrom_to(self, buff):
+        """!@brief Receive data from the socket within a timeout.
+
+        @param buff -- int -- Buffer size
+
+        Returns -- tuple -- received data and source address
+        """
         attempt = 0
         while attempt < self.timeout or self.timeout == 0:
             try:
@@ -65,7 +71,6 @@ class rmpNetwork:
         req_add = add
         for i in range(3):
             try:
-
                 self.psn += 1
 
                 pkt = array.array("I")
@@ -202,6 +207,7 @@ class rmpNetwork:
         exit(-1)
 
     def socket_flush(self):
+        """!@brief Flush UCP socket and recreate it."""
         print("Flushing UCP socket...")
         self.sock.close()
 

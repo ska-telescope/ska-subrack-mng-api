@@ -248,8 +248,6 @@ def Adu_Eth_Ping(ip, count=1, interval="0.2", size=8, wait="1"):
         if out.count("100% packet loss"):
             ping_loss = count
     return ping_loss
-```
-
 
 @Pyro5.api.expose
 @Pyro5.server.behavior(instance_mode="single")
@@ -932,6 +930,18 @@ class SubrackMngBoard:
         logger.info("PowerOnTPM End")
 
     def GetPingTPM(self, tpm_slot_id):
+        """
+        Checks the connectivity to a TPM using a ping operation.
+
+        This method checks if the TPM in the specified slot is present, powered on,
+        and responds to a ping operation.
+
+        :param tpm_slot_id: The TPM slot identifier.
+
+        :return: True if the TPM is reachable via ping, False if unreachable,
+                 None if TPM is not present or not powered on.
+
+        """
         if self.GetTPMPresent() & (1 << (tpm_slot_id - 1)) > 0:
             if self.Bkpln.is_tpm_on(tpm_slot_id):
                 ip = self.tpm_ip_list[tpm_slot_id - 1]
@@ -942,6 +952,14 @@ class SubrackMngBoard:
         return None
 
     def GetPingCpld(self):
+        """
+        Checks the connectivity to the CPLD using a ping operation.
+
+        This method checks if the CPLD is reachable via ping.
+
+        :return: True if the CPLD is reachable via ping, False otherwise.
+
+        """
         ip = self.Mng.get_cpld_actual_ip()
         if Adu_Eth_Ping(ip) == 0:
             return True
@@ -995,12 +1013,32 @@ class SubrackMngBoard:
         return rpm, pwm_perc
 
     def GetFanRpm(self, fan_id):
+        """
+        Retrieves the RPM (Revolutions Per Minute) of a specified fan.
+
+        This method queries the fan speed and returns the RPM value.
+
+        :param fan_id: The fan identifier.
+
+        :return: The RPM (Revolutions Per Minute) of the specified fan.
+
+        """
         rpm, pwm_perc = self.GetFanSpeed(fan_id)
         return rpm
 
     def GetFanPwm(self, fan_id):
+        """
+        Retrieves the PWM (Pulse Width Modulation) percentage of a specified fan.
+
+        This method queries the fan speed and returns the PWM percentage.
+
+        :param fan_id: The fan identifier.
+
+        :return: The PWM (Pulse Width Modulation) percentage of the specified fan.
+
+        """
         rpm, pwm_perc = self.GetFanSpeed(fan_id)
-        return pwm_perc
+        return pwm_perc 
 
     def SetFanMode(self, fan_id_blk, auto_mode):
         """This method set the fan mode
@@ -1082,6 +1120,14 @@ class SubrackMngBoard:
         """
 
     def GetPllSource(self):
+        """
+        Retrieves the PLL (Phase-Locked Loop) source.
+
+        This method reads the PLL source from the management interface.
+
+        :return: "internal" if the PLL source is internal, "external" otherwise.
+
+        """
         if self.Mng.read("HKeep.PPSMux") == 3:
             return "internal"
         else:
@@ -1113,8 +1159,18 @@ class SubrackMngBoard:
             # logger.debug("PLL locked")
             return True
 
-    # #UPS SECTION
     def SetUPSVoltageAlarmThresholds(self, alarm_level):
+        """
+        Sets the UPS voltage alarm thresholds.
+
+        This method sets the alarm level for UPS voltage, considering the current
+        UPS presence status.
+
+        :param alarm_level: The alarm level for UPS voltage.
+
+        :return: The number of errors encountered during the operation.
+
+        """
         error = 0
         if self.ups_present:
             if alarm_level < self.warning_l:
@@ -1124,6 +1180,17 @@ class SubrackMngBoard:
         return error
 
     def SetUPSVoltageWarningThresholds(self, warning_level):
+        """
+        Sets the UPS voltage warning thresholds.
+
+        This method sets the warning level for UPS voltage, considering the current
+        UPS presence status.
+
+        :param warning_level: The warning level for UPS voltage.
+
+        :return: The number of errors encountered during the operation.
+
+        """
         error = 0
         if self.ups_present:
             if warning_level > self.alarm_l:
@@ -1133,6 +1200,19 @@ class SubrackMngBoard:
         return error
 
     def GetUPSStatus(self):
+        """
+        Retrieves the status of the uninterruptible power supply (UPS).
+
+        This method reads data from the serial port to update UPS charge registers and
+        ADC (Analog-to-Digital Converter) values. It also checks for warning and alarm
+        conditions based on voltage levels.
+
+        :return: A dictionary containing the UPS status information, including:
+                - 'warning': True if there is a warning condition, False otherwise.
+                - 'alarm': True if there is an alarm condition, False otherwise.
+                - 'charging': True if the UPS is currently charging, False otherwise.
+
+        """
         if self.ups_present:
             received = False
 
@@ -1310,9 +1390,7 @@ class SubrackMngBoard:
         in the lookup dict that have a corresponding method field.
 
         The monitoring points returned are strings produced from '.' delimited
-        keys. For example:
-        'voltages.5V0'
-        'io.udp_interface.crc_error_count.FPGA0'
+        keys.
 
         :return: list of monitoring points
         :rtype: list of strings
@@ -1344,17 +1422,6 @@ class SubrackMngBoard:
         Returns a list of all monitoring point 'categories'.
         Here categories is a super-set of monitoring points and is
         the full list of accepted strings to set_monitoring_point_attr.
-        For example, these monitoring points:
-        voltages.5V0
-        io.udp_interface.crc_error_count.FPGA0
-
-        would have these associated categories:
-        'voltages'
-        'voltages.5V0'
-        'io'
-        'io.udp_interface'
-        'io.udp_interface.crc_error_count'
-        'io.udp_interface.crc_error_count.FPGA0'
 
         :return: list of categories
         :rtype: list of strings
@@ -1465,8 +1532,6 @@ class SubrackMngBoard:
         subrack.get_health_status(group='temperatures')
         subrack.get_health_status(group='slots')
         subrack.get_health_status(group='voltages')
-
-
         """
         health_status = {}
         health_status["iso_datetime"] = datetime.now(timezone.utc).isoformat()
@@ -1505,8 +1570,6 @@ class SubrackMngBoard:
         subrack.get_health_status(group='temperatures')
         subrack.get_health_status(group='slots')
         subrack.get_health_status(group='voltages')
-
-
         """
         all_start = time.time()
         health_status = {}
@@ -1556,9 +1619,33 @@ class SubrackMngBoard:
         return health_dict
 
     def bkpln_set_field(self, key, value, override_protected=False):
+        """
+        Sets a field in the backup location (Bkpln).
+
+        This method delegates the task to the Bkpln instance to set the specified
+        field with the given value. Optionally, it allows overriding protected fields.
+
+        :param key: The key identifying the field to be set.
+        :param value: The value to be set for the specified field.
+        :param override_protected: (Optional) If True, allows overriding protected fields.
+
+        :return: The result of setting the field.
+
+        """
         return self.Bkpln.set_field(key, value, override_protected)
 
     def bkpln_get_field(self, key):
+        """
+        Retrieves the value of a field from the backup location (Bkpln).
+
+        This method delegates the task to the Bkpln instance to get the value of
+        the specified field.
+
+        :param key: The key identifying the field to be retrieved.
+
+        :return: The value of the specified field.
+
+        """
         return self.Bkpln.get_field(key)
 
     def close(self):
