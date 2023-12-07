@@ -19,15 +19,22 @@ MAX_PLL_REG_ADD = 0x3A3C
 
 
 def hexstring2ascii(hexstring, xor=0):
-    """Convert a hexstring to an ASCII-String. If you like to XOR it, give the
-    xor value as an integer. If not, leave it blank"""
-    ascii = ""
-    for i in xrange(0, len(hexstring) / 2):
-        ascii = ascii + chr(int(hexstring[2 * i : 2 * i + 2], 16) ^ xor)
-    return ascii
+    """Convert a hexstring to an ASCII-String.
+    
+    Args:
+        hexstring (str): The input hex string.
+        xor (int): XOR value as an integer (default is 0).
 
+    Returns:
+        str: The converted ASCII string.
+    """
+    ascii_str = ""
+    for i in range(0, len(hexstring) / 2):
+        ascii_str = ascii_str + chr(int(hexstring[2 * i : 2 * i + 2], 16) ^ xor)
+    return ascii_str
 
 def format_num(num):
+    """Convert a number to a string."""
     return str(num)
 
 
@@ -37,10 +44,12 @@ def get_max_width(table1, index1):
 
 
 def pprint_table(table):
-    # """Prints out a table of data, padded for alignment
-    # @param table: The table to print. A list of lists.
-    # Each row must have the same number of columns. """
+    """Prints out a table of data, padded for alignment.
 
+    Args:
+        table (list): The table to print. A list of lists.
+                     Each row must have the same number of columns.
+    """
     col_paddings = []
     for i in range(len(table[0])):
         col_paddings.append(get_max_width(table, i))
@@ -59,8 +68,8 @@ def pprint_table(table):
             )
         print("")
 
-
 def filter_list_by_level(reg_name_list, reg_name):
+    """Filter a list of register names by level."""
     filter_list = []
     level_num = len(reg_name.split("."))
     for reg in reg_name_list:
@@ -68,8 +77,8 @@ def filter_list_by_level(reg_name_list, reg_name):
             filter_list.append(reg)
     return filter_list
 
-
 def get_shift_from_mask(mask):
+    """Get the shift value from a mask."""
     mask = int(mask, 16)
     shift = 0
     while (mask & 0x1) != 1:
@@ -79,7 +88,13 @@ def get_shift_from_mask(mask):
 
 
 class MANAGEMENT:
+    """Class representing a MANAGEMENT instance."""
     def __init__(self, **kwargs):
+        """Initialize the MANAGEMENT instance.
+
+        Args:
+            **kwargs: Variable keyword arguments for configuration.
+        """
         self.reg_list = []
         self.reg_dict = {}
         self.reg_sel_list = []
@@ -112,7 +127,7 @@ class MANAGEMENT:
         self.state = "Connected"
         if "board_reg" in kwargs.keys():
             raise NameError(
-                "board_reg is not supported, board name must be retrived from extended info string!"
+                "board_reg is not supported, board name must be retrieved from the extended info string!"
             )
         elif "board" in kwargs.keys():
             self.board = kwargs["board"]
@@ -127,7 +142,14 @@ class MANAGEMENT:
         self.mcuuart = MngMcuUart(self, self.rmp)
 
     def __getitem__(self, key):
-        """Override __getitem__, return value from board"""
+        """Override __getitem__, return value from the board.
+
+        Args:
+            key (Union[str, Tuple]): The key or tuple representing the key.
+
+        Returns:
+            Union[int, str]: The value associated with the key.
+        """
         if type(key).__name__ == "tuple":
             k = key[0]
             h = 1
@@ -141,20 +163,35 @@ class MANAGEMENT:
             return rd
 
     def __setitem__(self, key, value):
-        """Override __setitem__, set value on board"""
+        """Override __setitem__, set value on the board.
+
+        Args:
+            key (Union[str, Tuple]): The key or tuple representing the key.
+            value: The value to set.
+        """
         self.write_register(key, value)
         return
 
     def __len__(self):
-        """Override __len__, return number of registers"""
+        """Override __len__, return the number of registers.
+
+        Returns:
+            int: The number of registers.
+        """
         self.checkLoad()
         return len(self.reg_dict.keys())
 
     def __repr__(self):
+        """Override __repr__, list register names.
+
+        Returns:
+            str: An empty string.
+        """
         self.list_register_names()
         return ""
-
+    
     def get_xml_from_board(self, xml_map_offset):
+        """Get XML data from the board."""
         # read the offset where the zipped XML is stored
         xml_off = self.read_register(xml_map_offset)
         # first 4 bytes are the zipped XML file length in byte
@@ -188,6 +225,7 @@ class MANAGEMENT:
         return xml
 
     def get_extended_info(self, ext_info_offset=0x10):
+        """Get the extended info string from the board."""
         # read the offset where the extended info string is stored
         ext_off = self.read_register(ext_info_offset)
         # first 4 bytes are the zipped XML file length in byte
@@ -216,8 +254,19 @@ class MANAGEMENT:
         info = zlib.decompress(binascii.unhexlify(hex_str[: 2 * ext_len]))
         # print info
         return info
-
+    
     def get_board(self, ext_info_offset=0x10):
+        """Get the board name from the extended info string.
+
+        Args:
+            ext_info_offset (int, optional): Offset for extended info. Defaults to 0x10.
+
+        Returns:
+            str: The extracted board name.
+
+        Raises:
+            NameError: If the field BOARD doesn't exist in the extended info.
+        """
         self.extended_info = self.get_extended_info(ext_info_offset=0x10)
         my_regex = r"" + re.escape("BOARD: ") + r"\s*(\w+)"
         m = re.search(my_regex, self.extended_info)
@@ -228,7 +277,7 @@ class MANAGEMENT:
             sys.exit(1)
 
     def load_firmware_blocking(self, Device, path_to_xml_file="", xml_map_offset=0x8):
-
+        """Load firmware blocking."""
         if path_to_xml_file == "":
             xml_str = self.get_xml_from_board(xml_map_offset)
             root = ET.fromstring(xml_str)
@@ -299,12 +348,22 @@ class MANAGEMENT:
                 self.reg_dict[register]["is_bitfield"] = is_bitfield
 
     def checkLoad(self):
+        """Check if the registers are loaded.
+
+        Raises:
+            NameError: If registers are not loaded or the board is not connected.
+        """
         if self.reg_list == []:
             raise NameError("Registers not loaded!")
         if self.state != "Connected":
             raise NameError("Board not connected!")
 
     def list_register_names(self):
+        """List register names.
+
+        Raises:
+            None
+        """
         self.checkLoad()
         lines = []
         for reg in self.reg_list:
@@ -318,13 +377,22 @@ class MANAGEMENT:
             pprint_table(lines)
 
     def get_register_name_by_address(self, add):
+        """Get register name by address.
+
+        Args:
+            add (int): Register address.
+
+        Returns:
+            str: Register name or "Unknown register address" if not found.
+        """
         for reg in self.reg_list:
             if int(reg["address"], 16) == add:
                 return reg["name"]
         return "Unknown register address"
 
     def find_register(self, register_name, display=False):
-        """Return register information for provided search string
+        """
+        Find register information for provided search string.
         :param register_name: Regular expression to search against
         :param display: True to output result to console
         :return: List of found registers
@@ -352,6 +420,15 @@ class MANAGEMENT:
         return matches
 
     def find_register_names(self, register_name, display=False):
+        """Find register names for the provided search string.
+
+        Args:
+            register_name (str): Regular expression to search against.
+            display (bool, optional): True to output result to console. Defaults to False.
+
+        Returns:
+            list: List of found register names.
+        """
         found_reg = self.find_register(register_name, False)
         name_list = []
         for n in found_reg:
@@ -431,6 +508,11 @@ class MANAGEMENT:
                 return
 
     def get_bios(self):
+        """Generate a BIOS string based on specific register values.
+
+        Returns:
+            str: BIOS information string.
+        """
         string = "CPLD_"
         string += (
             hex(self.rmp.rd32(0x8))
@@ -453,6 +535,11 @@ class MANAGEMENT:
         return final_string
 
     def get_mac(self):
+        """Retrieve the MAC address and format it as a string.
+
+        Returns:
+            str: MAC address string.
+        """
         mac = self.bsp.get_field("MAC")
         mac_str = ""
         for i in range(0, len(mac) - 1):
@@ -461,6 +548,11 @@ class MANAGEMENT:
         return mac_str
 
     def get_board_info(self):
+        """Retrieve information about the board.
+
+        Returns:
+            dict: Board information as a dictionary.
+        """
         mng_info = {
             "ip_address": self.bsp.long2ip(self.rmp.rd32(0x110)),
             "netmask": self.bsp.long2ip(self.rmp.rd32(0x114)),
@@ -510,20 +602,53 @@ class MANAGEMENT:
         return mng_info
 
     def read_spi(self, address):
+        """Read SPI data from the specified address.
+
+        Args:
+            address (int): The address to read from.
+
+        Returns:
+            int: The read value.
+        """
         return self.bsp.spi.spi_access("rd", address, 0)
 
     def write_spi(self, address, value):
+        """Write SPI data to the specified address.
+
+        Args:
+            address (int): The address to write to.
+            value (int): The value to write.
+        """
         self.bsp.spi.spi_access("wr", address, value)
 
     def pll_read_with_update(self, address):
+        """Read from SPI with PLL update.
+
+        Args:
+            address (int): The address to read from.
+
+        Returns:
+            int: The read value.
+        """
         self.write_spi(0xF, 0x1)
         return self.bsp.spi.spi_access("rd", address, 0)
 
     def pll_write_with_update(self, address, value):
+        """Write to SPI with PLL update.
+
+        Args:
+            address (int): The address to write to.
+            value (int): The value to write.
+        """
         self.bsp.spi.spi_access("wr", address, value)
         self.write_spi(0xF, 0x1)
 
     def pll_ldcfg(self, cfg_filename):
+        """Load PLL configuration from a file.
+
+        Args:
+            cfg_filename (str): The path to the configuration file.
+        """
         cfgfile = open(cfg_filename, "r")
         cfglines = cfgfile.readlines()
         cfgfile.close()
@@ -536,6 +661,11 @@ class MANAGEMENT:
         self.write_spi(0xF, 0x1)
 
     def pll_dumpcfg(self, cfg_filename):
+        """Dump PLL configuration to a file.
+
+        Args:
+            cfg_filename (str): The path to the configuration file.
+        """
         cfgfile = open(cfg_filename, "w")
         print("Reading PLL configuration...")
         cfgfile.write("Address,Data\n")
@@ -547,7 +677,15 @@ class MANAGEMENT:
             hdata = hdata[2:].zfill(2)
             cfgfile.write("0x" + haddress.upper() + "," + "0x" + hdata.upper() + "\n")
 
+
     def pll_calib(self):
+        """Calibrate PLL.
+
+        This function performs calibration by writing specific values to SPI addresses.
+
+        Raises:
+            None
+        """
         print("Calibrating PLL...")
         self.write_spi(0x2000, 0x0)
         self.write_spi(0xF, 0x1)
@@ -557,9 +695,23 @@ class MANAGEMENT:
         self.write_spi(0xF, 0x1)
 
     def pll_ioupdate(self):
+        """Update PLL IO.
+
+        This function updates PLL IO by writing a specific value to the SPI address.
+
+        Raises:
+            None
+        """
         self.write_spi(0xF, 0x1)
         print("PLL IO Updated ")
 
     def disconnect(self):
+        """Disconnect from the network.
+
+        This function closes the network connection and sets the state to "Unconnected".
+
+        Raises:
+            None
+        """
         self.rmp.CloseNetwork()
         self.state = "Unconnected"
