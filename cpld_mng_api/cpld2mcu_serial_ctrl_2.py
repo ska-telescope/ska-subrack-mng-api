@@ -13,7 +13,11 @@ usage_string = "usage: %prog [options] [<value>]\n"
 usage_hexample = "es. %prog -s 0x0a\nes. %prog -r\n"
 
 
-class flash_cmd:
+class FlashCmd:
+    """
+    Class containing flash commands and related constants.
+    """
+
     CLRGPNVM = "W400E0A04,5A00010C#"
     SETGPNVM = "W400E0A04,5A00010B#"
     ERASEWRITEPG = ""
@@ -34,26 +38,33 @@ SECTOR_PAGE = 128
 MCU_NVMCTRL_BA = 0x400E0A00
 
 
-def loadBitstream(filename, pagesize):
-    print("Open Bistream file %s" % (filename))
+def load_bitstream(filename, pagesize):
+    """
+    Load a bitstream from a file.
+
+    :param filename: The name of the file to load.
+    :param pagesize: The size of the pages.
+    :return: A tuple containing the loaded bitstream, bitstream size, and total size.
+    """
+    print("Open Bitstream file %s" % (filename))
     with open(filename, "rb") as f:
         dump = bytearray(f.read())
-    bitstreamSize = len(dump)
+    bitstream_size = len(dump)
 
-    pages = bitstreamSize / pagesize
-    if (pages * pagesize) != bitstreamSize:
+    pages = bitstream_size / pagesize
+    if (pages * pagesize) != bitstream_size:
         pages = pages + 1
     print(
         "Loading %s (%d bytes) = %d * %d bytes pages"
-        % (filename, bitstreamSize, pages, pagesize)
+        % (filename, bitstream_size, pages, pagesize)
     )
-    s = pages * pagesize
-    tmp = bytearray(s)
-    for i in range(0, bitstreamSize):
+    total_size = pages * pagesize
+    tmp = bytearray(total_size)
+    for i in range(0, bitstream_size):
         tmp[i] = dump[i]
-    for i in range(0, s - bitstreamSize):
-        tmp[i + bitstreamSize] = 0xFF
-    return tmp, bitstreamSize, s
+    for i in range(0, total_size - bitstream_size):
+        tmp[i + bitstream_size] = 0xFF
+    return tmp, bitstream_size, total_size
 
 
 parser = OptionParser(usage=(usage_string + usage_hexample))

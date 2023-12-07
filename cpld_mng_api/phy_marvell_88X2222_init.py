@@ -32,11 +32,23 @@ ba = 0x60000  # MDIO baseaddress
 
 
 def wr(address, value):
+    """
+    Write a value to a given address.
+
+    :param address: The address to write to.
+    :param value: The value to write.
+    """
     # print "WR "+hex(address)+"-"+hex(value)
     mng[address] = value
 
 
 def rd(address):
+    """
+    Read a value from a given address.
+
+    :param address: The address to read from.
+    :return: The value read from the address.
+    """
     value = None
     value = mng[address]
     # if value is not None:
@@ -47,6 +59,15 @@ def rd(address):
 
 
 def read45(mux, phy_adr, device, register):
+    """
+    Read a value from a 45-bit register.
+
+    :param mux: The multiplexer value.
+    :param phy_adr: The physical address.
+    :param device: The device.
+    :param register: The register to read from.
+    :return: The value read from the register.
+    """
     wr(ba + 0, ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5) | (0x1F & device))
     wr(ba + 4, register)
     value = rd(ba + 0x18) & 0xFFFF
@@ -55,6 +76,15 @@ def read45(mux, phy_adr, device, register):
 
 
 def write45(mux, phy_adr, device, register, value):
+    """
+    Write a value to a 45-bit register.
+
+    :param mux: The multiplexer value.
+    :param phy_adr: The physical address.
+    :param device: The device.
+    :param register: The register to write to.
+    :param value: The value to write.
+    """
     # print "write45 " +hex(mux)+", "+hex(phy_adr)+", "+hex(device)+", "+hex(register)+", "+hex(value)
     wr(ba + 0, ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5) | (0x1F & device))
     wr(ba + 4, register)
@@ -62,6 +92,14 @@ def write45(mux, phy_adr, device, register, value):
 
 
 def read22(mux, phy_adr, register):
+    """
+    Read a value from a 22-bit register.
+
+    :param mux: The multiplexer value.
+    :param phy_adr: The physical address.
+    :param register: The register to read from.
+    :return: The value read from the register.
+    """
     wr(ba + 0, 0xC000 | ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5))
     wr(ba + 4, register)
     value = rd(ba + 0x08) & 0xFFFF
@@ -70,6 +108,14 @@ def read22(mux, phy_adr, register):
 
 
 def write22(mux, phy_adr, register, value):
+    """
+    Write a value to a 22-bit register.
+
+    :param mux: The multiplexer value.
+    :param phy_adr: The physical address.
+    :param register: The register to write to.
+    :param value: The value to write.
+    """
     print(
         "write22 "
         + hex(mux)
@@ -86,6 +132,16 @@ def write22(mux, phy_adr, register, value):
 
 
 def readmodifywrite(mux, phy_adr, device, register, value, select):
+    """
+    Perform read-modify-write operation on a 45-bit register.
+
+    :param mux: The multiplexer value.
+    :param phy_adr: The physical address.
+    :param device: The device.
+    :param register: The register to read from.
+    :param value: The value to write.
+    :param select: The selection mask.
+    """
     read_value = read45(mux, phy_adr, device, register)
     write_value = (value & select) | (read_value & ~select)
     write45(mux, phy_adr, device, register, write_value)
@@ -163,61 +219,100 @@ debug_reg = {
 
 
 def read_and_decode(port, reg_def, mdio_mux=2, field=None):
+    """
+    Read and decode a register.
+
+    :param port: The port number.
+    :param reg_def: The register definition.
+    :param mdio_mux: The MDIO multiplexer value (default is 2).
+    :param field: The specific field to read (default is None).
+    """
     reg_value = read22(mdio_mux, port, reg_def["offset"])
     decode_register(port, reg_def, reg_value, field)
 
 
 def write22_reg(port, reg_def, reg_value):
+    """
+    Write a value to a 22-bit register.
+
+    :param port: The port number.
+    :param reg_def: The register definition.
+    :param reg_value: The value to write.
+    """
     write22(2, port, reg_def["offset"], reg_value)
 
 
 def set_field(port, reg_def, field_name, field_value):
+    """
+    Set a field in a register.
+
+    :param port: The port number.
+    :param reg_def: The register definition.
+    :param field_name: The name of the field to set.
+    :param field_value: The value to set in the field.
+    """
     reg_value = read22(2, port, reg_def["offset"])
     for _field in reg_def["fields"]:
         if _field[0] == field_name:
             field = _field
             break
-    reg_value = reg_value & (~(field[2] << field[1])) | (
-        (field_value & field[2]) << field[1]
-    )
+    reg_value = reg_value & (~(field[2] << field[1])) | ((field_value & field[2]) << field[1])
     write22(2, port, reg_def["offset"], reg_value)
 
 
 def decode_register(port, reg_def, reg_value, field=None):
+    """
+    Decode and print the value of a register.
+
+    :param port: The port number.
+    :param reg_def: The register definition.
+    :param reg_value: The value to decode.
+    :param field: The specific field to decode (default is None).
+    """
     if field is None:
-        print(
-            "=== P"
-            + str(port)
-            + " R"
-            + str(reg_def["offset"])
-            + " "
-            + reg_def["name"]
-            + " = "
-            + hex(reg_value)
-            + " ==="
-        )
+        print("=== P" + str(port) + " R" + str(reg_def["offset"]) + " " + reg_def["name"] +
+              " = " + hex(reg_value) + " ===")
     for _field in reg_def["fields"]:
         if field is None:
             print(_field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
         else:
             if field == _field[0]:
                 return reg_value >> _field[1] & _field[2]
-                # print("=== P" + str(port) + _field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
 
 
 def get_port_cfg(port, mdio_mux=2):
+    """
+    Get and decode the configuration of a port.
+
+    :param port: The port number.
+    :param mdio_mux: The MDIO multiplexer value (default is 2).
+    """
     read_and_decode(port, port_status_reg, mdio_mux)
     read_and_decode(port, phy_control_reg, mdio_mux)
     read_and_decode(port, port_control_reg, mdio_mux)
 
 
 def read_scratch(mux, offset):
+    """
+    Read a value from the scratch register.
+
+    :param mux: The MDIO multiplexer value.
+    :param offset: The offset within the scratch register.
+    :return: The value read from the scratch register.
+    """
     write22(mux, 0x1C, 0x1A, (offset & 0x7F) << 8)
     value = read22(mux, 0x1C, 0x1A) & 0xFF
     return value
 
 
 def write_scratch(mux, offset, value):
+    """
+    Write a value to the scratch register.
+
+    :param mux: The MDIO multiplexer value.
+    :param offset: The offset within the scratch register.
+    :param value: The value to write.
+    """
     write22(mux, 0x1C, 0x1A, 0x8000 | ((offset & 0x7F) << 8) | (value & 0xFF))
     # print "wr status " + hex(read22(mux,0x1c,0x1a))
     while (read22(mux, 0x1C, 0x1A) & 0x8000) != 0:
@@ -227,6 +322,11 @@ def write_scratch(mux, offset, value):
 
 
 def set_SFP(mdio_mux=2):
+    """
+    Configure the SFP module.
+
+    :param mdio_mux: The MDIO multiplexer value (default is 2).
+    """
     get_port_cfg(9, mdio_mux)
     # /* Set Ports in 1000Base-X
     write22(mdio_mux, 9, 0x0, 0x9)
@@ -352,8 +452,12 @@ time.sleep(0.100)
 # print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 # # 31,0xf403
 
-
 def read_wis(mdio_mux=3):
+    """
+    Read and print the WIS device identifier.
+
+    :param mdio_mux: The MDIO multiplexer value (default is 3).
+    """
     WIS_Device_Identifier_1 = read45(mdio_mux, 0, 2, 0x0002) & 0xFFFF
     WIS_Device_Identifier_2 = read45(mdio_mux, 0, 2, 0x0003) & 0xFFFF
 
@@ -370,20 +474,17 @@ def read_wis(mdio_mux=3):
 
 
 def cfg_10g(port=0, mdio_mux=3):
-    print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xF400)))
-    print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xF401)))
-    print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xF402)))
-    print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xF403)))
-    print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xF002)))
-    # mgdPDStatePowerUp()
-    print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xF400)))
-    print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xF401)))
-    print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xF403)))
-    print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xF402)))
-    print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xF002)))
-    # 31,0xf403
+    """
+    Configure a 10G port.
 
-    # /*10GR - XAUI mode*/
+    :param port: The port number (default is 0).
+    :param mdio_mux: The MDIO multiplexer value (default is 3).
+    """
+    print("Port Transmitter Source N: " + hex(read45(mdio_mux, 0, 31, 0xF400)))
+    print("Port Transmitter Source M: " + hex(read45(mdio_mux, 0, 31, 0xF401)))
+    print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xF402)))
+    print("Power Management: " + hex(read45(mdio_mux, 0, 31, 0xF403)))
+    print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xF002)))
 
     print("=== PORT " + str(port) + " ===")
     write45(mdio_mux, 0, 31, 0xF404, 0x4000)
@@ -424,6 +525,11 @@ def cfg_10g(port=0, mdio_mux=3):
 
 
 def get_switch_status():
+    """
+    Get the status of various switch ports.
+
+    :return: Dictionary containing the status of each switch port.
+    """
     ports = [
         {"name": "CPU", "mdio_mux": 1, "port": 0},  # MCU U4-P0
         {"name": "CPLD", "mdio_mux": 2, "port": 0},  # CPLD U5-P0
