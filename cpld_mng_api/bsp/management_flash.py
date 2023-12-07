@@ -317,7 +317,6 @@ class MngProgFlash:
                 break
         self.FlashDevice_writeReg(device, 0x06)  # write enable command
 
-
     def FlashDevice_Exit4byteAddMode(self, device):
         """
         Exit 4-byte addressing mode for Flash device.
@@ -611,7 +610,6 @@ class MngProgFlash:
         f.write(data[0:bitstreamSize])
         f.close()
 
-
     def firmwareProgram(
         self,
         flashdeviceindedx,
@@ -860,10 +858,15 @@ class MngProgFlash:
         ec = 0
         upper_flash = False
         print("Starting Reading from sector %d" % sectorOffset)
-        print("--- READING ------------------------------------------------------------------------------------")
+        print(
+            "--- READING ------------------------------------------------------------------------------------"
+        )
         while remaining > 0:
             off = j * sectorSize
-            print("Sector %03d @ %08X - bitstream offset %08X: R" % (i, i * sectorSize, off))
+            print(
+                "Sector %03d @ %08X - bitstream offset %08X: R"
+                % (i, i * sectorSize, off)
+            )
             c = 0
             if not upper_flash and address >= 0x1000000:
                 upper_flash = True
@@ -873,12 +876,13 @@ class MngProgFlash:
             remaining -= sectorSize
             j += 1
             i += 1
-        print("----------------------------------------------------------------------------------------------------")
+        print(
+            "----------------------------------------------------------------------------------------------------"
+        )
         if self.add4bytemode:
             self.FlashDevice_Exit4byteAddMode(device)
         if dumpFilename is not None:
             self.saveBitstream(dumpFilename, bufferD, size)
-
 
     def DeviceGetInfo(self, flashdeviceindedx):
         """
@@ -893,7 +897,6 @@ class MngProgFlash:
         """
         device = FlashDevices[flashdeviceindedx]
         return device
-
 
     def DeviceGetID(self, flashdeviceindedx):
         """
@@ -911,7 +914,6 @@ class MngProgFlash:
         id = self.FlashDevice_readIdentification(device)
         return id
 
-
     def DeviceErase(self, flashdeviceindedx, address, size):
         """
         Erase a specified range on the flash device.
@@ -926,7 +928,6 @@ class MngProgFlash:
         self.spi_mux_selection(device.slaveID)
         self.FlashDevice_erase(device, address, size)
 
-
     def DeviceEraseChip(self, flashdeviceindedx):
         """
         Erase the entire flash chip.
@@ -938,7 +939,6 @@ class MngProgFlash:
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         self.FlashDevice_chiperase(device)
-
 
     def DeviceWrite(self, flashdeviceindedx, address, txbuff, size):
         """

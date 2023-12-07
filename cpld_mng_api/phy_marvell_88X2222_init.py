@@ -256,7 +256,9 @@ def set_field(port, reg_def, field_name, field_value):
         if _field[0] == field_name:
             field = _field
             break
-    reg_value = reg_value & (~(field[2] << field[1])) | ((field_value & field[2]) << field[1])
+    reg_value = reg_value & (~(field[2] << field[1])) | (
+        (field_value & field[2]) << field[1]
+    )
     write22(2, port, reg_def["offset"], reg_value)
 
 
@@ -270,8 +272,17 @@ def decode_register(port, reg_def, reg_value, field=None):
     :param field: The specific field to decode (default is None).
     """
     if field is None:
-        print("=== P" + str(port) + " R" + str(reg_def["offset"]) + " " + reg_def["name"] +
-              " = " + hex(reg_value) + " ===")
+        print(
+            "=== P"
+            + str(port)
+            + " R"
+            + str(reg_def["offset"])
+            + " "
+            + reg_def["name"]
+            + " = "
+            + hex(reg_value)
+            + " ==="
+        )
     for _field in reg_def["fields"]:
         if field is None:
             print(_field[0] + ": " + str(reg_value >> _field[1] & _field[2]))
@@ -451,6 +462,7 @@ time.sleep(0.100)
 # print("Host Side Lane Muxing: " + hex(read45(mdio_mux, 0, 31, 0xf402)))
 # print("Port PCS Configuration: " + hex(read45(mdio_mux, 0, 31, 0xf002)))
 # # 31,0xf403
+
 
 def read_wis(mdio_mux=3):
     """

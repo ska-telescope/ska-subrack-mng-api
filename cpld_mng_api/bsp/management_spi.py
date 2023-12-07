@@ -9,6 +9,7 @@ chip_select_offset = 0x0C
 sclk_offset = 0x10
 cmd_offset = 0x14
 
+
 class MANAGEMENT_SPI:
     def __init__(self, board, rmp, pll_cs):
         """

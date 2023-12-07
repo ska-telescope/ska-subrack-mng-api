@@ -20,7 +20,7 @@ MAX_PLL_REG_ADD = 0x3A3C
 
 def hexstring2ascii(hexstring, xor=0):
     """Convert a hexstring to an ASCII-String.
-    
+
     Args:
         hexstring (str): The input hex string.
         xor (int): XOR value as an integer (default is 0).
@@ -32,6 +32,7 @@ def hexstring2ascii(hexstring, xor=0):
     for i in range(0, len(hexstring) / 2):
         ascii_str = ascii_str + chr(int(hexstring[2 * i : 2 * i + 2], 16) ^ xor)
     return ascii_str
+
 
 def format_num(num):
     """Convert a number to a string."""
@@ -68,6 +69,7 @@ def pprint_table(table):
             )
         print("")
 
+
 def filter_list_by_level(reg_name_list, reg_name):
     """Filter a list of register names by level."""
     filter_list = []
@@ -76,6 +78,7 @@ def filter_list_by_level(reg_name_list, reg_name):
         if len(reg.split(".")) == level_num and reg != reg_name:
             filter_list.append(reg)
     return filter_list
+
 
 def get_shift_from_mask(mask):
     """Get the shift value from a mask."""
@@ -89,6 +92,7 @@ def get_shift_from_mask(mask):
 
 class MANAGEMENT:
     """Class representing a MANAGEMENT instance."""
+
     def __init__(self, **kwargs):
         """Initialize the MANAGEMENT instance.
 
@@ -189,7 +193,7 @@ class MANAGEMENT:
         """
         self.list_register_names()
         return ""
-    
+
     def get_xml_from_board(self, xml_map_offset):
         """Get XML data from the board."""
         # read the offset where the zipped XML is stored
@@ -254,7 +258,7 @@ class MANAGEMENT:
         info = zlib.decompress(binascii.unhexlify(hex_str[: 2 * ext_len]))
         # print info
         return info
-    
+
     def get_board(self, ext_info_offset=0x10):
         """Get the board name from the extended info string.
 
@@ -676,7 +680,6 @@ class MANAGEMENT:
             haddress = haddress[2:].zfill(4)
             hdata = hdata[2:].zfill(2)
             cfgfile.write("0x" + haddress.upper() + "," + "0x" + hdata.upper() + "\n")
-
 
     def pll_calib(self):
         """Calibrate PLL.

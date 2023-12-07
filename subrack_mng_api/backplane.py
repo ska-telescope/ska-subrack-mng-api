@@ -15,9 +15,12 @@ import struct
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
+
 class BackplaneInvalidParameter(Exception):
     """Exception class for invalid parameters provided to a function or class method."""
+
     pass
+
 
 def twos_comp(val, bits):
     """Compute the two's complement of an integer value.
@@ -32,6 +35,7 @@ def twos_comp(val, bits):
     if (val & (1 << (bits - 1))) != 0:
         val = val - (1 << bits)
     return val
+
 
 def _decodePMBus(message):
     """Decode a PMBus message in Linear data format.
@@ -582,7 +586,7 @@ class Backplane:
             if print_debug:
                 logger.debug("tpm off")
             return False
-        
+
     def get_power_tpm(self, tpm_id):
         """Return the selected TPM board power control power value provided to TPM board.
 
@@ -629,7 +633,7 @@ class Backplane:
         if print_debug:
             logger.info("voltage, " + str(vout))
         return vout
-    
+
     def get_pwr_fault_log(self, tpm_id):
         """Return the selected TPM board power control fault_log register value.
 
@@ -942,11 +946,11 @@ class Backplane:
             if key is None:
                 return result
             return result[key]
-        
+
         i2c_add = 0xB0 + ((ps_id - 1) * 2)
         status = 0
         status_reg = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_status")
-        
+
         if status != 0:
             logger.error("get_ps_status access failed!")
             return None
@@ -976,12 +980,12 @@ class Backplane:
             logger.error(str(result))
             logger.error("Force retry")
             self.get_ps_present(ps_id)
-            
+
             status = 0
             status_reg = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_status")
             logger.error("status_reg: " + hex(status_reg))
             logger.error("status: " + str(status))
-            
+
             result = {
                 "present": True,
                 "busy": bool(status_reg & (0b1 << 7)),
@@ -1113,7 +1117,6 @@ class Backplane:
         status = self.mng.fpgai2c_write16(i2c_add, 0x3B, speed_cmd, FPGA_I2CBUS.i2c3)
         return status
 
-
     def get_ps_fanspeed(self, ps_id):
         """
         Get the fan speed of the selected power supply.
@@ -1192,4 +1195,3 @@ class Backplane:
         Close the instance of the class.
         """
         self.__del__()
-

@@ -122,6 +122,7 @@ def dt_to_timestamp(d):
     """Convert a datetime object to a Unix timestamp."""
     return calendar.timegm(d.timetuple())
 
+
 def detect_ip(tpm_slot_id):
     """Detect the IP address of a TPM board based on its slot ID."""
     try:
@@ -129,22 +130,22 @@ def detect_ip(tpm_slot_id):
     except:
         logger.debug("Configuration File not Found")
         return 1
-    
+
     cfg_lines = f.readlines()
     f.close()
-    
+
     subrack_cpu_ip = cfg_lines[0].split(":")[1]
     subrack_cpld_ip = cfg_lines[1].split(":")[1]
     subrack_tpm_first_ip = cfg_lines[2].split(":")[1]
     subrack_netmask = cfg_lines[4].split(":")[1]
-    
+
     tpm_ip_part = []
     for i in range(0, 3):
         tpm_ip_part.append(subrack_tpm_first_ip.split(".")[i])
-    
+
     tpm_last_part = subrack_tpm_first_ip.split(".")[3]
     tpm_new_last = str(int(tpm_last_part) + tpm_slot_id - 1)
-    
+
     tpm_board_ip = (
         tpm_ip_part[0]
         + "."
@@ -155,6 +156,7 @@ def detect_ip(tpm_slot_id):
         + tpm_new_last
     )
     return tpm_board_ip, subrack_cpu_ip
+
 
 def int2ip(value):
     """Convert an integer value to an IP address."""
@@ -167,6 +169,7 @@ def int2ip(value):
     ip += str((value >> 0) & 0xFF)
     return ip
 
+
 def ipstr2hex(ip):
     """Convert an IP address string to a hexadecimal representation."""
     ip_part = ip.split(".")
@@ -177,6 +180,7 @@ def ipstr2hex(ip):
         | (int(ip_part[3]) & 0xFF)
     )
     return hexip
+
 
 def exec_cmd(cmd, dir=None, verbose=True, exclude_line=""):
     """Execute a shell command and capture its output."""
@@ -220,6 +224,7 @@ def exec_cmd(cmd, dir=None, verbose=True, exclude_line=""):
         print("...CTRL+C...")
         raise NameError('exec_cmd fails: "' + cmd + '"')
 
+
 def flatten_dict(d, parent_key="", sep="_"):
     """Flatten a nested dictionary."""
     rows = []
@@ -230,6 +235,7 @@ def flatten_dict(d, parent_key="", sep="_"):
         elif isinstance(v, (int, float, bool, str)):
             rows.append((new_key, v))
     return rows
+
 
 def Adu_Eth_Ping(ip, count=1, interval="0.2", size=8, wait="1"):
     """Perform a ping on a specified IP address."""
@@ -248,6 +254,7 @@ def Adu_Eth_Ping(ip, count=1, interval="0.2", size=8, wait="1"):
         if out.count("100% packet loss"):
             ping_loss = count
     return ping_loss
+
 
 @Pyro5.api.expose
 @Pyro5.server.behavior(instance_mode="single")
@@ -1038,7 +1045,7 @@ class SubrackMngBoard:
 
         """
         rpm, pwm_perc = self.GetFanSpeed(fan_id)
-        return pwm_perc 
+        return pwm_perc
 
     def SetFanMode(self, fan_id_blk, auto_mode):
         """This method set the fan mode

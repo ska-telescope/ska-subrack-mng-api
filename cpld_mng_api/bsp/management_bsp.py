@@ -116,6 +116,7 @@ eep_sec = {
     },  # READ-ONLY
 }
 
+
 class MANAGEMENT_BSP:
     def __init__(self, board, rmp):
         """
@@ -336,7 +337,6 @@ class MANAGEMENT_BSP:
             string += chr(byte)
             addr += 1
         return string
-    
 
     """
     def get_field(self, key):
