@@ -15,23 +15,33 @@ import struct
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
-
 class BackplaneInvalidParameter(Exception):
-    """Define an exception which occurs when an invalid parameter is provided
-    to a function or class method"""
-
+    """Exception class for invalid parameters provided to a function or class method."""
     pass
 
-
 def twos_comp(val, bits):
-    """compute the 2's complement of int value val"""
-    if (val & (1 << (bits - 1))) != 0:  # if sign bit is set e.g., 8bit: 128-255
-        val = val - (1 << bits)  # compute negative value
+    """Compute the two's complement of an integer value.
+
+    Args:
+        val (int): The integer value.
+        bits (int): The number of bits representing the integer.
+
+    Returns:
+        int: The two's complement of the input value.
+    """
+    if (val & (1 << (bits - 1))) != 0:
+        val = val - (1 << bits)
     return val
 
-
-# Decode/encode Linear data format => X=Y*2^N
 def _decodePMBus(message):
+    """Decode a PMBus message in Linear data format.
+
+    Args:
+        message (int): The PMBus message to decode.
+
+    Returns:
+        float: The decoded real value.
+    """
     messageN = message >> 11
     messageY = message & 0b0000011111111111
     message = messageY * (
@@ -88,6 +98,12 @@ eep_sec = {
 
 class LTC428x_dev:
     def __init__(self, tpm_id, mng):
+        """Initialize an instance of the LTC428x_dev class.
+
+        Args:
+            tpm_id (int): The TPM ID.
+            mng: The management instance.
+        """
         self.tpm_id = tpm_id
         self.mng = mng
         self.i2c_bus = FPGA_I2CBUS.i2c2
@@ -110,10 +126,22 @@ class LTC428x_dev:
         }
 
     def get_name(self):
+        """Get the name of the instance.
+
+        Returns:
+            str: The name of the instance.
+        """
         return self.name
 
     def read(self, reg):
-        # print(self.name, "read", reg)
+        """Read a register from the device.
+
+        Args:
+            reg (str): The register to read.
+
+        Returns:
+            tuple: A tuple containing the data read and the status.
+        """
         if self.regs[reg]["len"] == 2:
             data, status = self.mng.fpgai2c_read16(
                 self.i2c_add, self.regs[reg]["off"], self.i2c_bus
@@ -125,11 +153,18 @@ class LTC428x_dev:
         if status != 0:
             logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
             return 0xFF, status
-        # print(self.name, "read", reg, hex(data))
         return data, status
 
     def write(self, reg, data):
-        # print(self.name, "write", reg, hex(data))
+        """Write data to a register on the device.
+
+        Args:
+            reg (str): The register to write.
+            data: The data to write to the register.
+
+        Returns:
+            int: The status of the write operation.
+        """
         if self.regs[reg]["len"] == 2:
             status = self.mng.fpgai2c_write16(
                 self.i2c_add, self.regs[reg]["off"], data, self.i2c_bus
@@ -142,11 +177,8 @@ class LTC428x_dev:
             wait_finish = True
             retry = 10
             while wait_finish and retry > 0:
-                # print("=")
                 FAULT_LOG_B1, status = self.read("FAULT_LOG_B1")
                 STATUS_B2, status = self.read("STATUS_B2")
-                # print(hex(FAULT_LOG_B1))
-                # print(hex(STATUS_B2))
                 wait_finish = False
                 if (FAULT_LOG_B1 & 0x80) == 0:
                     wait_finish = True
@@ -169,10 +201,17 @@ class LTC428x_dev:
 # of backplane board from management CPU (iMX6) via registers mapped in filesystem
 class Backplane:
     def __init__(self, Management_b, simulation=False, get_board_info=True):
+        """Initialize an instance of the Backplane class.
+
+        Args:
+            Management_b: An instance of the Management class.
+            simulation (bool, optional): Flag indicating simulation mode. Defaults to False.
+            get_board_info (bool, optional): Flag indicating whether to retrieve board info. Defaults to True.
+        """
         self.data = []
         self.mng = Management_b
         self.simulation = simulation
-        self.eep_sec = eep_sec
+        self.eep_sec = eep_sec  # Ensure eep_sec is defined or update the parameter list
         self.power_supply = [LTC428x_dev(x, self.mng) for x in range(1, 9)]
         self.ps_vout_n = [None] * 2
         try:
@@ -193,6 +232,11 @@ class Backplane:
         self.data = []
 
     def get_board_info(self):
+        """Get board information.
+
+        Returns:
+            dict: A dictionary containing board information.
+        """
         mng_info = {}
         if not self.bkpln_present:
             mng_info["SN"] = "NA"
@@ -235,6 +279,14 @@ class Backplane:
         return socket.inet_ntoa(struct.pack("!I", ip))
 
     def get_field(self, key):
+        """Get a field value based on the specified key.
+
+        Args:
+            key (str): The key representing the field.
+
+        Returns:
+            The value of the specified field.
+        """
         if self.eep_sec[key]["type"] == "ip":
             return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
         elif self.eep_sec[key]["type"] == "bytearray":
@@ -251,6 +303,13 @@ class Backplane:
             return val
 
     def set_field(self, key, value, override_protected=False):
+        """Set the value of a field based on the specified key.
+
+        Args:
+            key (str): The key representing the field.
+            value: The value to set for the specified field.
+            override_protected (bool, optional): Flag to override protected status. Defaults to False.
+        """
         if self.eep_sec[key]["protected"] is False or override_protected:
             if self.eep_sec[key]["type"] == "ip":
                 self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
@@ -281,12 +340,29 @@ class Backplane:
             print("Writing attempt on protected sector %s" % key)
 
     def eep_rd8(self, offset, release_lock=True):
+        """Read an 8-bit value from the EEPROM.
+
+        Args:
+            offset (int): The offset to read from.
+            release_lock (bool, optional): Flag to release the lock after reading. Defaults to True.
+
+        Returns:
+            int: The 8-bit value read from the EEPROM.
+        """
         _id = offset // 4
         reg = "EE_SCRATCH_PAD_B%d" % ((offset % 4) + 1)
         data, result = self.power_supply[_id].read(reg)
         return data
 
     def eep_rd32(self, offset):
+        """Read a 32-bit value from the EEPROM.
+
+        Args:
+            offset (int): The offset to read from.
+
+        Returns:
+            int: The 32-bit value read from the EEPROM.
+        """
         rd = 0
         release_lock = False
         for n in range(4):
@@ -297,9 +373,22 @@ class Backplane:
         return rd
 
     def wr_string(self, partition, string):
+        """Write a string to the EEPROM.
+
+        Args:
+            partition (dict): The partition dictionary containing offset and size information.
+            string (str): The string to write to the EEPROM.
+        """
         return self._wr_string(partition["offset"], string, partition["size"])
 
     def _wr_string(self, offset, string, max_len=16):
+        """Internal method to write a string to the EEPROM.
+
+        Args:
+            offset (int): The offset to write the string.
+            string (str): The string to write.
+            max_len (int, optional): The maximum length of the string. Defaults to 16.
+        """
         addr = offset
         for i in range(len(string)):
             self.eep_wr8(addr, ord(string[i]), release_lock=False)
@@ -312,9 +401,26 @@ class Backplane:
             self.eep_rd8(offset, release_lock=True)
 
     def rd_string(self, partition):
+        """Read a string from the EEPROM.
+
+        Args:
+            partition (dict): The partition dictionary containing offset and size information.
+
+        Returns:
+            str: The string read from the EEPROM.
+        """
         return self._rd_string(partition["offset"], partition["size"])
 
     def _rd_string(self, offset, max_len=16):
+        """Internal method to read a string from the EEPROM.
+
+        Args:
+            offset (int): The offset to read the string.
+            max_len (int, optional): The maximum length of the string. Defaults to 16.
+
+        Returns:
+            str: The string read from the EEPROM.
+        """
         addr = offset
         string = ""
         for i in range(max_len):
@@ -327,11 +433,24 @@ class Backplane:
         return string
 
     def eep_wr8(self, offset, data, release_lock=True):
+        """Write an 8-bit value to the EEPROM.
+
+        Args:
+            offset (int): The offset to write the value.
+            data (int): The 8-bit value to write.
+            release_lock (bool, optional): Flag to release the lock after writing. Defaults to True.
+        """
         _id = offset // 4
         reg = "EE_SCRATCH_PAD_B%d" % ((offset % 4) + 1)
         return self.power_supply[_id].write(reg, data)
 
     def eep_wr32(self, offset, data):
+        """Write a 32-bit value to the EEPROM.
+
+        Args:
+            offset (int): The offset to write the value.
+            data (int): The 32-bit value to write.
+        """
         release_lock = False
         for n in range(4):
             if n == 4 - 1:
@@ -341,45 +460,49 @@ class Backplane:
             )
         return
 
-    # #####BACKPLANE TPM POWER CONTROL FUNCTIONS
+    # BACKPLANE TPM POWER CONTROL FUNCTIONS
 
-    # ##power_on_bkpln
-    # #This method Power On the Bacplane Board providing supply to the TPMs Powercontrol devices
-    # #@param[in] onoff: select the operation: 1 power on, 0 power off
     def power_on_bkpln(self):
+        """Power on the Backplane Board."""
         logger.info("power_on_bkpln")
         self.mng.write("CtrlRegs.BkplOnOff", 1)
         rdval = self.mng.read("CtrlRegs.BkplOnOff")
         if rdval != 1:
             logger.error("Error during operation: Expected %d, Read %d" % (1, rdval))
 
-    # ##power_off_bkpln
-    # This method Power Off the Bacplane Board providing supply to the TPMs Powercontrol devices
-    # #@param[in] onoff: select the operation: 1 power on, 0 power off
     def power_off_bkpln(self):
+        """Power off the Backplane Board."""
         self.mng.write("CtrlRegs.BkplOnOff", 0)
         rdval = self.mng.read("CtrlRegs.BkplOnOff")
         if rdval != 0:
             logger.error("Error during operation: Expected %d, Read %d" % (0, rdval))
 
-    # ##get_bkpln_is_onoff
-    # This method return the status of the Power On/Off registers for the Backplane Board power on,off
-    # return onoff: status of backplane board, 0 Pwered Off, 1 Powered On
     def get_bkpln_is_onoff(self):
+        """Get the status of the Backplane Board power on/off.
+
+        Returns:
+            int: Status of the Backplane Board (0 - Powered Off, 1 - Powered On).
+        """
         rdval = self.mng.read("CtrlRegs.BkplOnOff")
         return rdval
 
-    # ##reset_pwr_fault_reg
-    # This method reset the Bacplane TMP Power Controller fault register
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
     def reset_pwr_fault_reg(self, tpm_id):
+        """Reset the Backplane TMP Power Controller fault register.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+        """
         status = self.power_supply[tpm_id - 1].write("FAULT_LOG_B1", 0x00)
 
-    # ##pwr_on_tpm
-    # This method power on the selected TPM board
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return status: status of operation
     def pwr_on_tpm(self, tpm_id):
+        """Power on the selected TPM board.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Failure).
+        """
         status = self.power_supply[tpm_id - 1].write("FAULT_LOG_B1", 0x00)
         if status != 0:
             logger.error(
@@ -404,11 +527,15 @@ class Backplane:
                 status = 1
         return status
 
-    # ##pwr_off_tpm
-    # This method power off the selected TPM board
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return status: status of operation
     def pwr_off_tpm(self, tpm_id):
+        """Power off the selected TPM board.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Failure).
+        """
         status = self.power_supply[tpm_id - 1].write(
             "CONTROL_B1", 0xB3
         )  # power off tpm
@@ -429,11 +556,16 @@ class Backplane:
                 status = 1
         return status
 
-    # ##is_tpm_on
-    # This method detect if the selected TPM board power control has powewred on the TPM
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return status: status of operation: True board is turned on, False board is turned off
     def is_tpm_on(self, tpm_id, direct=False):
+        """Detect if the selected TPM board power control has powered on the TPM.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+            direct (bool, optional): If True, directly read the control register. Defaults to False.
+
+        Returns:
+            bool: True if the board is turned on, False if the board is turned off.
+        """
         if direct:
             value, status = self.power_supply[tpm_id - 1].read(
                 "CONTROL_B1"
@@ -450,12 +582,16 @@ class Backplane:
             if print_debug:
                 logger.debug("tpm off")
             return False
-
-    # ##get_power_tpm
-    # This method return the selected TPM board power control power value provided to TPM board
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return pwr: power value in W
+        
     def get_power_tpm(self, tpm_id):
+        """Return the selected TPM board power control power value provided to TPM board.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+
+        Returns:
+            float: Power value in Watts.
+        """
         if self.simulation is True:
             if self.is_tpm_on(tpm_id):
                 power = self.mng.read("Fram.LTC4281_B" + str(tpm_id) + "_power")
@@ -470,11 +606,15 @@ class Backplane:
             logger.debug("power, " + str(pwr))
         return pwr
 
-    # ##get_voltage_tpm
-    # This method return the selected TPM board power control voltage value provided to TPM board
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return vout: voltage value in V
     def get_voltage_tpm(self, tpm_id):
+        """Return the selected TPM board power control voltage value provided to TPM board.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+
+        Returns:
+            float: Voltage value in Volts.
+        """
         if self.simulation is True:
             if self.is_tpm_on(tpm_id):
                 voltage = self.mng.read("Fram.LTC4281_B" + str(tpm_id) + "_Vsource")
@@ -489,13 +629,16 @@ class Backplane:
         if print_debug:
             logger.info("voltage, " + str(vout))
         return vout
-
-    # ##get_pwr_fault_log
-    # This method return the selected TPM board power control fault_log register value
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return status: status of operation
-    # return data: register value
+    
     def get_pwr_fault_log(self, tpm_id):
+        """Return the selected TPM board power control fault_log register value.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+
+        Returns:
+            tuple: A tuple containing register value and status (data, status).
+        """
         data, status = self.power_supply[tpm_id - 1].read("FAULT_LOG")
         if status == 0:
             if data == 0:
@@ -519,12 +662,16 @@ class Backplane:
                     logger.error("EEPROM Done Detected")
         return data, status
 
-    # ##pwr_set_ilimt
-    # This method set the selected TPM board power control I limit configuration register
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # @param[in] cfg: configuration value (accepted value:0 to 7, minimal to maximum power selection)
-    # return status: status of operation
     def pwr_set_ilimt(self, tpm_id, cfg):
+        """Set the selected TPM board power control I limit configuration register.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+            cfg (int): Configuration value (accepted value: 0 to 7, minimal to maximum power selection).
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Failure).
+        """
         if cfg > 7:
             logger.error("Wrong parameter, accepted value from 0 to 7")
             status = 1
@@ -537,66 +684,93 @@ class Backplane:
             status = self.power_supply[tpm_id - 1].write("ILIM_ADJUST", datatowr)
             return status
 
-    # ##pwr_set_ilimt
-    # This method get the selected TPM board power control I limit configuration register
-    # @param[in] tpm_id: id of the selected tpm (accepted value:1 to 8)
-    # return status: status of operation
-    # return cfg: actual configuration value
     def pwr_get_ilimt(self, tpm_id):
+        """Get the selected TPM board power control I limit configuration register.
+
+        Args:
+            tpm_id (int): Id of the selected TPM (accepted value: 1 to 8).
+
+        Returns:
+            tuple: A tuple containing actual configuration value and status (cfg, status).
+        """
         data, status = self.power_supply[tpm_id - 1].read("ILIM_ADJUST")
         cfg = (data & 0xE0) >> 5
         return cfg, status
 
     # ####BACKPLANE TEMPERATURE SENSORS FUNCTIONS
-    # This method set a low alarm temperature value of selected temperature sensor
-    # @param[in] sens_id: id of the selected sensor
-    # @param[in] temp_alarm: temperature value
-    # return status: status of operation
+
     def set_sens_temp_alarm_l(self, sens_id, temp_alarm):
+        """Set a low alarm temperature value of the selected temperature sensor.
+
+        Args:
+            sens_id (int): Id of the selected sensor.
+            temp_alarm (int): Temperature value.
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Failure).
+        """
         i2c_add = 0x30 + (sens_id - 1) * 2
         status = self.mng.fpgai2c_write16(
             i2c_add, 0x03, temp_alarm, FPGA_I2CBUS.i2c2
         )  # reset alarms
         return status
 
-    # This method set an high alarm temperature value of selected temperature sensor
-    # @param[in] sens_id: id of the selected sensor
-    # @param[in] temp_alarm: temperature value
-    # return status: status of operation
     def set_sens_temp_alarm_h(self, sens_id, temp_alarm):
+        """Set a high alarm temperature value of the selected temperature sensor.
+
+        Args:
+            sens_id (int): Id of the selected sensor.
+            temp_alarm (int): Temperature value.
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Failure).
+        """
         i2c_add = 0x30 + (sens_id - 1) * 2
         status = self.mng.fpgai2c_write16(
             i2c_add, 0x04, temp_alarm, FPGA_I2CBUS.i2c2
         )  # reset alarms
         return status
 
-    # This method get the low alarm temperature value of selected temperature sensor
-    # @param[in] sens_id: id of the selected sensor
-    # return temperature: temperature value
-    # return status: status of operation
     def get_sens_temp_alarm_l(self, sens_id):
+        """Get the low alarm temperature value of the selected temperature sensor.
+
+        Args:
+            sens_id (int): Id of the selected sensor.
+
+        Returns:
+            tuple: A tuple containing temperature value and status (temperature, status).
+        """
         i2c_add = 0x30 + (sens_id - 1) * 2
         temperature, status = self.mng.fpgai2c_read16(
             i2c_add, 0x03, FPGA_I2CBUS.i2c2
         )  # read temperature alarm l
         return temperature, status
 
-    # This method get the high alarm temperature value of selected temperature sensor
-    # @param[in] sens_id: id of the selected sensor
-    # return temperature: temperature value
-    # return status: status of operation
     def get_sens_temp_alarm_h(self, sens_id):
+        """Get the high alarm temperature value of the selected temperature sensor.
+
+        Args:
+            sens_id (int): Id of the selected sensor.
+
+        Returns:
+            tuple: A tuple containing temperature value and status (temperature, status).
+        """
         i2c_add = 0x30 + (sens_id - 1) * 2
         temperature, status = self.mng.fpgai2c_read16(
             i2c_add, 0x04, FPGA_I2CBUS.i2c2
         )  # read temperature alarm h
         return temperature, status
 
-    # This method get the temperature value of selected temperature sensor placed on backplane board
-    # @param[in] sens_id: id of the selected sensor
-    # return temperature: temperature value
-    # return status: status of operation
     def get_sens_temp(self, sens_id, ret_val_only=False):
+        """Get the temperature value of the selected temperature sensor placed on the backplane board.
+
+        Args:
+            sens_id (int): Id of the selected sensor.
+            ret_val_only (bool): If True, returns only the temperature value.
+
+        Returns:
+            tuple: A tuple containing temperature value and status (temperature, status).
+        """
         if sens_id < 1 or sens_id > 2:
             logger.error("Error Invalid ID")
             if ret_val_only:
@@ -613,18 +787,21 @@ class Backplane:
         return temp, 0x0
 
     # ####BACKPLANE FAN FUNCTIONS
-    # This method get the get_bkpln_fan_speed
-    # @param[in] fan_id: id of the selected fan accepted value: 1-4
-    # return fanrpm: fan rpm value
-    # return fan_bank_pwm: pwm value of selected fan
-    # return status: status of operation
+
     def get_bkpln_fan_speed(self, fan_id):
+        """Get the fan speed, fan bank PWM, and status of the operation.
+
+        Args:
+            fan_id (int): Id of the selected fan (accepted value: 1-4).
+
+        Returns:
+            tuple: A tuple containing fan RPM, fan bank PWM, and status of the operation (fanrpm, fan_bank_pwm_i, status).
+        """
         if fan_id < 1 or fan_id > 4:
             logger.error("Error Invalid Fan ID ")
             return 0, 0, 1
         fan = self.mng.read("Fram.FAN" + str(fan_id) + "_TACH")
         fanpwmreg = self.mng.read("Fram.FAN_PWM")
-        # fan_settings = (fanpwmreg >> 24) & 0xff
         if fan_id < 3:
             fan_bank = fanpwmreg & 0xFF
         else:
@@ -637,12 +814,16 @@ class Backplane:
             fanrpm = (90000 * 60) // fan
         return fanrpm, fan_bank_pwm_i, 0
 
-    # This method set the_bkpln_fan_speed
-    # @param[in] fan_id: id of the selected fan accepted value: 1-4
-    # @param[in] speed_pwm_perc: percentage value of fan RPM  (MIN 0=0% - MAX 100=100%)
-    # return status: status of operation
-    # @note settings of fan speed is possible only if fan mode is manual
     def set_bkpln_fan_speed(self, fan_id, speed_pwm_perc):
+        """Set the fan speed of the selected fan.
+
+        Args:
+            fan_id (int): Id of the selected fan (accepted value: 1-4).
+            speed_pwm_perc (float): Percentage value of fan RPM (MIN 0=0% - MAX 100=100%).
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Invalid Fan ID, 2 - Auto mode enabled, 3 - Invalid speed_pwm_perc).
+        """
         if fan_id < 1 or fan_id > 4:
             logger.error("Error Invalid Fan ID ")
             return 1
@@ -669,11 +850,15 @@ class Backplane:
             self.mng.write("Fram.FAN_PWM", val)
             return 0
 
-    # This method get the_bkpln_fan_mode
-    # @param[in] fan_id: id of the selected fan accepted value: 1-4
-    # return fan mode: functional fan mode: auto or manual
-    # return status: status of operation
     def get_bkpln_fan_mode(self, fan_id):
+        """Get the functional fan mode (auto or manual) and status of the operation.
+
+        Args:
+            fan_id (int): Id of the selected fan (accepted value: 1-4).
+
+        Returns:
+            tuple: A tuple containing fan mode and status of the operation (fan_mode, status).
+        """
         if fan_id < 1 or fan_id > 4:
             logger.error("Error Invalid Fan ID ")
             return 0, 1
@@ -684,11 +869,16 @@ class Backplane:
             auto_mode = (fanpwmreg & 0x01000000) >> 24
         return auto_mode, 0
 
-    # This method get the_bkpln_fan_mode
-    # @param[in] fan_id: id of the selected fan accepted value: 1-4
-    # return fan mode: functional fan mode: auto or manual
-    # return status: status of operation
     def set_bkpln_fan_mode(self, fan_id, auto_mode):
+        """Set the functional fan mode (auto or manual) of the selected fan.
+
+        Args:
+            fan_id (int): Id of the selected fan (accepted value: 1-4).
+            auto_mode (int): Fan mode (1 - Auto, 0 - Manual).
+
+        Returns:
+            int: Status of the operation (0 - Success, 1 - Invalid Fan ID).
+        """
         if fan_id < 1 or fan_id > 4:
             logger.error("Error Invalid Fan ID ")
             return 1
@@ -706,18 +896,31 @@ class Backplane:
         return 0
 
     def get_ps_present(self, ps_id):
+        """Get the presence status of the selected power supply.
+
+        Args:
+            ps_id (int): Id of the selected power supply (accepted values: 1-2).
+
+        Returns:
+            bool: True if present, False otherwise.
+        """
         ioexp_value = self.mng.read("Fram.PSU_ioexp_pre")
         result = bool(ioexp_value & (0b1 << (ps_id - 1)))
         if result:
             return False
         return True
 
-    # ####POWER SUPPLY FUNCTIONS
-    # This method get the selected power supply status register
-    # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
-    # return status_reg: register value
-    # return status: status of operation
     def get_ps_status(self, ps_id, key=None):
+        """Get the status of the selected power supply.
+
+        Args:
+            ps_id (int): Id of the selected power supply (accepted values: 1-2).
+            key (str): Optional key to retrieve a specific status. If None, the entire status dictionary is returned.
+
+        Returns:
+            dict or any: Dictionary containing the power supply status if key is None.
+                        If key is specified, the corresponding status value is returned.
+        """
         if not self.get_ps_present(ps_id):
             result = {
                 "present": False,
@@ -739,14 +942,15 @@ class Backplane:
             if key is None:
                 return result
             return result[key]
+        
         i2c_add = 0xB0 + ((ps_id - 1) * 2)
-        # status_reg, status = self.mng.fpgai2c_read8(i2c_add, 0x78, FPGA_I2CBUS.i2c3)
-        # status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
         status = 0
         status_reg = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_status")
+        
         if status != 0:
             logger.error("get_ps_status access failed!")
             return None
+
         result = {
             "present": True,
             "busy": bool(status_reg & (0b1 << 7)),
@@ -764,18 +968,20 @@ class Backplane:
             "other": bool(status_reg & (0b1 << 9)),
             "unknown": bool(status_reg & (0b1 << 8)),
         }
+
         if status_reg != 0:
-            logger.error("Error:PSU%d" % ps_id)
+            logger.error("Error: PSU%d" % ps_id)
             logger.error("status_reg: " + hex(status_reg))
             logger.error("status: " + str(status))
             logger.error(str(result))
             logger.error("Force retry")
             self.get_ps_present(ps_id)
-            # status_reg, status = self.mng.fpgai2c_read16(i2c_add, 0x79, FPGA_I2CBUS.i2c3)
+            
             status = 0
             status_reg = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_status")
             logger.error("status_reg: " + hex(status_reg))
             logger.error("status: " + str(status))
+            
             result = {
                 "present": True,
                 "busy": bool(status_reg & (0b1 << 7)),
@@ -794,11 +1000,19 @@ class Backplane:
                 "unknown": bool(status_reg & (0b1 << 8)),
             }
             logger.error(str(result))
+
         if key is None:
             return result
         return result[key]
 
     def get_ps_temp(self, ps_id, temp_id=None):
+        """
+        Get the temperature of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :param temp_id: The ID of the temperature sensor (default: None).
+        :return: The temperature value or a list of temperatures.
+        """
         if self.get_ps_present(ps_id) != True:
             if temp_id is not None:
                 return None
@@ -821,16 +1035,25 @@ class Backplane:
         return temp_list
 
     def get_ps_vout_mode(self, ps_id):
+        """
+        Get the voltage output mode of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: A tuple containing the voltage output mode and the status of the operation.
+        """
         if self.get_ps_present(ps_id) != True:
             return 0, 1
         i2c_add = 0xB0 + ((ps_id - 1) * 2)
         vout_mode, status = self.mng.fpgai2c_read8(i2c_add, 0x20, FPGA_I2CBUS.i2c3)
         return vout_mode, status
 
-    # This method get the selected power supply vout value evaluated on read from vout register
-    # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
-    # return v: vout value
     def get_ps_vout(self, ps_id):
+        """
+        Get the voltage output value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The voltage output value.
+        """
         if self.get_ps_present(ps_id) != True:
             return float("nan")
         status = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_Status_Vout")
@@ -844,11 +1067,13 @@ class Backplane:
         v = round(v, 2)
         return v
 
-    # This method get the selected power supply iout value evaluated on read from iout register
-    # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
-    # return i: iout value
-    # return status: status of operation
     def get_ps_iout(self, ps_id):
+        """
+        Get the current output value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The current output value.
+        """
         if self.get_ps_present(ps_id) != True:
             return float("nan")
         status = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_Status_Iout")
@@ -858,22 +1083,26 @@ class Backplane:
         val = round(_decodePMBus(reg), 2)
         return val
 
-    # This method get the selected power supply power value evaluated on read from iout and vout registers
-    # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
-    # return pw: power value
-    # return status: status of operation
     def get_ps_power(self, ps_id):
+        """
+        Get the power value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The power value.
+        """
         if self.get_ps_present(ps_id) != True:
             return float("nan")
         pw = self.get_ps_pout(ps_id)
         return pw
 
-    # This method set the fan_spped
-    # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
-    # @param[in] speed_cmd: command value (MIN 0=0% - MAX 100=100%, Fan Speed = speed_cmd*21000RPM/100,Write request is
-    # executed only if the desired Fanspeed is greater than what is required by the PSU. )
-    # return status: status of operation
     def set_ps_fanspeed(self, ps_id, speed_cmd):
+        """
+        Set the fan speed of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :param speed_cmd: The command value (MIN 0=0% - MAX 100=100%).
+        :return: The status of the operation.
+        """
         if self.get_ps_present(ps_id) != True:
             return 1
         i2c_add = 0xB0 + ((ps_id - 1) * 2)
@@ -884,12 +1113,14 @@ class Backplane:
         status = self.mng.fpgai2c_write16(i2c_add, 0x3B, speed_cmd, FPGA_I2CBUS.i2c3)
         return status
 
-    # This method get the fan_spped
-    # @param[in] ps_id: id of the selected power supply (accepted values: 1-2)
-    # return speed_param: speed reg value (MIN 0=0% - MAX 100=100%, Fan Speed = speed_cmd*21000RPM/100,Write request is
-    # executed only if the desired Fanspeed is greater than what is required by the PSU. )
-    # return status: status of operation
+
     def get_ps_fanspeed(self, ps_id):
+        """
+        Get the fan speed of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The fan speed value.
+        """
         if self.get_ps_present(ps_id) != True:
             return float("nan")
         reg = self.mng.read("Fram.PSU" + str(ps_id - 1) + "_Fan_Speed")
@@ -897,6 +1128,12 @@ class Backplane:
         return val
 
     def get_ps_vin(self, ps_id):
+        """
+        Get the input voltage value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The input voltage value.
+        """
         if self.get_ps_present(ps_id) != True:
             return 0, 1
         # i2c_add = 0xb0+((ps_id-1)*2)
@@ -906,6 +1143,12 @@ class Backplane:
         return val
 
     def get_ps_iin(self, ps_id):
+        """
+        Get the input current value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The input current value.
+        """
         if self.get_ps_present(ps_id) != True:
             return 0, 1
         # i2c_add = 0xb0+((ps_id-1)*2)
@@ -915,6 +1158,12 @@ class Backplane:
         return val
 
     def get_ps_pout(self, ps_id):
+        """
+        Get the output power value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The output power value.
+        """
         if self.get_ps_present(ps_id) != True:
             return 0, 1
         # i2c_add = 0xb0+((ps_id-1)*2)
@@ -924,6 +1173,12 @@ class Backplane:
         return val
 
     def get_ps_pin(self, ps_id):
+        """
+        Get the input power value of the selected power supply.
+
+        :param ps_id: The ID of the selected power supply (accepted values: 1-2).
+        :return: The input power value.
+        """
         if self.get_ps_present(ps_id) != True:
             return 0, 1
         # i2c_add = 0xb0+((ps_id-1)*2)
@@ -933,4 +1188,8 @@ class Backplane:
         return val
 
     def close(self):
+        """
+        Close the instance of the class.
+        """
         self.__del__()
+
