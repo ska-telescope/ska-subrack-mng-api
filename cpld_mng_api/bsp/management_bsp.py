@@ -116,48 +116,63 @@ eep_sec = {
     },  # READ-ONLY
 }
 
-
 class MANAGEMENT_BSP:
     def __init__(self, board, rmp):
+        """
+        Initialize the MANAGEMENT_BSP class.
+
+        :param board: Board parameter.
+        :param rmp: RMP parameter.
+        """
         self.rmp = rmp
         self.board = board
-        # print("creating bsp")
         self.mode = self.rmp.rd32(0x120)
         if self.mode == BOARD_MODE["subrack"]:
-            # print("mode: SUBRACK")
             self.spi = MANAGEMENT_SPI(board, rmp, subrack_pll_cs)
         elif self.mode == BOARD_MODE["cabinet"]:
-            # print("mode: CABINET")
             self.spi = MANAGEMENT_SPI(board, rmp, cabinet_pll_cs)
         else:
-            # print("mode: UNKNOWN")
             self.spi = MANAGEMENT_SPI(board, rmp, subrack_pll_cs)
-        # self.hw_rev = []
-        # hw_rev = self.rmp.rd32(0x124)
-        # self.hw_rev.append((hw_rev >> 16) & 0xff)
-        # self.hw_rev.append((hw_rev >> 8) & 0xff)
-        # self.hw_rev.append((hw_rev >> 0) & 0xff)
-        # print("HW_REV: v" + str(self.hw_rev[0]) + "." + str(self.hw_rev[1]) + "." + str(self.hw_rev[2]))
         self.eep_sec = eep_sec
 
     def ip2long(self, ip):
         """
-        Convert an IP string to long
+        Convert an IP string to long.
+
+        :param ip: IP address in string format.
+        :return: Long representation of the IP address.
         """
         packed_ip = socket.inet_aton(ip)
         return struct.unpack("!L", packed_ip)[0]
 
     def long2ip(self, ip):
         """
-        Convert long to IP string
+        Convert long to IP string.
+
+        :param ip: Long representation of the IP address.
+        :return: IP address in string format.
         """
         return socket.inet_ntoa(struct.pack("!I", ip))
 
     def wr32_multi(self, add, dat, ba=[0x00000000, 0x10000000]):
+        """
+        Write 32 bits of data to multiple addresses.
+
+        :param add: Address to write data to.
+        :param dat: Data to be written.
+        :param ba: Base addresses (default is [0x00000000, 0x10000000]).
+        """
         for b in ba:
             self.rmp.wr32(add + b, dat)
 
     def eep_rd8(self, offset, phy_addr=eep_addr_0):
+        """
+        Read 8 bits of data from EEPROM.
+
+        :param offset: Offset to read data from.
+        :param phy_addr: Physical address (default is eep_addr_0).
+        :return: 8 bits of data read from EEPROM.
+        """
         self.i2c_set_passwd()
         ba = 0x00010000
         add = phy_addr >> 1
@@ -187,6 +202,13 @@ class MANAGEMENT_BSP:
         return self.rmp.rd32(ba + 0x8)
 
     def eep_wr8(self, offset, data, phy_addr=eep_addr_0):
+        """
+        Write 8 bits of data to EEPROM.
+
+        :param offset: Offset to write data to.
+        :param data: Data to be written (8 bits).
+        :param phy_addr: Physical address (default is eep_addr_0).
+        """
         self.i2c_set_passwd()
         ba = 0x00010000
         add = phy_addr >> 1
@@ -211,6 +233,13 @@ class MANAGEMENT_BSP:
                     print(".")
 
     def eep_rd16(self, offset, phy_addr=eep_addr_0):
+        """
+        Read 16 bits of data from EEPROM.
+
+        :param offset: Offset to read data from.
+        :param phy_addr: Physical address (default is eep_addr_0).
+        :return: 16 bits of data read from EEPROM.
+        """
         rd = 0
         for n in range(2):
             rd = rd << 8
@@ -218,6 +247,13 @@ class MANAGEMENT_BSP:
         return rd
 
     def eep_rd32(self, offset, phy_addr=eep_addr_0):
+        """
+        Read 32 bits of data from EEPROM.
+
+        :param offset: Offset to read data from.
+        :param phy_addr: Physical address (default is eep_addr_0).
+        :return: 32 bits of data read from EEPROM.
+        """
         rd = 0
         for n in range(4):
             rd = rd << 8
@@ -225,19 +261,46 @@ class MANAGEMENT_BSP:
         return rd
 
     def eep_wr16(self, offset, data, phy_addr=eep_addr_0):
+        """
+        Write 16 bits of data to EEPROM.
+
+        :param offset: Offset to write data to.
+        :param data: Data to be written (16 bits).
+        :param phy_addr: Physical address (default is eep_addr_0).
+        """
         for n in range(2):
             self.eep_wr8(offset + n, (data >> 8 * (1 - n)) & 0xFF, phy_addr)
         return
 
     def eep_wr32(self, offset, data, phy_addr=eep_addr_0):
+        """
+        Write 32 bits of data to EEPROM.
+
+        :param offset: Offset to write data to.
+        :param data: Data to be written (32 bits).
+        :param phy_addr: Physical address (default is eep_addr_0).
+        """
         for n in range(4):
             self.eep_wr8(offset + n, (data >> 8 * (3 - n)) & 0xFF, phy_addr)
         return
 
     def wr_string(self, partition, string):
+        """
+        Write a string to EEPROM.
+
+        :param partition: EEPROM partition information.
+        :param string: String to be written.
+        """
         return self._wr_string(partition["offset"], string, partition["size"])
 
     def _wr_string(self, offset, string, max_len=16):
+        """
+        Write a string to EEPROM.
+
+        :param offset: Offset to write data to.
+        :param string: String to be written.
+        :param max_len: Maximum length of the string (default is 16).
+        """
         addr = offset
         for i in range(len(string)):
             self.eep_wr8(addr, ord(string[i]))
@@ -248,9 +311,22 @@ class MANAGEMENT_BSP:
             self.eep_wr8(addr, ord("\n"))
 
     def rd_string(self, partition):
+        """
+        Read a string from EEPROM.
+
+        :param partition: EEPROM partition information.
+        :return: String read from EEPROM.
+        """
         return self._rd_string(partition["offset"], partition["size"])
 
     def _rd_string(self, offset, max_len=16):
+        """
+        Read a string from EEPROM.
+
+        :param offset: Offset to read data from.
+        :param max_len: Maximum length of the string (default is 16).
+        :return: String read from EEPROM.
+        """
         addr = offset
         string = ""
         for i in range(max_len):
@@ -260,6 +336,7 @@ class MANAGEMENT_BSP:
             string += chr(byte)
             addr += 1
         return string
+    
 
     """
     def get_field(self, key):
@@ -294,6 +371,12 @@ class MANAGEMENT_BSP:
     """
 
     def get_field(self, key):
+        """
+        Get a field value from EEPROM based on the key.
+
+        :param key: The key representing the field in eep_sec.
+        :return: The value of the field.
+        """
         if self.eep_sec[key]["type"] == "ip":
             return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
         elif self.eep_sec[key]["type"] == "bytearray":
@@ -310,6 +393,13 @@ class MANAGEMENT_BSP:
             return val
 
     def set_field(self, key, value, override_protected=False):
+        """
+        Set a field value in EEPROM based on the key.
+
+        :param key: The key representing the field in eep_sec.
+        :param value: The value to be set.
+        :param override_protected: Boolean to override protected status (default is False).
+        """
         if self.eep_sec[key]["protected"] is False or override_protected:
             if self.eep_sec[key]["type"] == "ip":
                 self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
@@ -340,11 +430,22 @@ class MANAGEMENT_BSP:
             print("Writing attempt on protected sector %s" % key)
 
     def cpld_efb_wr(self, dat):
+        """
+        Write data to CPLD using the embedded function block.
+
+        :param dat: Data to be written.
+        """
         while self.rmp.rd32(0x90000000 + 0x72 * 4) & 0x10 == 0x10:
             pass
         self.rmp.wr32(0x90000000 + 0x71 * 4, dat)
 
     def cpld_flash_read(self, bitfile="cpld_dump.bit"):
+        """
+        Read data from CPLD flash and save it to a file.
+
+        :param bitfile: File name to save the dump (default is "cpld_dump.bit").
+        :return: Bytearray of the CPLD flash dump.
+        """
         dump = []
 
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
@@ -418,7 +519,11 @@ class MANAGEMENT_BSP:
         return bytearray(dump)
 
     def cpld_flash_write(self, bitfile):
+        """
+        Write data to CPLD flash from a file.
 
+        :param bitfile: File containing the data to be written to CPLD flash.
+        """
         print("Using CPLD bitfile " + bitfile)
         f = open(bitfile, "rb")
         dump = bytearray(f.read())
@@ -586,10 +691,18 @@ class MANAGEMENT_BSP:
         print("CPLD bitstream update done!")
 
     def mcu_reset_n(self, value):
+        """
+        Control the MCU reset signal.
+
+        :param value: Value to set for the reset signal (0 or 1).
+        """
         SAM_RESET_N = 0x900
         self.rmp.wr32(SAM_RESET_N, value)
 
     def i2c_set_passwd(self):
+        """
+        Set the I2C password for secure access.
+        """
         self.mcu_reset_n(0)
         rd = self.rmp.rd32(0x00010020)
         self.rmp.wr32(0x0001003C, rd)
@@ -599,10 +712,11 @@ class MANAGEMENT_BSP:
         if rd & 0x10000 == 0:
             print("I2C password not accepted!")
             exit(-1)
-        # else:
-        #    print "I2C password accepted!"
 
     def i2c_remove_passwd(self):
+        """
+        Remove the I2C password for normal access.
+        """
         self.rmp.wr32(0x0001003C, 0)
         self.rmp.wr32(0x00010038, 0)
         self.mcu_reset_n(1)

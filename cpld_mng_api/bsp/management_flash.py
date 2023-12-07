@@ -23,6 +23,17 @@ class FlasdhDev:
         sectorCount=0,
         slaveID=0,
     ):
+        """
+        Initialize a Flash Device object.
+
+        :param name: Name of the Flash Device (default is "").
+        :param description: Description of the Flash Device (default is "").
+        :param jedecID: JEDEC ID of the Flash Device (default is 0).
+        :param pageSize: Size of a page in the Flash Device (default is 0).
+        :param sectorSize: Size of a sector in the Flash Device (default is 0).
+        :param sectorCount: Number of sectors in the Flash Device (default is 0).
+        :param slaveID: Slave ID of the Flash Device (default is 0).
+        """
         self.name = name
         self.description = description
         self.jedecID = jedecID
@@ -56,6 +67,21 @@ FlashDevices = [FlashDevice_CPLD]
 
 
 class spiregisters:
+    """
+    Class representing SPI registers.
+
+    Attributes:
+    - spi_cs_ow (int): SPI Chip Select One-Wire register address.
+    - spi_cs0 (int): SPI Chip Select 0 register address.
+    - spi_tx_byte (int): SPI Transmit Byte register address.
+    - spi_rx_byte (int): SPI Receive Byte register address.
+    - spi_tx_buf_len (int): SPI Transmit Buffer Length register address.
+    - spi_rx_buf_len (int): SPI Receive Buffer Length register address.
+    - spi_fifo_addr (int): SPI FIFO Address register address.
+    - spi_mux (int): SPI Multiplexer register address.
+    - spi_rxtxbuffer (int): SPI Receive/Transmit Buffer register address.
+    """
+
     spi_cs_ow = 0x0800
     spi_cs0 = 0x0800
     spi_tx_byte = 0x0804
@@ -68,11 +94,21 @@ class spiregisters:
 
 
 class MngProgFlash:
-    """Management Class for CPLD and FPGA SPI Flash bitfile storage/access class"""
+    """
+    Management Class for CPLD and FPGA SPI Flash bitfile storage/access class.
+
+    Attributes:
+    - rmp: Pointer to RMP instance.
+    - board: Pointer to board instance.
+    - add4bytemode (bool): Flag indicating whether 4-byte addressing mode is enabled.
+    """
 
     def __init__(self, board, rmp):
-        """SPI4Flash initialiser
-        :param board: Pointer to board instance
+        """
+        Initialize the MngProgFlash class.
+
+        :param board: Pointer to board instance.
+        :param rmp: Pointer to RMP instance.
         """
         self.rmp = rmp
         self.board = board
@@ -81,17 +117,32 @@ class MngProgFlash:
     #######################################################################################
 
     # #####################    SPI METHODS SECTION   ###############################
+
     def spi_chipselect(self, isactive):
-        # mask = 0x0001
+        """
+        Set or clear the SPI Chip Select.
+
+        :param isactive: True to activate the Chip Select, False to deactivate.
+        """
         self.board[spiregisters.spi_cs0] = 0x10001
 
     def spi_resetfifo(self):
         self.board[spiregisters.spi_fifo_addr] = 0
 
     def spi_trigger(self, length):
+        """
+        Trigger SPI transmission with the specified length.
+
+        :param length: Length of SPI transmission.
+        """
         self.board[spiregisters.spi_tx_byte] = length
 
     def spi_config(self, spi_cs_ow):
+        """
+        Configure SPI.
+
+        :param spi_cs_ow: 1 to enable, 0 to disable the SPI Chip Select One-Wire.
+        """
         reg = self.board[spiregisters.spi_cs_ow]
         if spi_cs_ow == 1:
             self.board[spiregisters.spi_cs_ow] = reg | (0x00001)
@@ -99,14 +150,31 @@ class MngProgFlash:
             self.board[spiregisters.spi_cs_ow] = reg & (0x10000)
 
     def spi_rx_available(self):
-        tmp = self.board[spiregisters.spi_rx_byte]
-        return tmp
+        """
+        Get the number of available SPI receive bytes.
+
+        :return: Number of available SPI receive bytes.
+        """
+        return self.board[spiregisters.spi_rx_byte]
 
     def spi_tx_remaining(self):
-        tmp = self.board[spiregisters.spi_rx_byte]
-        return tmp
+        """
+        Get the number of remaining SPI transmit bytes.
+
+        :return: Number of remaining SPI transmit bytes.
+        """
+        return self.board[spiregisters.spi_rx_byte]
 
     def spi_sync(self, slaveid, txBuffer, cmd, length):
+        """
+        Perform a synchronous SPI transaction.
+
+        :param slaveid: Slave ID for SPI communication.
+        :param txBuffer: Transmit buffer.
+        :param cmd: Command to be sent.
+        :param length: Length of SPI transaction.
+        :return: Received buffer.
+        """
         _length = length
         self.spi_config(1)
         self.spi_chipselect(False)
@@ -163,15 +231,36 @@ class MngProgFlash:
                 return rxbuffer
 
     def spi_mux_selection(self, slaveid):
+        """
+        Select the SPI MUX.
+
+        :param slaveid: Slave ID for SPI MUX selection.
+        """
         self.board[spiregisters.spi_mux] = slaveid
 
     # ########## FLASH COMMAND METHODS SECTION ####################################
 
     def SPITransaction(self, device, TxBuffer, cmd, size):
+        """
+        Perform an SPI transaction.
+
+        :param device: Flash device.
+        :param TxBuffer: Transmit buffer.
+        :param cmd: Command to be sent.
+        :param size: Size of the SPI transaction.
+        :return: Received buffer.
+        """
         RxBuffer = self.spi_sync(device.slaveID, TxBuffer, cmd, size)
         return RxBuffer
 
     def FlashDevice_readReg(self, device, reg):
+        """
+        Read from Flash device register.
+
+        :param device: Flash device.
+        :param reg: Register to read.
+        :return: Register value.
+        """
         cmd = bytearray(4)
         txBuffer = [0] * 4
         cmd[0] = reg
@@ -181,6 +270,13 @@ class MngProgFlash:
         return res
 
     def FlashDevice_writeReg(self, device, reg, value=None):
+        """
+        Write to Flash device register.
+
+        :param device: Flash device.
+        :param reg: Register to write.
+        :param value: Value to write.
+        """
         cmd = bytearray(4)
         txBuffer = [0] * 4
         cmd[0] = reg
@@ -191,6 +287,14 @@ class MngProgFlash:
             self.SPITransaction(device, txBuffer, cmd, 2)
 
     def FlashDevice_prepareCommand(self, command, address, device):
+        """
+        Prepare a Flash device command.
+
+        :param command: Command code.
+        :param address: Flash memory address.
+        :param device: Flash device.
+        :return: Prepared command buffer.
+        """
         txBuffer = bytearray(4)
         txBuffer[0] = command
         txBuffer[1] = (address >> 16) & 0xFF
@@ -199,6 +303,11 @@ class MngProgFlash:
         return txBuffer
 
     def FlashDevice_Enter4byteAddMode(self, device):
+        """
+        Enter 4-byte addressing mode for Flash device.
+
+        :param device: Flash device.
+        """
         self.add4bytemode = True
         self.FlashDevice_writeReg(device, 0x06)  # write enable command
         self.FlashDevice_writeReg(device, 0xC5, 0xF)
@@ -208,7 +317,13 @@ class MngProgFlash:
                 break
         self.FlashDevice_writeReg(device, 0x06)  # write enable command
 
+
     def FlashDevice_Exit4byteAddMode(self, device):
+        """
+        Exit 4-byte addressing mode for Flash device.
+
+        :param device: Flash device.
+        """
         self.add4bytemode = False
         self.FlashDevice_writeReg(device, 0x06)  # write enable command
         self.FlashDevice_writeReg(device, 0xC5, 0x0)
@@ -219,22 +334,42 @@ class MngProgFlash:
         self.FlashDevice_writeReg(device, 0x06)  # write enable command
 
     def FlashDevice_writeEnable(self, device):
+        """
+        Enable write for the Flash device.
+
+        :param device: Flash device.
+        """
         self.FlashDevice_writeReg(device, 0x06)
 
     def FlashDevice_writeDisable(self, device):
+        """
+        Disable write for the Flash device.
+
+        :param device: Flash device.
+        """
         self.FlashDevice_writeReg(device, 0x04)
 
     def FlashDevice_waitTillReady(self, device):
+        """
+        Wait until the Flash device is ready.
+
+        :param device: Flash device.
+        """
         while 1:
             sr = self.FlashDevice_readReg(device, 0x05)
             if (sr & 0x01) == 0:
                 break
 
     def FlashDevice_readIdentification(self, device):
+        """
+        Read identification from the Flash device.
+
+        :param device: Flash device.
+        :return: Identification value.
+        """
         txBuffer = [0] * 32
         cmd = bytearray(4)
         cmd[0] = 0x9F
-        # cmd[1] = 0x1
         rxBuffer = self.SPITransaction(device, txBuffer, cmd, 12)
         id = (
             ((rxBuffer[0] & 0xFF000000) >> 24)
@@ -244,6 +379,14 @@ class MngProgFlash:
         return id
 
     def FlashDevice_readPage(self, device, address, size):
+        """
+        Read a page from the Flash device.
+
+        :param device: Flash device.
+        :param address: Memory address to read from.
+        :param size: Size of the page to read.
+        :return: Read buffer.
+        """
         txBuffer = [0] * 512
         if size > device.pageSize:
             print("FlashDevice_readPage size > pageSize!")
@@ -282,6 +425,13 @@ class MngProgFlash:
     """
 
     def FlashDevice_readsector(self, device, address):
+        """
+        Read a sector from the Flash device.
+
+        :param device: Flash device.
+        :param address: Memory address to read from.
+        :return: Read buffer.
+        """
         rxbuffer = []
         page_size = device.pageSize
         num_of_pages = device.sectorSize // page_size
@@ -293,6 +443,12 @@ class MngProgFlash:
         return rxbuffer
 
     def FlashDevice_eraseSector(self, device, address):
+        """
+        Erase a sector in the Flash device.
+
+        :param device: Flash device.
+        :param address: Memory address of the sector to erase.
+        """
         self.FlashDevice_writeEnable(device)
         self.FlashDevice_waitTillReady(device)
         txBuffer = [0] * 4
@@ -306,6 +462,13 @@ class MngProgFlash:
         self.FlashDevice_waitTillReady(device)
 
     def FlashDevice_erase(self, device, address, size):
+        """
+        Erase a range of memory in the Flash device.
+
+        :param device: Flash device.
+        :param address: Starting address of the memory range to erase.
+        :param size: Size of the memory range to erase.
+        """
         stop = address + size
         while 1:
             self.FlashDevice_eraseSector(device, address)
@@ -315,12 +478,26 @@ class MngProgFlash:
         self.FlashDevice_writeDisable(device)
 
     def FlashDevice_chiperase(self, device):
+        """
+        Erase the entire Flash chip.
+
+        :param device: Flash device.
+        """
         self.FlashDevice_writeEnable(device)
         self.FlashDevice_waitTillReady(device)
         self.FlashDevice_writeReg(device, 0xC7)
         self.FlashDevice_waitTillReady(device)
 
     def FlashDevice_writePage(self, device, address, size, buffer):
+        """
+        Write a page to the Flash device.
+
+        :param device: Flash device.
+        :param address: Memory address to write to.
+        :param size: Size of the data to write.
+        :param buffer: Data buffer to write.
+        :return: Read buffer.
+        """
         if size > device.pageSize:
             print("FlashDevice_writePage size > pageSize!")
             return -1
@@ -359,6 +536,13 @@ class MngProgFlash:
     """
 
     def FlashDevice_writesector(self, device, address, buffer):
+        """
+        Write a sector to the Flash device.
+
+        :param device: Flash device.
+        :param address: Memory address to write to.
+        :param buffer: Data buffer to write.
+        """
         page_size = device.pageSize
         page_offset = address & (device.pageSize - 1)
 
@@ -374,7 +558,14 @@ class MngProgFlash:
     # ########## BITSTREAM MANAGE METHODS SECTION ####################################
 
     def loadBitstream(self, filename, sectorSize):
-        print("Open Bistream file %s" % (filename))
+        """
+        Load a bitstream file into memory.
+
+        :param filename: Path to the bitstream file.
+        :param sectorSize: Size of Flash sectors.
+        :return: Tuple containing the loaded bitstream, bitstream size, and the size of the allocated memory block.
+        """
+        print("Open Bitstream file %s" % (filename))
         with open(filename, "rb") as f:
             dump = bytearray(f.read())
         bitstreamSize = len(dump)
@@ -397,12 +588,19 @@ class MngProgFlash:
         return tmp, bitstreamSize, s
 
     def saveBitstream(self, filename, memblock, bitstreamSize):
+        """
+        Save a bitstream from memory to a file.
+
+        :param filename: Path to the output bitstream file.
+        :param memblock: Data to be saved.
+        :param bitstreamSize: Size of the bitstream data.
+        """
         f = open(filename, "wb")
         print("Writing %d bytes to %s" % (bitstreamSize, filename))
 
         l = len(memblock)
         data = bytearray(l * 4)
-        print("lenght of array to be written: %d, in byte %d" % (l, l * 4))
+        print("length of array to be written: %d, in byte %d" % (l, l * 4))
         bytecount = 0
         for i in range(0, l):
             data[bytecount + 0] = memblock[i] & 0xFF
@@ -412,6 +610,7 @@ class MngProgFlash:
             bytecount += 4
         f.write(data[0:bitstreamSize])
         f.close()
+
 
     def firmwareProgram(
         self,
@@ -423,6 +622,19 @@ class MngProgFlash:
         erase_size=None,
         add_len=False,
     ):
+        """
+        Program the firmware onto the flash device.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+            bitstreamFilename (str): Filename of the bitstream.
+            address (int): Address in the flash where the bitstream will be written.
+            dumpFilename (str, optional): Filename for dumping flash content. Defaults to None.
+            erase_all (bool, optional): Flag to indicate whether to erase the entire flash. Defaults to False.
+            erase_size (int, optional): Size to erase, if specified. Defaults to None.
+            add_len (bool, optional): Flag to prepend bitstream size during writing. Defaults to False.
+        """
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         sectorSize = device.sectorSize
@@ -624,6 +836,16 @@ class MngProgFlash:
     """
 
     def firmwareRead(self, flashdeviceindedx, address, size, dumpFilename):
+        """
+        Read firmware from the flash device.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+            address (int): Address in the flash from where to start reading.
+            size (int): Size of the data to read.
+            dumpFilename (str): Filename for dumping the read data.
+        """
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         sectorSize = device.sectorSize
@@ -632,62 +854,103 @@ class MngProgFlash:
         bitstream_sectorsize = size // sectorSize
         bitstream_sectorsize += 1
         bufferD = []  # bytearray(bitstream_sectorsize*sectorSize)
-        # remaining = size
         remaining = bitstream_sectorsize * sectorSize
         i = sectorOffset
         j = 0
         ec = 0
         upper_flash = False
         print("Starting Reading from sector %d" % sectorOffset)
-        print(
-            "--- READING ------------------------------------------------------------------------------------"
-        )
+        print("--- READING ------------------------------------------------------------------------------------")
         while remaining > 0:
             off = j * sectorSize
-            print(
-                "Sector %03d @ %08X - bitstream offset %08X: R"
-                % (i, i * sectorSize, off)
-            )
+            print("Sector %03d @ %08X - bitstream offset %08X: R" % (i, i * sectorSize, off))
             c = 0
-            if upper_flash == False and address >= 0x1000000:
+            if not upper_flash and address >= 0x1000000:
                 upper_flash = True
                 self.FlashDevice_Enter4byteAddMode(device)
             bufferI = self.FlashDevice_readsector(device, i * sectorSize)
-            # for k in range (0,sectorSize):
-            #    bufferD[k+off]=bufferI[k]
             bufferD = bufferD + bufferI
             remaining -= sectorSize
             j += 1
             i += 1
-        print(
-            "----------------------------------------------------------------------------------------------------"
-        )
-        if self.add4bytemode is True:
+        print("----------------------------------------------------------------------------------------------------")
+        if self.add4bytemode:
             self.FlashDevice_Exit4byteAddMode(device)
         if dumpFilename is not None:
             self.saveBitstream(dumpFilename, bufferD, size)
 
+
     def DeviceGetInfo(self, flashdeviceindedx):
+        """
+        Get information about the flash device.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+
+        Returns:
+            FlashDevice: Information about the flash device.
+        """
         device = FlashDevices[flashdeviceindedx]
         return device
 
+
     def DeviceGetID(self, flashdeviceindedx):
+        """
+        Get the identification of the flash device.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+
+        Returns:
+            int: Identification of the flash device.
+        """
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         id = self.FlashDevice_readIdentification(device)
         return id
 
+
     def DeviceErase(self, flashdeviceindedx, address, size):
+        """
+        Erase a specified range on the flash device.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+            address (int): Address in the flash to start erasing.
+            size (int): Size of the range to erase.
+        """
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         self.FlashDevice_erase(device, address, size)
 
+
     def DeviceEraseChip(self, flashdeviceindedx):
+        """
+        Erase the entire flash chip.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+        """
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         self.FlashDevice_chiperase(device)
 
+
     def DeviceWrite(self, flashdeviceindedx, address, txbuff, size):
+        """
+        Write data to the flash device.
+
+        Args:
+            self: The object instance.
+            flashdeviceindedx (int): Index of the flash device.
+            address (int): Address in the flash where to start writing.
+            txbuff (bytes): Data to be written.
+            size (int): Size of the data to write.
+        """
         device = FlashDevices[flashdeviceindedx]
         self.spi_mux_selection(device.slaveID)
         data_size = len(txbuff)
