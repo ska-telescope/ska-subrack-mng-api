@@ -1,6 +1,6 @@
 import time
 import binascii
-from .management_spi import MANAGEMENT_SPI
+from bsp.management_spi import MANAGEMENT_SPI
 import socket
 import struct
 
@@ -493,7 +493,6 @@ class MANAGEMENT_BSP:
             self.rmp.wr32(0x90000000 + 0x70 * 4, 0x0)  # disable wishbone connection
 
             if n % 1000 == 0:
-
                 print("Reading CPLD config frame " + str(n) + "/9212")
         self.rmp.wr32(0x90000000 + 0x70 * 4, 0x80)  # enable wishbone connection
         self.cpld_efb_wr(0x26)

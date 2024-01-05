@@ -1,27 +1,31 @@
-"""!@package rmp UDP socket management and RMP packet encoding/decoding
- 
-This package provides functions for network initializing and basic 32 bit read/write
-operations on the network attached device using RMP protocol. This is rough and minimal code
-not exploiting all the RMP protocol features.     
 """
+@package rmp
+UDP socket management and RMP packet encoding/decoding
+
+This package provides functions for network initializing and basic 32-bit read/write
+operations on the network-attached device using RMP protocol. This is rough and minimal code
+not exploiting all the RMP protocol features.
+"""
+
 import sys
 import socket
 import array
-from struct import *
+from struct import unpack
 
 
 class rmpNetwork:
     def __init__(self, this_ip, fpga_ip, udp_port, timeout):
-        """!@brief Initialize the network
+        """
+        Initialize the network.
 
-        It Opens the sockets and sets specific options as socket receive time-out and buffer size.
+        It opens the sockets and sets specific options such as socket receive time-out and buffer size.
 
-        @param this_ip  -- str -- Host machine IP address
-        @param fpga_ip  -- str -- Network attached device IP address
-        @param udp_port -- int -- UDP port
-        @param timeout  -- int -- Receive Socket time-out in seconds
+        :param this_ip: str: Host machine IP address
+        :param fpga_ip: str: Network-attached device IP address
+        :param udp_port: int: UDP port
+        :param timeout: int: Receive Socket time-out in seconds
 
-        Returns -- int -- socket handle
+        :return: int: socket handle
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet # UDP
 
@@ -38,19 +42,21 @@ class rmpNetwork:
         self.timeout = timeout
         self.psn = 0
         self.reliable = 0
-        # print("self.fpga.ip %s" %self.fpga_ip)
 
     def CloseNetwork(self):
-        """!@brief Close previously opened socket."""
+        """
+        Close previously opened socket.
+        """
         self.sock.close()
         return
 
     def recvfrom_to(self, buff):
-        """!@brief Receive data from the socket within a timeout.
+        """
+        Receive data from the socket within a timeout.
 
-        @param buff -- int -- Buffer size
+        :param buff: int: Buffer size
 
-        Returns -- tuple -- received data and source address
+        :return: tuple: Received data and source address
         """
         attempt = 0
         while attempt < self.timeout or self.timeout == 0:
@@ -58,15 +64,16 @@ class rmpNetwork:
                 return self.sock.recvfrom(10240)
             except:
                 attempt += 1
-        raise NameError("UDP timeout. No answer from remote end!")
+        raise NameError("UDP timeout. No answer from the remote end!")
 
     def wr32(self, add, dat):
-        """!@brief Write remote register at address add with dat.
+        """
+        Write remote register at address 'add' with data 'dat'.
 
         It transmits a write request to the remote device.
 
-        @param add -- int -- 32 bits remote address
-        @param dat -- int -- 32 bits write data
+        :param add: int: 32 bits remote address
+        :param dat: int: 32 bits write data
         """
         req_add = add
         for i in range(3):
@@ -116,10 +123,7 @@ class rmpNetwork:
                 if self.reliable == 1:
                     print("")
                     print("Failed UCP write:")
-                    # print "Received: " + str(psn)
-                    # print "Expected: " + str(self.psn)
                     print("Requested Add: " + hex(req_add))
-                    # print "Received Add: " + hex(add)
                     print("Retrying...")
                     pass
                 else:
@@ -140,20 +144,21 @@ class rmpNetwork:
         exit(-1)
 
     def rd32(self, add, n=1):
-        """!@brief Read remote register at address add.
+        """
+        Read remote register at address 'add'.
 
         It transmits a read request and waits for a read response from the remote device.
         Once the response is received it extracts relevant data from a specific offset within the
         UDP payload and returns it. In case no response is received from the remote device
         a socket time-out occurs.
 
-        @param add -- int -- 32 bits remote address
+        :param add: int: 32 bits remote address
+        :param n: int: Number of words to read (default is 1)
 
-        Returns -- int -- read data
+        :return: int or list: Read data
         """
         req_add = add
         for i in range(3):
-
             self.psn += 1
 
             try:
@@ -163,7 +168,6 @@ class rmpNetwork:
                 pkt.append(n)  # noo
                 pkt.append(req_add)  # sa
 
-                # print("self.fpga.ip %s" % self.fpga_ip)
                 self.sock.sendto(
                     bytes(pkt.tostring()), (self.fpga_ip, self.remote_udp_port)
                 )
@@ -203,11 +207,12 @@ class rmpNetwork:
         print("")
         print("UCP read error")
         print("Requested Add: " + hex(req_add))
-        # print "Received Add: " + hex(add)
         exit(-1)
 
     def socket_flush(self):
-        """!@brief Flush UCP socket and recreate it."""
+        """
+        Flush UCP socket and recreate it.
+        """
         print("Flushing UCP socket...")
         self.sock.close()
 

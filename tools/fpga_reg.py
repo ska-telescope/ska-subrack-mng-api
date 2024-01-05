@@ -11,7 +11,7 @@ usage_string = (
 usage_hexample = (
     "es. %prog FPGA_FW.FirmwareVersion\nes. %prog UserReg.UserReg0 0x12345678\n"
 )
-Mng = Management()
+zMng = Management()
 
 
 parser = OptionParser(usage=(usage_string + usage_hexample))

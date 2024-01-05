@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPLD Management API Documentation &mdash; Subrack Management API 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Subrack Tools Documentation" href="toolsdocs.html" />
+    <link rel="prev" title="Web Server Documentation" href="webserverdocs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Subrack Management API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="apidocs.html">Subrack management API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webserverdocs.html">Web Server Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CPLD Management API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#config_ip.get_mac_from_eep"><code class="docutils literal notranslate"><span class="pre">get_mac_from_eep()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config_ip.int2ip"><code class="docutils literal notranslate"><span class="pre">int2ip()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config_ip.nuple2mac"><code class="docutils literal notranslate"><span class="pre">nuple2mac()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config_ip.read_string"><code class="docutils literal notranslate"><span class="pre">read_string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config_ip.write_string"><code class="docutils literal notranslate"><span class="pre">write_string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcu_update.loadBitstream"><code class="docutils literal notranslate"><span class="pre">loadBitstream()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.cfg_10g"><code class="docutils literal notranslate"><span class="pre">cfg_10g()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.decode_register"><code class="docutils literal notranslate"><span class="pre">decode_register()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.get_port_cfg"><code class="docutils literal notranslate"><span class="pre">get_port_cfg()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.get_switch_status"><code class="docutils literal notranslate"><span class="pre">get_switch_status()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.rd"><code class="docutils literal notranslate"><span class="pre">rd()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.read22"><code class="docutils literal notranslate"><span class="pre">read22()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.read45"><code class="docutils literal notranslate"><span class="pre">read45()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.read_and_decode"><code class="docutils literal notranslate"><span class="pre">read_and_decode()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.read_scratch"><code class="docutils literal notranslate"><span class="pre">read_scratch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.read_wis"><code class="docutils literal notranslate"><span class="pre">read_wis()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.readmodifywrite"><code class="docutils literal notranslate"><span class="pre">readmodifywrite()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.set_SFP"><code class="docutils literal notranslate"><span class="pre">set_SFP()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.set_field"><code class="docutils literal notranslate"><span class="pre">set_field()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.wr"><code class="docutils literal notranslate"><span class="pre">wr()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.write22"><code class="docutils literal notranslate"><span class="pre">write22()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.write22_reg"><code class="docutils literal notranslate"><span class="pre">write22_reg()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.write45"><code class="docutils literal notranslate"><span class="pre">write45()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.write_scratch"><code class="docutils literal notranslate"><span class="pre">write_scratch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reg.get_max_width"><code class="docutils literal notranslate"><span class="pre">get_max_width()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reg.pprint_table"><code class="docutils literal notranslate"><span class="pre">pprint_table()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management_flash.MngProgFlash"><code class="docutils literal notranslate"><span class="pre">MngProgFlash</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.DeviceErase"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.DeviceErase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.DeviceEraseChip"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.DeviceEraseChip()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.DeviceGetID"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.DeviceGetID()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.DeviceGetInfo"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.DeviceGetInfo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.DeviceWrite"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.DeviceWrite()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_Enter4byteAddMode"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_Enter4byteAddMode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_Exit4byteAddMode"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_Exit4byteAddMode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_chiperase"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_chiperase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_erase"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_erase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_eraseSector"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_eraseSector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_prepareCommand"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_prepareCommand()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_readIdentification"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_readIdentification()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_readPage"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_readPage()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_readReg"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_readReg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_readsector"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_readsector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_waitTillReady"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_waitTillReady()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_writeDisable"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_writeDisable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_writeEnable"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_writeEnable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_writePage"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_writePage()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_writeReg"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_writeReg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.FlashDevice_writesector"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.FlashDevice_writesector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.SPITransaction"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.SPITransaction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.firmwareProgram"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.firmwareProgram()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.firmwareRead"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.firmwareRead()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.loadBitstream"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.loadBitstream()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.saveBitstream"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.saveBitstream()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_chipselect"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_chipselect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_config"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_mux_selection"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_mux_selection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_rx_available"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_rx_available()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_sync"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_sync()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_trigger"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_trigger()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_flash.MngProgFlash.spi_tx_remaining"><code class="docutils literal notranslate"><span class="pre">MngProgFlash.spi_tx_remaining()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#management_flash.spiregisters"><code class="docutils literal notranslate"><span class="pre">spiregisters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management_mcu_uart.MngMcuUart"><code class="docutils literal notranslate"><span class="pre">MngMcuUart</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#management_mcu_uart.MngMcuUart.reset_mcu"><code class="docutils literal notranslate"><span class="pre">MngMcuUart.reset_mcu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_mcu_uart.MngMcuUart.start_mcu_sam_ba_monitor"><code class="docutils literal notranslate"><span class="pre">MngMcuUart.start_mcu_sam_ba_monitor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_mcu_uart.MngMcuUart.uart_receive_byte"><code class="docutils literal notranslate"><span class="pre">MngMcuUart.uart_receive_byte()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_mcu_uart.MngMcuUart.uart_send_buffer"><code class="docutils literal notranslate"><span class="pre">MngMcuUart.uart_send_buffer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_mcu_uart.MngMcuUart.uart_send_buffer_wrx"><code class="docutils literal notranslate"><span class="pre">MngMcuUart.uart_send_buffer_wrx()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management_mcu_uart.MngMcuUart.uart_send_byte"><code class="docutils literal notranslate"><span class="pre">MngMcuUart.uart_send_byte()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="toolsdocs.html">Subrack Tools Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Subrack Management API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CPLD Management API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cplddocs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-config_ip">
+<span id="cpld-management-api-documentation"></span><h1>CPLD Management API Documentation<a class="headerlink" href="#module-config_ip" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="config_ip.get_mac_from_eep">
+<span class="sig-prename descclassname"><span class="pre">config_ip.</span></span><span class="sig-name descname"><span class="pre">get_mac_from_eep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phy_addr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">160</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config_ip.get_mac_from_eep" title="Link to this definition"></a></dt>
+<dd><p>Read MAC address from EEPROM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inst</strong> (<em>instance</em>) – Instance of a class with ‘bsp’ attribute.</p></li>
+<li><p><strong>phy_addr</strong> (<em>int</em>) – Physical address in EEPROM (default is 0xA0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List representing the MAC address.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config_ip.int2ip">
+<span class="sig-prename descclassname"><span class="pre">config_ip.</span></span><span class="sig-name descname"><span class="pre">int2ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config_ip.int2ip" title="Link to this definition"></a></dt>
+<dd><p>Convert an integer to an IP address string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>int</em>) – Integer representation of the IP address.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>IP address string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config_ip.nuple2mac">
+<span class="sig-prename descclassname"><span class="pre">config_ip.</span></span><span class="sig-name descname"><span class="pre">nuple2mac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mac</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config_ip.nuple2mac" title="Link to this definition"></a></dt>
+<dd><p>Convert a MAC address tuple to a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mac</strong> (<em>tuple</em>) – Tuple representing the MAC address.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>MAC address string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config_ip.read_string">
+<span class="sig-prename descclassname"><span class="pre">config_ip.</span></span><span class="sig-name descname"><span class="pre">read_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config_ip.read_string" title="Link to this definition"></a></dt>
+<dd><p>Read a string from EEPROM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inst</strong> (<em>instance</em>) – Instance of a class with ‘bsp’ attribute.</p></li>
+<li><p><strong>offset</strong> (<em>int</em>) – Offset in EEPROM to start reading the string.</p></li>
+<li><p><strong>max_len</strong> (<em>int</em>) – Maximum length of the string to read (default is 32).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Read string from EEPROM.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config_ip.write_string">
+<span class="sig-prename descclassname"><span class="pre">config_ip.</span></span><span class="sig-name descname"><span class="pre">write_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config_ip.write_string" title="Link to this definition"></a></dt>
+<dd><p>Write a string to EEPROM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inst</strong> (<em>instance</em>) – Instance of a class with ‘bsp’ attribute.</p></li>
+<li><p><strong>offset</strong> (<em>int</em>) – Offset in EEPROM to start writing the string.</p></li>
+<li><p><strong>string</strong> (<em>str</em>) – String to be written to EEPROM.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-mcu_update">
+<span id="module-management_pll"></span><dt class="sig sig-object py" id="mcu_update.loadBitstream">
+<span class="sig-prename descclassname"><span class="pre">mcu_update.</span></span><span class="sig-name descname"><span class="pre">loadBitstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pagesize</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mcu_update.loadBitstream" title="Link to this definition"></a></dt>
+<dd><p>Load the bitstream from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – The path to the bitstream file.</p></li>
+<li><p><strong>pagesize</strong> (<em>int</em>) – The size of the pages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The formatted bitstream.
+int: The bitstream size.
+int: The total size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytearray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-mng_update">Test TPM script.</p>
+<p>__author__ = “Bubs”</p>
+<dl class="py function" id="module-phy_marvell_88X2222_init">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.cfg_10g">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">cfg_10g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdio_mux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.cfg_10g" title="Link to this definition"></a></dt>
+<dd><p>Configure a 10G port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port</strong> – The port number (default is 0).</p></li>
+<li><p><strong>mdio_mux</strong> – The MDIO multiplexer value (default is 3).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.decode_register">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">decode_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_def</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.decode_register" title="Link to this definition"></a></dt>
+<dd><p>Decode and print the value of a register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port</strong> – The port number.</p></li>
+<li><p><strong>reg_def</strong> – The register definition.</p></li>
+<li><p><strong>reg_value</strong> – The value to decode.</p></li>
+<li><p><strong>field</strong> – The specific field to decode (default is None).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.get_port_cfg">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">get_port_cfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdio_mux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.get_port_cfg" title="Link to this definition"></a></dt>
+<dd><p>Get and decode the configuration of a port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port</strong> – The port number.</p></li>
+<li><p><strong>mdio_mux</strong> – The MDIO multiplexer value (default is 2).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.get_switch_status">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">get_switch_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.get_switch_status" title="Link to this definition"></a></dt>
+<dd><p>Get the status of various switch ports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the status of each switch port.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.rd">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">rd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.rd" title="Link to this definition"></a></dt>
+<dd><p>Read a value from a given address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>address</strong> – The address to read from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value read from the address.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.read22">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">read22</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phy_adr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.read22" title="Link to this definition"></a></dt>
+<dd><p>Read a value from a 22-bit register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The multiplexer value.</p></li>
+<li><p><strong>phy_adr</strong> – The physical address.</p></li>
+<li><p><strong>register</strong> – The register to read from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value read from the register.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.read45">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">read45</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phy_adr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.read45" title="Link to this definition"></a></dt>
+<dd><p>Read a value from a 45-bit register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The multiplexer value.</p></li>
+<li><p><strong>phy_adr</strong> – The physical address.</p></li>
+<li><p><strong>device</strong> – The device.</p></li>
+<li><p><strong>register</strong> – The register to read from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value read from the register.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.read_and_decode">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">read_and_decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_def</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdio_mux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.read_and_decode" title="Link to this definition"></a></dt>
+<dd><p>Read and decode a register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port</strong> – The port number.</p></li>
+<li><p><strong>reg_def</strong> – The register definition.</p></li>
+<li><p><strong>mdio_mux</strong> – The MDIO multiplexer value (default is 2).</p></li>
+<li><p><strong>field</strong> – The specific field to read (default is None).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.read_scratch">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">read_scratch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.read_scratch" title="Link to this definition"></a></dt>
+<dd><p>Read a value from the scratch register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The MDIO multiplexer value.</p></li>
+<li><p><strong>offset</strong> – The offset within the scratch register.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value read from the scratch register.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.read_wis">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">read_wis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdio_mux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.read_wis" title="Link to this definition"></a></dt>
+<dd><p>Read and print the WIS device identifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mdio_mux</strong> – The MDIO multiplexer value (default is 3).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.readmodifywrite">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">readmodifywrite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phy_adr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.readmodifywrite" title="Link to this definition"></a></dt>
+<dd><p>Perform read-modify-write operation on a 45-bit register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The multiplexer value.</p></li>
+<li><p><strong>phy_adr</strong> – The physical address.</p></li>
+<li><p><strong>device</strong> – The device.</p></li>
+<li><p><strong>register</strong> – The register to read from.</p></li>
+<li><p><strong>value</strong> – The value to write.</p></li>
+<li><p><strong>select</strong> – The selection mask.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.set_SFP">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">set_SFP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdio_mux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.set_SFP" title="Link to this definition"></a></dt>
+<dd><p>Configure the SFP module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mdio_mux</strong> – The MDIO multiplexer value (default is 2).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.set_field">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">set_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_def</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.set_field" title="Link to this definition"></a></dt>
+<dd><p>Set a field in a register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port</strong> – The port number.</p></li>
+<li><p><strong>reg_def</strong> – The register definition.</p></li>
+<li><p><strong>field_name</strong> – The name of the field to set.</p></li>
+<li><p><strong>field_value</strong> – The value to set in the field.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.wr">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">wr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.wr" title="Link to this definition"></a></dt>
+<dd><p>Write a value to a given address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> – The address to write to.</p></li>
+<li><p><strong>value</strong> – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.write22">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">write22</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phy_adr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.write22" title="Link to this definition"></a></dt>
+<dd><p>Write a value to a 22-bit register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The multiplexer value.</p></li>
+<li><p><strong>phy_adr</strong> – The physical address.</p></li>
+<li><p><strong>register</strong> – The register to write to.</p></li>
+<li><p><strong>value</strong> – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.write22_reg">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">write22_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_def</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.write22_reg" title="Link to this definition"></a></dt>
+<dd><p>Write a value to a 22-bit register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port</strong> – The port number.</p></li>
+<li><p><strong>reg_def</strong> – The register definition.</p></li>
+<li><p><strong>reg_value</strong> – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.write45">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">write45</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phy_adr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.write45" title="Link to this definition"></a></dt>
+<dd><p>Write a value to a 45-bit register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The multiplexer value.</p></li>
+<li><p><strong>phy_adr</strong> – The physical address.</p></li>
+<li><p><strong>device</strong> – The device.</p></li>
+<li><p><strong>register</strong> – The register to write to.</p></li>
+<li><p><strong>value</strong> – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phy_marvell_88X2222_init.write_scratch">
+<span class="sig-prename descclassname"><span class="pre">phy_marvell_88X2222_init.</span></span><span class="sig-name descname"><span class="pre">write_scratch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#phy_marvell_88X2222_init.write_scratch" title="Link to this definition"></a></dt>
+<dd><p>Write a value to the scratch register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mux</strong> – The MDIO multiplexer value.</p></li>
+<li><p><strong>offset</strong> – The offset within the scratch register.</p></li>
+<li><p><strong>value</strong> – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-reg">
+<dt class="sig sig-object py" id="reg.get_max_width">
+<span class="sig-prename descclassname"><span class="pre">reg.</span></span><span class="sig-name descname"><span class="pre">get_max_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reg.get_max_width" title="Link to this definition"></a></dt>
+<dd><p>Get the maximum width of the given column index</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reg.pprint_table">
+<span class="sig-prename descclassname"><span class="pre">reg.</span></span><span class="sig-name descname"><span class="pre">pprint_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reg.pprint_table" title="Link to this definition"></a></dt>
+<dd><p>Prints out a table of data.
+&#64;param table: The table to print. A list of lists.
+Each row must have the same number of columns.</p>
+</dd></dl>
+
+<p id="module-rmp">&#64;package rmp
+UDP socket management and RMP packet encoding/decoding</p>
+<p>This package provides functions for network initializing and basic 32-bit read/write
+operations on the network-attached device using RMP protocol. This is rough and minimal code
+not exploiting all the RMP protocol features.</p>
+<dl class="py class" id="module-management_flash">
+<span id="module-management_bsp"></span><dt class="sig sig-object py" id="management_flash.MngProgFlash">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">management_flash.</span></span><span class="sig-name descname"><span class="pre">MngProgFlash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash" title="Link to this definition"></a></dt>
+<dd><p>Management Class for CPLD and FPGA SPI Flash bitfile storage/access class.</p>
+<p>Attributes:
+- rmp: Pointer to RMP instance.
+- board: Pointer to board instance.
+- add4bytemode (bool): Flag indicating whether 4-byte addressing mode is enabled.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.DeviceErase">
+<span class="sig-name descname"><span class="pre">DeviceErase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.DeviceErase" title="Link to this definition"></a></dt>
+<dd><p>Erase a specified range on the flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+<li><p><strong>address</strong> (<em>int</em>) – Address in the flash to start erasing.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Size of the range to erase.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.DeviceEraseChip">
+<span class="sig-name descname"><span class="pre">DeviceEraseChip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.DeviceEraseChip" title="Link to this definition"></a></dt>
+<dd><p>Erase the entire flash chip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.DeviceGetID">
+<span class="sig-name descname"><span class="pre">DeviceGetID</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.DeviceGetID" title="Link to this definition"></a></dt>
+<dd><p>Get the identification of the flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identification of the flash device.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.DeviceGetInfo">
+<span class="sig-name descname"><span class="pre">DeviceGetInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.DeviceGetInfo" title="Link to this definition"></a></dt>
+<dd><p>Get information about the flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Information about the flash device.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>FlashDevice</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.DeviceWrite">
+<span class="sig-name descname"><span class="pre">DeviceWrite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txbuff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.DeviceWrite" title="Link to this definition"></a></dt>
+<dd><p>Write data to the flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+<li><p><strong>address</strong> (<em>int</em>) – Address in the flash where to start writing.</p></li>
+<li><p><strong>txbuff</strong> (<em>bytes</em>) – Data to be written.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Size of the data to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_Enter4byteAddMode">
+<span class="sig-name descname"><span class="pre">FlashDevice_Enter4byteAddMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_Enter4byteAddMode" title="Link to this definition"></a></dt>
+<dd><p>Enter 4-byte addressing mode for Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_Exit4byteAddMode">
+<span class="sig-name descname"><span class="pre">FlashDevice_Exit4byteAddMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_Exit4byteAddMode" title="Link to this definition"></a></dt>
+<dd><p>Exit 4-byte addressing mode for Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_chiperase">
+<span class="sig-name descname"><span class="pre">FlashDevice_chiperase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_chiperase" title="Link to this definition"></a></dt>
+<dd><p>Erase the entire Flash chip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_erase">
+<span class="sig-name descname"><span class="pre">FlashDevice_erase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_erase" title="Link to this definition"></a></dt>
+<dd><p>Erase a range of memory in the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>address</strong> – Starting address of the memory range to erase.</p></li>
+<li><p><strong>size</strong> – Size of the memory range to erase.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_eraseSector">
+<span class="sig-name descname"><span class="pre">FlashDevice_eraseSector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_eraseSector" title="Link to this definition"></a></dt>
+<dd><p>Erase a sector in the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>address</strong> – Memory address of the sector to erase.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_prepareCommand">
+<span class="sig-name descname"><span class="pre">FlashDevice_prepareCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_prepareCommand" title="Link to this definition"></a></dt>
+<dd><p>Prepare a Flash device command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> – Command code.</p></li>
+<li><p><strong>address</strong> – Flash memory address.</p></li>
+<li><p><strong>device</strong> – Flash device.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Prepared command buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_readIdentification">
+<span class="sig-name descname"><span class="pre">FlashDevice_readIdentification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_readIdentification" title="Link to this definition"></a></dt>
+<dd><p>Read identification from the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identification value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_readPage">
+<span class="sig-name descname"><span class="pre">FlashDevice_readPage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_readPage" title="Link to this definition"></a></dt>
+<dd><p>Read a page from the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>address</strong> – Memory address to read from.</p></li>
+<li><p><strong>size</strong> – Size of the page to read.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Read buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_readReg">
+<span class="sig-name descname"><span class="pre">FlashDevice_readReg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_readReg" title="Link to this definition"></a></dt>
+<dd><p>Read from Flash device register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>reg</strong> – Register to read.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Register value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_readsector">
+<span class="sig-name descname"><span class="pre">FlashDevice_readsector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_readsector" title="Link to this definition"></a></dt>
+<dd><p>Read a sector from the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>address</strong> – Memory address to read from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Read buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_waitTillReady">
+<span class="sig-name descname"><span class="pre">FlashDevice_waitTillReady</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_waitTillReady" title="Link to this definition"></a></dt>
+<dd><p>Wait until the Flash device is ready.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_writeDisable">
+<span class="sig-name descname"><span class="pre">FlashDevice_writeDisable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_writeDisable" title="Link to this definition"></a></dt>
+<dd><p>Disable write for the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_writeEnable">
+<span class="sig-name descname"><span class="pre">FlashDevice_writeEnable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_writeEnable" title="Link to this definition"></a></dt>
+<dd><p>Enable write for the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> – Flash device.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_writePage">
+<span class="sig-name descname"><span class="pre">FlashDevice_writePage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_writePage" title="Link to this definition"></a></dt>
+<dd><p>Write a page to the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>address</strong> – Memory address to write to.</p></li>
+<li><p><strong>size</strong> – Size of the data to write.</p></li>
+<li><p><strong>buffer</strong> – Data buffer to write.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Read buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_writeReg">
+<span class="sig-name descname"><span class="pre">FlashDevice_writeReg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_writeReg" title="Link to this definition"></a></dt>
+<dd><p>Write to Flash device register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>reg</strong> – Register to write.</p></li>
+<li><p><strong>value</strong> – Value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.FlashDevice_writesector">
+<span class="sig-name descname"><span class="pre">FlashDevice_writesector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.FlashDevice_writesector" title="Link to this definition"></a></dt>
+<dd><p>Write a sector to the Flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>address</strong> – Memory address to write to.</p></li>
+<li><p><strong>buffer</strong> – Data buffer to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.SPITransaction">
+<span class="sig-name descname"><span class="pre">SPITransaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TxBuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.SPITransaction" title="Link to this definition"></a></dt>
+<dd><p>Perform an SPI transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> – Flash device.</p></li>
+<li><p><strong>TxBuffer</strong> – Transmit buffer.</p></li>
+<li><p><strong>cmd</strong> – Command to be sent.</p></li>
+<li><p><strong>size</strong> – Size of the SPI transaction.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Received buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.firmwareProgram">
+<span class="sig-name descname"><span class="pre">firmwareProgram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bitstreamFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dumpFilename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erase_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">erase_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.firmwareProgram" title="Link to this definition"></a></dt>
+<dd><p>Program the firmware onto the flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+<li><p><strong>bitstreamFilename</strong> (<em>str</em>) – Filename of the bitstream.</p></li>
+<li><p><strong>address</strong> (<em>int</em>) – Address in the flash where the bitstream will be written.</p></li>
+<li><p><strong>dumpFilename</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename for dumping flash content. Defaults to None.</p></li>
+<li><p><strong>erase_all</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to indicate whether to erase the entire flash. Defaults to False.</p></li>
+<li><p><strong>erase_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Size to erase, if specified. Defaults to None.</p></li>
+<li><p><strong>add_len</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to prepend bitstream size during writing. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.firmwareRead">
+<span class="sig-name descname"><span class="pre">firmwareRead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flashdeviceindedx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dumpFilename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.firmwareRead" title="Link to this definition"></a></dt>
+<dd><p>Read firmware from the flash device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – The object instance.</p></li>
+<li><p><strong>flashdeviceindedx</strong> (<em>int</em>) – Index of the flash device.</p></li>
+<li><p><strong>address</strong> (<em>int</em>) – Address in the flash from where to start reading.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Size of the data to read.</p></li>
+<li><p><strong>dumpFilename</strong> (<em>str</em>) – Filename for dumping the read data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.loadBitstream">
+<span class="sig-name descname"><span class="pre">loadBitstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sectorSize</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.loadBitstream" title="Link to this definition"></a></dt>
+<dd><p>Load a bitstream file into memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> – Path to the bitstream file.</p></li>
+<li><p><strong>sectorSize</strong> – Size of Flash sectors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple containing the loaded bitstream, bitstream size, and the size of the allocated memory block.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.saveBitstream">
+<span class="sig-name descname"><span class="pre">saveBitstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memblock</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bitstreamSize</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.saveBitstream" title="Link to this definition"></a></dt>
+<dd><p>Save a bitstream from memory to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> – Path to the output bitstream file.</p></li>
+<li><p><strong>memblock</strong> – Data to be saved.</p></li>
+<li><p><strong>bitstreamSize</strong> – Size of the bitstream data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_chipselect">
+<span class="sig-name descname"><span class="pre">spi_chipselect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">isactive</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_chipselect" title="Link to this definition"></a></dt>
+<dd><p>Set or clear the SPI Chip Select.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>isactive</strong> – True to activate the Chip Select, False to deactivate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_config">
+<span class="sig-name descname"><span class="pre">spi_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spi_cs_ow</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_config" title="Link to this definition"></a></dt>
+<dd><p>Configure SPI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>spi_cs_ow</strong> – 1 to enable, 0 to disable the SPI Chip Select One-Wire.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_mux_selection">
+<span class="sig-name descname"><span class="pre">spi_mux_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slaveid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_mux_selection" title="Link to this definition"></a></dt>
+<dd><p>Select the SPI MUX.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>slaveid</strong> – Slave ID for SPI MUX selection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_rx_available">
+<span class="sig-name descname"><span class="pre">spi_rx_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_rx_available" title="Link to this definition"></a></dt>
+<dd><p>Get the number of available SPI receive bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of available SPI receive bytes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_sync">
+<span class="sig-name descname"><span class="pre">spi_sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slaveid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txBuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_sync" title="Link to this definition"></a></dt>
+<dd><p>Perform a synchronous SPI transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>slaveid</strong> – Slave ID for SPI communication.</p></li>
+<li><p><strong>txBuffer</strong> – Transmit buffer.</p></li>
+<li><p><strong>cmd</strong> – Command to be sent.</p></li>
+<li><p><strong>length</strong> – Length of SPI transaction.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Received buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_trigger">
+<span class="sig-name descname"><span class="pre">spi_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_trigger" title="Link to this definition"></a></dt>
+<dd><p>Trigger SPI transmission with the specified length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>length</strong> – Length of SPI transmission.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_flash.MngProgFlash.spi_tx_remaining">
+<span class="sig-name descname"><span class="pre">spi_tx_remaining</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management_flash.MngProgFlash.spi_tx_remaining" title="Link to this definition"></a></dt>
+<dd><p>Get the number of remaining SPI transmit bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of remaining SPI transmit bytes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="management_flash.spiregisters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">management_flash.</span></span><span class="sig-name descname"><span class="pre">spiregisters</span></span><a class="headerlink" href="#management_flash.spiregisters" title="Link to this definition"></a></dt>
+<dd><p>Class representing SPI registers.</p>
+<p>Attributes:
+- spi_cs_ow (int): SPI Chip Select One-Wire register address.
+- spi_cs0 (int): SPI Chip Select 0 register address.
+- spi_tx_byte (int): SPI Transmit Byte register address.
+- spi_rx_byte (int): SPI Receive Byte register address.
+- spi_tx_buf_len (int): SPI Transmit Buffer Length register address.
+- spi_rx_buf_len (int): SPI Receive Buffer Length register address.
+- spi_fifo_addr (int): SPI FIFO Address register address.
+- spi_mux (int): SPI Multiplexer register address.
+- spi_rxtxbuffer (int): SPI Receive/Transmit Buffer register address.</p>
+</dd></dl>
+
+<dl class="py class" id="module-management_mcu_uart">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">management_mcu_uart.</span></span><span class="sig-name descname"><span class="pre">MngMcuUart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart" title="Link to this definition"></a></dt>
+<dd><p>Management Class for CPLD2MCU Uart control for MCU update</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart.reset_mcu">
+<span class="sig-name descname"><span class="pre">reset_mcu</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart.reset_mcu" title="Link to this definition"></a></dt>
+<dd><p>Resets the MCU.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart.start_mcu_sam_ba_monitor">
+<span class="sig-name descname"><span class="pre">start_mcu_sam_ba_monitor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart.start_mcu_sam_ba_monitor" title="Link to this definition"></a></dt>
+<dd><p>Initiates the MCU SAM-BA monitor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The operation status (0 for success, 1 for timeout).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart.uart_receive_byte">
+<span class="sig-name descname"><span class="pre">uart_receive_byte</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart.uart_receive_byte" title="Link to this definition"></a></dt>
+<dd><p>Receives a single byte over UART from the MCU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the received byte and the operation status
+(0 for success, 1 for timeout).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart.uart_send_buffer">
+<span class="sig-name descname"><span class="pre">uart_send_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">databuff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart.uart_send_buffer" title="Link to this definition"></a></dt>
+<dd><p>Sends a buffer of data over UART to the MCU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>databuff</strong> – The data buffer to be sent.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The operation status (0 for success, 1 for timeout).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart.uart_send_buffer_wrx">
+<span class="sig-name descname"><span class="pre">uart_send_buffer_wrx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">databuff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart.uart_send_buffer_wrx" title="Link to this definition"></a></dt>
+<dd><p>Sends a buffer of data over UART to the MCU and receives a response.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>databuff</strong> – The data buffer to be sent.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the operation status (0 for success, 1 for timeout)
+and the received data buffer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management_mcu_uart.MngMcuUart.uart_send_byte">
+<span class="sig-name descname"><span class="pre">uart_send_byte</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataw</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management_mcu_uart.MngMcuUart.uart_send_byte" title="Link to this definition"></a></dt>
+<dd><p>Sends a single byte over UART to the MCU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dataw</strong> – The byte of data to be sent.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The operation status (0 for success, 1 for timeout).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-management_spi"></span></section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="webserverdocs.html" class="btn btn-neutral float-left" title="Web Server Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="toolsdocs.html" class="btn btn-neutral float-right" title="Subrack Tools Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Simone Chiarucci (INAF-OAA).</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

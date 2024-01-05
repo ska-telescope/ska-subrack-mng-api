@@ -3,6 +3,7 @@ import sys
 import socket
 import struct
 import binascii
+import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from bsp.management import *
@@ -20,7 +21,7 @@ def get_max_width(table1, index1):
 
 
 def pprint_table(table):
-    """Prints out a table of data, padded for alignment
+    """Prints out a table of data.
     @param table: The table to print. A list of lists.
     Each row must have the same number of columns."""
 

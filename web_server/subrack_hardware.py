@@ -8,6 +8,7 @@ import time
 import json
 import logging
 
+
 # helper function
 # byte to list of 8 bool
 def byte_to_bool_array(byte_in):
@@ -40,7 +41,7 @@ class PowerOnTpmCommand(ThreadedHardwareCommand):
         Power on TPMs
 
         :param tpm_id: index of TPM to power on (1-8) or list of indexes
-        : type tpm_id: str, list(str)
+        :type tpm_id: str, list(str)
 
         :return: dictionary with HardwareCommand response. List of TPM On status
         :rtype: dict
@@ -72,7 +73,7 @@ class PowerOffTpmCommand(ThreadedHardwareCommand):
         Power off TPMs
 
         :param tpm_id: index of TPM to power on (1-8) or list of indexes
-        : type tpm_id: str, list(str)
+        :type tpm_id: str, list(str)
 
         :return: dictionary with HardwareCommand response. List of TPM On status
         :rtype: dict
@@ -103,7 +104,7 @@ class IsTpmOnCommand(HardwareCommand):
         Check power status of TPMs
 
         :param params: index of TPM to check (1-8)
-        : type params: str
+        :type params: str
 
         :return: dictionary with HardwareCommand response. Integer retvalue
         :rtype: dict
@@ -274,7 +275,7 @@ class TpmInfo(HardwareCommand):
         Info about TPM.
 
         :param params: index of TPM to check (1-8)
-        : type params: str
+        :type params: str
 
         :return: TPM info
         :rtype: dict

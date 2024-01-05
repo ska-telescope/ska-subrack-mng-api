@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Server Documentation &mdash; Subrack Management API 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CPLD Management API Documentation" href="cplddocs.html" />
+    <link rel="prev" title="Subrack management API Documentation" href="apidocs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Subrack Management API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="apidocs.html">Subrack management API Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Web Server Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareBaseClass.GetAllAttributesCommand"><code class="docutils literal notranslate"><span class="pre">GetAllAttributesCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.GetAllAttributesCommand.do"><code class="docutils literal notranslate"><span class="pre">GetAllAttributesCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareBaseClass.HardwareAttribute"><code class="docutils literal notranslate"><span class="pre">HardwareAttribute</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareAttribute.name"><code class="docutils literal notranslate"><span class="pre">HardwareAttribute.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareAttribute.read"><code class="docutils literal notranslate"><span class="pre">HardwareAttribute.read()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareAttribute.read_value"><code class="docutils literal notranslate"><span class="pre">HardwareAttribute.read_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareAttribute.write"><code class="docutils literal notranslate"><span class="pre">HardwareAttribute.write()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareAttribute.write_value"><code class="docutils literal notranslate"><span class="pre">HardwareAttribute.write_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareBaseClass.HardwareBaseDevice"><code class="docutils literal notranslate"><span class="pre">HardwareBaseDevice</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareBaseDevice.add_attribute"><code class="docutils literal notranslate"><span class="pre">HardwareBaseDevice.add_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareBaseDevice.add_command"><code class="docutils literal notranslate"><span class="pre">HardwareBaseDevice.add_command()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareBaseDevice.execute_command"><code class="docutils literal notranslate"><span class="pre">HardwareBaseDevice.execute_command()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareBaseDevice.get_attribute"><code class="docutils literal notranslate"><span class="pre">HardwareBaseDevice.get_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareBaseDevice.set_attribute"><code class="docutils literal notranslate"><span class="pre">HardwareBaseDevice.set_attribute()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareBaseClass.HardwareCommand"><code class="docutils literal notranslate"><span class="pre">HardwareCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareCommand.do"><code class="docutils literal notranslate"><span class="pre">HardwareCommand.do()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.HardwareCommand.name"><code class="docutils literal notranslate"><span class="pre">HardwareCommand.name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareBaseClass.ListAttributeCommand"><code class="docutils literal notranslate"><span class="pre">ListAttributeCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.ListAttributeCommand.do"><code class="docutils literal notranslate"><span class="pre">ListAttributeCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareBaseClass.ListCommandCommand"><code class="docutils literal notranslate"><span class="pre">ListCommandCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareBaseClass.ListCommandCommand.do"><code class="docutils literal notranslate"><span class="pre">ListCommandCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareThreadedClass.AbortCommand"><code class="docutils literal notranslate"><span class="pre">AbortCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.AbortCommand.do"><code class="docutils literal notranslate"><span class="pre">AbortCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareThreadedClass.IsCompletedCommand"><code class="docutils literal notranslate"><span class="pre">IsCompletedCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.IsCompletedCommand.do"><code class="docutils literal notranslate"><span class="pre">IsCompletedCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#HardwareThreadedClass.ThreadedHardwareCommand"><code class="docutils literal notranslate"><span class="pre">ThreadedHardwareCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.ThreadedHardwareCommand.abort"><code class="docutils literal notranslate"><span class="pre">ThreadedHardwareCommand.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.ThreadedHardwareCommand.completed"><code class="docutils literal notranslate"><span class="pre">ThreadedHardwareCommand.completed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.ThreadedHardwareCommand.do"><code class="docutils literal notranslate"><span class="pre">ThreadedHardwareCommand.do()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.ThreadedHardwareCommand.is_blocking"><code class="docutils literal notranslate"><span class="pre">ThreadedHardwareCommand.is_blocking()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#HardwareThreadedClass.ThreadedHardwareCommand.thread"><code class="docutils literal notranslate"><span class="pre">ThreadedHardwareCommand.thread()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.API_Version"><code class="docutils literal notranslate"><span class="pre">API_Version</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.API_Version.read_value"><code class="docutils literal notranslate"><span class="pre">API_Version.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.AreTpmsOnCommand"><code class="docutils literal notranslate"><span class="pre">AreTpmsOnCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.AreTpmsOnCommand.do"><code class="docutils literal notranslate"><span class="pre">AreTpmsOnCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.BackplaneTemperature"><code class="docutils literal notranslate"><span class="pre">BackplaneTemperature</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.BackplaneTemperature.read_value"><code class="docutils literal notranslate"><span class="pre">BackplaneTemperature.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.BoardCurrent"><code class="docutils literal notranslate"><span class="pre">BoardCurrent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.BoardCurrent.read_value"><code class="docutils literal notranslate"><span class="pre">BoardCurrent.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.BoardTemperature"><code class="docutils literal notranslate"><span class="pre">BoardTemperature</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.BoardTemperature.read_value"><code class="docutils literal notranslate"><span class="pre">BoardTemperature.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.CPLD_PLL_Locked"><code class="docutils literal notranslate"><span class="pre">CPLD_PLL_Locked</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.CPLD_PLL_Locked.read_value"><code class="docutils literal notranslate"><span class="pre">CPLD_PLL_Locked.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.FanMode"><code class="docutils literal notranslate"><span class="pre">FanMode</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.FanMode.read_value"><code class="docutils literal notranslate"><span class="pre">FanMode.read_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.FanMode.write_value"><code class="docutils literal notranslate"><span class="pre">FanMode.write_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.FanSpeed"><code class="docutils literal notranslate"><span class="pre">FanSpeed</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.FanSpeed.read_value"><code class="docutils literal notranslate"><span class="pre">FanSpeed.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.FanSpeedPercent"><code class="docutils literal notranslate"><span class="pre">FanSpeedPercent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.FanSpeedPercent.read_value"><code class="docutils literal notranslate"><span class="pre">FanSpeedPercent.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.GetHealthDict"><code class="docutils literal notranslate"><span class="pre">GetHealthDict</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.GetHealthDict.do"><code class="docutils literal notranslate"><span class="pre">GetHealthDict.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.GetHealthStatus"><code class="docutils literal notranslate"><span class="pre">GetHealthStatus</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.GetHealthStatus.do"><code class="docutils literal notranslate"><span class="pre">GetHealthStatus.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.IsTpmOnCommand"><code class="docutils literal notranslate"><span class="pre">IsTpmOnCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.IsTpmOnCommand.do"><code class="docutils literal notranslate"><span class="pre">IsTpmOnCommand.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PSCurrent"><code class="docutils literal notranslate"><span class="pre">PSCurrent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PSCurrent.read_value"><code class="docutils literal notranslate"><span class="pre">PSCurrent.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PSFanSpeed"><code class="docutils literal notranslate"><span class="pre">PSFanSpeed</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PSFanSpeed.read_value"><code class="docutils literal notranslate"><span class="pre">PSFanSpeed.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PSPower"><code class="docutils literal notranslate"><span class="pre">PSPower</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PSPower.read_value"><code class="docutils literal notranslate"><span class="pre">PSPower.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PSVoltage"><code class="docutils literal notranslate"><span class="pre">PSVoltage</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PSVoltage.read_value"><code class="docutils literal notranslate"><span class="pre">PSVoltage.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PowerDownCommand"><code class="docutils literal notranslate"><span class="pre">PowerDownCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PowerDownCommand.thread"><code class="docutils literal notranslate"><span class="pre">PowerDownCommand.thread()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PowerOffTpmCommand"><code class="docutils literal notranslate"><span class="pre">PowerOffTpmCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PowerOffTpmCommand.thread"><code class="docutils literal notranslate"><span class="pre">PowerOffTpmCommand.thread()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PowerOnTpmCommand"><code class="docutils literal notranslate"><span class="pre">PowerOnTpmCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PowerOnTpmCommand.thread"><code class="docutils literal notranslate"><span class="pre">PowerOnTpmCommand.thread()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.PowerUpCommand"><code class="docutils literal notranslate"><span class="pre">PowerUpCommand</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.PowerUpCommand.thread"><code class="docutils literal notranslate"><span class="pre">PowerUpCommand.thread()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.SetFanMode"><code class="docutils literal notranslate"><span class="pre">SetFanMode</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.SetFanMode.do"><code class="docutils literal notranslate"><span class="pre">SetFanMode.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.SetFanSpeed"><code class="docutils literal notranslate"><span class="pre">SetFanSpeed</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.SetFanSpeed.do"><code class="docutils literal notranslate"><span class="pre">SetFanSpeed.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.SetPSFanSpeed"><code class="docutils literal notranslate"><span class="pre">SetPSFanSpeed</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.SetPSFanSpeed.do"><code class="docutils literal notranslate"><span class="pre">SetPSFanSpeed.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.SubrackHardware"><code class="docutils literal notranslate"><span class="pre">SubrackHardware</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.SubrackHardware.execute_command"><code class="docutils literal notranslate"><span class="pre">SubrackHardware.execute_command()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.SubrackHardware.initialize"><code class="docutils literal notranslate"><span class="pre">SubrackHardware.initialize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.Subrack_PLL_Locked"><code class="docutils literal notranslate"><span class="pre">Subrack_PLL_Locked</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.Subrack_PLL_Locked.read_value"><code class="docutils literal notranslate"><span class="pre">Subrack_PLL_Locked.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.Subrack_Timestamp"><code class="docutils literal notranslate"><span class="pre">Subrack_Timestamp</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.Subrack_Timestamp.read_value"><code class="docutils literal notranslate"><span class="pre">Subrack_Timestamp.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TPM_Add_List"><code class="docutils literal notranslate"><span class="pre">TPM_Add_List</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TPM_Add_List.read_value"><code class="docutils literal notranslate"><span class="pre">TPM_Add_List.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TPM_Temperature_Alarms"><code class="docutils literal notranslate"><span class="pre">TPM_Temperature_Alarms</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TPM_Temperature_Alarms.read_value"><code class="docutils literal notranslate"><span class="pre">TPM_Temperature_Alarms.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TPM_Temperatures"><code class="docutils literal notranslate"><span class="pre">TPM_Temperatures</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TPM_Temperatures.read_value"><code class="docutils literal notranslate"><span class="pre">TPM_Temperatures.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TPM_Voltage_Alarms"><code class="docutils literal notranslate"><span class="pre">TPM_Voltage_Alarms</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TPM_Voltage_Alarms.read_value"><code class="docutils literal notranslate"><span class="pre">TPM_Voltage_Alarms.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmCurrents"><code class="docutils literal notranslate"><span class="pre">TpmCurrents</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmCurrents.read_value"><code class="docutils literal notranslate"><span class="pre">TpmCurrents.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmIPs"><code class="docutils literal notranslate"><span class="pre">TpmIPs</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmIPs.read_value"><code class="docutils literal notranslate"><span class="pre">TpmIPs.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmInfo"><code class="docutils literal notranslate"><span class="pre">TpmInfo</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmInfo.do"><code class="docutils literal notranslate"><span class="pre">TpmInfo.do()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmMCUTemperatures"><code class="docutils literal notranslate"><span class="pre">TpmMCUTemperatures</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmMCUTemperatures.read_value"><code class="docutils literal notranslate"><span class="pre">TpmMCUTemperatures.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmOnOffVect"><code class="docutils literal notranslate"><span class="pre">TpmOnOffVect</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmOnOffVect.read_value"><code class="docutils literal notranslate"><span class="pre">TpmOnOffVect.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmPowers"><code class="docutils literal notranslate"><span class="pre">TpmPowers</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmPowers.read_value"><code class="docutils literal notranslate"><span class="pre">TpmPowers.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmPresent"><code class="docutils literal notranslate"><span class="pre">TpmPresent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmPresent.read_value"><code class="docutils literal notranslate"><span class="pre">TpmPresent.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmSupplyFault"><code class="docutils literal notranslate"><span class="pre">TpmSupplyFault</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmSupplyFault.read_value"><code class="docutils literal notranslate"><span class="pre">TpmSupplyFault.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.TpmVoltages"><code class="docutils literal notranslate"><span class="pre">TpmVoltages</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.TpmVoltages.read_value"><code class="docutils literal notranslate"><span class="pre">TpmVoltages.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.byte_to_bool_array"><code class="docutils literal notranslate"><span class="pre">byte_to_bool_array()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_hardware.ups_status"><code class="docutils literal notranslate"><span class="pre">ups_status</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_hardware.ups_status.read_value"><code class="docutils literal notranslate"><span class="pre">ups_status.read_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#web_server.MyServer"><code class="docutils literal notranslate"><span class="pre">MyServer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#web_server.MyServer.do_GET"><code class="docutils literal notranslate"><span class="pre">MyServer.do_GET()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#web_server.mangle_dict"><code class="docutils literal notranslate"><span class="pre">mangle_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cplddocs.html">CPLD Management API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toolsdocs.html">Subrack Tools Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Subrack Management API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Web Server Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/webserverdocs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-HardwareBaseClass">
+<span id="web-server-documentation"></span><h1>Web Server Documentation<a class="headerlink" href="#module-HardwareBaseClass" title="Link to this heading"></a></h1>
+<p>Package to implement simple device drivers.
+Each hardware driver is an instance of a HardwareBaseClass
+It contains a set of HardwareCommand objects, which implement
+actions (with optional parameters) and
+Hardware Attribute objects, which implement physical quantities.
+The HardwareBaseClass is controlled using commands, or by setting
+attributes (if they are RW). It is monitored by reading attributes.
+Hardware objects, commands and attributes can be subclassed for specific
+behaviors.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareBaseClass.GetAllAttributesCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareBaseClass.</span></span><span class="sig-name descname"><span class="pre">GetAllAttributesCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.GetAllAttributesCommand" title="Link to this definition"></a></dt>
+<dd><p>command which returns a dictionary of all attributes and their
+current values inthe ‘value’ field</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.GetAllAttributesCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.GetAllAttributesCommand.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>list</em>) – Optional list of parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of returned response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareAttribute">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareBaseClass.</span></span><span class="sig-name descname"><span class="pre">HardwareAttribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareAttribute" title="Link to this definition"></a></dt>
+<dd><p>Attribute for a HardwareBaseClass
+Attributes can be scalar or vector of fixed dimension, of arbitrary types
+Can be read/write or read only</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareAttribute.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareAttribute.name" title="Link to this definition"></a></dt>
+<dd><p>Returns the command name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Command name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareAttribute.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareAttribute.read" title="Link to this definition"></a></dt>
+<dd><p>Read the attribute, formatting the response dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of returned response</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareAttribute.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareAttribute.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareAttribute.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareAttribute.write" title="Link to this definition"></a></dt>
+<dd><p>write value(s) in params to the attribute</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – Parameters to be written</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary for json answer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareAttribute.write_value">
+<span class="sig-name descname"><span class="pre">write_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareAttribute.write_value" title="Link to this definition"></a></dt>
+<dd><p>Writes the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – Attribute true value, to real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareBaseDevice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareBaseClass.</span></span><span class="sig-name descname"><span class="pre">HardwareBaseDevice</span></span><a class="headerlink" href="#HardwareBaseClass.HardwareBaseDevice" title="Link to this definition"></a></dt>
+<dd><p>Server side of the hardware device.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareBaseDevice.add_attribute">
+<span class="sig-name descname"><span class="pre">add_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareBaseDevice.add_attribute" title="Link to this definition"></a></dt>
+<dd><p>Add an attribute to the command list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">HardwareBase.HardwareAttribute</span></code>) – Attribute object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if command canbe added, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareBaseDevice.add_command">
+<span class="sig-name descname"><span class="pre">add_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareBaseDevice.add_command" title="Link to this definition"></a></dt>
+<dd><p>Add a command to the command list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>command</strong> – Command object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if command canbe added, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareBaseDevice.execute_command">
+<span class="sig-name descname"><span class="pre">execute_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareBaseDevice.execute_command" title="Link to this definition"></a></dt>
+<dd><p>Execute a command with optional parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>str</em>) – Command name</p></li>
+<li><p><strong>params</strong> – Optional parameter, simple list or scalar</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary for json answer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareBaseDevice.get_attribute">
+<span class="sig-name descname"><span class="pre">get_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareBaseDevice.get_attribute" title="Link to this definition"></a></dt>
+<dd><p>Get attribute values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attribute</strong> – Attribute name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary for json answer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareBaseDevice.set_attribute">
+<span class="sig-name descname"><span class="pre">set_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attribute</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareBaseDevice.set_attribute" title="Link to this definition"></a></dt>
+<dd><p>Set attribute values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attribute</strong> – Attribute name</p></li>
+<li><p><strong>values</strong> – Attribute values, simple list or scalar</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary for json answer</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareBaseClass.</span></span><span class="sig-name descname"><span class="pre">HardwareCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareCommand" title="Link to this definition"></a></dt>
+<dd><p>Command for a Hardware base class. Command has a name, has access to
+its base hardware (if useful), and can check the number of parameters</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareCommand.do" title="Link to this definition"></a></dt>
+<dd><p>Execution method. Subclasses must override this to do real work</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>list</em>) – Optional list of parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of returned response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.HardwareCommand.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.HardwareCommand.name" title="Link to this definition"></a></dt>
+<dd><p>Returns the command name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Command name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareBaseClass.ListAttributeCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareBaseClass.</span></span><span class="sig-name descname"><span class="pre">ListAttributeCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.ListAttributeCommand" title="Link to this definition"></a></dt>
+<dd><p>Command to list names of the Hardware class commands</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.ListAttributeCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.ListAttributeCommand.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>list</em>) – Optional list of parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of returned response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareBaseClass.ListCommandCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareBaseClass.</span></span><span class="sig-name descname"><span class="pre">ListCommandCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.ListCommandCommand" title="Link to this definition"></a></dt>
+<dd><p>Command to list names of the Hardware class attributes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareBaseClass.ListCommandCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareBaseClass.ListCommandCommand.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>list</em>) – Optional list of parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of returned response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-HardwareThreadedClass">
+<dt class="sig sig-object py" id="HardwareThreadedClass.AbortCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareThreadedClass.</span></span><span class="sig-name descname"><span class="pre">AbortCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.AbortCommand" title="Link to this definition"></a></dt>
+<dd><p>Abort a thread (if specfied in the parameter) or the blocking thread</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.AbortCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.AbortCommand.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Param<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Command to abort or None</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>class.ThreadedHardwareCommand</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareThreadedClass.IsCompletedCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareThreadedClass.</span></span><span class="sig-name descname"><span class="pre">IsCompletedCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.IsCompletedCommand" title="Link to this definition"></a></dt>
+<dd><p>check if a specific command thread (if specified in the parameter)
+or the blocking thread is currently running</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.IsCompletedCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.IsCompletedCommand.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Param<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Command to check or None</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>class.ThreadedHardwareCommand</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="HardwareThreadedClass.ThreadedHardwareCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HardwareThreadedClass.</span></span><span class="sig-name descname"><span class="pre">ThreadedHardwareCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.ThreadedHardwareCommand" title="Link to this definition"></a></dt>
+<dd><p>An hardware command which requires long time to complete.
+A thread is started to execute the command. The thread must contain
+frequent checkpoints, where the _abort flag is checked and the
+action stopped if this is set.
+The completed() method checks for completion of the thread.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.ThreadedHardwareCommand.abort">
+<span class="sig-name descname"><span class="pre">abort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.ThreadedHardwareCommand.abort" title="Link to this definition"></a></dt>
+<dd><p>abort the current thread.
+Just sets the abort flag, and waits for the thread to complete</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.ThreadedHardwareCommand.completed">
+<span class="sig-name descname"><span class="pre">completed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.ThreadedHardwareCommand.completed" title="Link to this definition"></a></dt>
+<dd><p>checks whether the current thread has completed
+If it has, joins the thread (to free resources)
+:return: Whether the thread has completed
+:rtype: Bool</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.ThreadedHardwareCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.ThreadedHardwareCommand.do" title="Link to this definition"></a></dt>
+<dd><p>Command execution.
+Starts a thread and sets internal atributes to
+:param params: Command parameters
+:return: Dictionary of returned response
+:rtype: dict</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.ThreadedHardwareCommand.is_blocking">
+<span class="sig-name descname"><span class="pre">is_blocking</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.ThreadedHardwareCommand.is_blocking" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the command requires blocking of the device</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HardwareThreadedClass.ThreadedHardwareCommand.thread">
+<span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HardwareThreadedClass.ThreadedHardwareCommand.thread" title="Link to this definition"></a></dt>
+<dd><p>Execution thread. Must periodically check self._abort
+with maximum execution time of approx 1 second between checkpoints
+Terminates setting self._completed True.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-subrack_hardware">LFAA SPS Subrack control board hardware driver.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.API_Version">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">API_Version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.API_Version" title="Link to this definition"></a></dt>
+<dd><p>API version
+Returns version of API</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.API_Version.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.API_Version.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.AreTpmsOnCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">AreTpmsOnCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.AreTpmsOnCommand" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.AreTpmsOnCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.AreTpmsOnCommand.do" title="Link to this definition"></a></dt>
+<dd><p>Execution method. Subclasses must override this to do real work</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>list</em>) – Optional list of parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of returned response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.BackplaneTemperature">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">BackplaneTemperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.BackplaneTemperature" title="Link to this definition"></a></dt>
+<dd><p>Backplane temperature, in celsius</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.BackplaneTemperature.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.BackplaneTemperature.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>backplane temperature, in celsius, for the two backplane halves</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.BoardCurrent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">BoardCurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.BoardCurrent" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.BoardCurrent.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.BoardCurrent.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Total subrack current (A)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.BoardTemperature">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">BoardTemperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.BoardTemperature" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.BoardTemperature.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.BoardTemperature.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Subrack control board temperature, in celsius, 2 values</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.CPLD_PLL_Locked">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">CPLD_PLL_Locked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.CPLD_PLL_Locked" title="Link to this definition"></a></dt>
+<dd><p>Subrack CPLD PLL Lock status
+Returns status of CPLD internal PLL lock</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.CPLD_PLL_Locked.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.CPLD_PLL_Locked.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.FanMode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">FanMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanMode" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.FanMode.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanMode.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Subrack fan mode</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.FanMode.write_value">
+<span class="sig-name descname"><span class="pre">write_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanMode.write_value" title="Link to this definition"></a></dt>
+<dd><p>Writes the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – Attribute true value, to real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.FanSpeed">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">FanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanSpeed" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.FanSpeed.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanSpeed.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Subrack fan speed, in RPM, for the 4 fans</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.FanSpeedPercent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">FanSpeedPercent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanSpeedPercent" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.FanSpeedPercent.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.FanSpeedPercent.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Subrack fan speed, in percent of the maximum values, for the 4 fans</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.GetHealthDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">GetHealthDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.GetHealthDict" title="Link to this definition"></a></dt>
+<dd><p>Return subrack health status dictionary.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.GetHealthDict.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.GetHealthDict.do" title="Link to this definition"></a></dt>
+<dd><p>Info about subrack health status
+:param params: group of monitor points to report
+:type params: str</p>
+<p>:return:dictionary  of monitor points
+:rtype: dict</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.GetHealthStatus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">GetHealthStatus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.GetHealthStatus" title="Link to this definition"></a></dt>
+<dd><p>Return info about subrack health status.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.GetHealthStatus.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.GetHealthStatus.do" title="Link to this definition"></a></dt>
+<dd><p>Info about subrack health status
+:param params: group of monitor points to report
+:type params: str</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dictionary of monitor point values</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.IsTpmOnCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">IsTpmOnCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.IsTpmOnCommand" title="Link to this definition"></a></dt>
+<dd><p>Check TPM power status</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.IsTpmOnCommand.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.IsTpmOnCommand.do" title="Link to this definition"></a></dt>
+<dd><p>Check power status of TPMs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>str</em>) – index of TPM to check (1-8)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary with HardwareCommand response. Integer retvalue</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PSCurrent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PSCurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSCurrent" title="Link to this definition"></a></dt>
+<dd><p>Hardware attribute class for reading power supply currents.</p>
+<p>Reads current values for power supplies 1 and 2 and returns a list.</p>
+<p>Attributes:
+- _hardware: Reference to the SubrackMngBoard hardware object.</p>
+<p>Methods:
+- read_value(): Reads power supply currents and returns a list.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PSCurrent.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSCurrent.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads power supply currents.</p>
+<p>Returns:
+list: List of current values for power supplies 1 and 2.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PSFanSpeed">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PSFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>Hardware attribute class for reading power supply fan speeds.</p>
+<p>Reads fan speeds for power supplies 1 and 2 and returns a list of values.</p>
+<p>Attributes:
+- _hardware: Reference to the SubrackMngBoard hardware object.</p>
+<p>Methods:
+- read_value(): Reads power supply fan speeds and returns a list.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PSFanSpeed.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSFanSpeed.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads power supply fan speeds.</p>
+<p>Returns:
+list: List of fan speeds for power supplies 1 and 2.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PSPower">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PSPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSPower" title="Link to this definition"></a></dt>
+<dd><p>Hardware attribute class for reading power supply powers.</p>
+<p>Reads power values for power supplies 1 and 2 and returns a list.</p>
+<p>Attributes:
+- _hardware: Reference to the SubrackMngBoard hardware object.</p>
+<p>Methods:
+- read_value(): Reads power supply powers and returns a list.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PSPower.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSPower.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads power supply powers.</p>
+<p>Returns:
+list: List of power values for power supplies 1 and 2.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PSVoltage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PSVoltage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSVoltage" title="Link to this definition"></a></dt>
+<dd><p>Hardware attribute class for reading power supply voltages.</p>
+<p>Reads voltage values for power supplies 1 and 2 and returns a list.</p>
+<p>Attributes:
+- _hardware: Reference to the SubrackMngBoard hardware object.</p>
+<p>Methods:
+- read_value(): Reads power supply voltages and returns a list.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PSVoltage.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PSVoltage.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads power supply voltages.</p>
+<p>Returns:
+list: List of voltage values for power supplies 1 and 2.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PowerDownCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PowerDownCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerDownCommand" title="Link to this definition"></a></dt>
+<dd><p>Power off all TPMs</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PowerDownCommand.thread">
+<span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerDownCommand.thread" title="Link to this definition"></a></dt>
+<dd><p>Power off all TPMs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – unused</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PowerOffTpmCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PowerOffTpmCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerOffTpmCommand" title="Link to this definition"></a></dt>
+<dd><p>Power Off TPM command. Switches off a single or multiple TPM</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PowerOffTpmCommand.thread">
+<span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerOffTpmCommand.thread" title="Link to this definition"></a></dt>
+<dd><p>Power off TPMs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tpm_id</strong> (<em>str</em><em>, </em><em>list</em><em>(</em><em>str</em><em>)</em>) – index of TPM to power on (1-8) or list of indexes</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary with HardwareCommand response. List of TPM On status</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PowerOnTpmCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PowerOnTpmCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerOnTpmCommand" title="Link to this definition"></a></dt>
+<dd><p>Power On TPM command. Switches on a single or multiple TPM</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PowerOnTpmCommand.thread">
+<span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerOnTpmCommand.thread" title="Link to this definition"></a></dt>
+<dd><p>Power on TPMs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tpm_id</strong> (<em>str</em><em>, </em><em>list</em><em>(</em><em>str</em><em>)</em>) – index of TPM to power on (1-8) or list of indexes</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary with HardwareCommand response. List of TPM On status</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.PowerUpCommand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">PowerUpCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerUpCommand" title="Link to this definition"></a></dt>
+<dd><p>Power on all TPMs</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.PowerUpCommand.thread">
+<span class="sig-name descname"><span class="pre">thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.PowerUpCommand.thread" title="Link to this definition"></a></dt>
+<dd><p>Power on all TPMs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – unused</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.SetFanMode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">SetFanMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SetFanMode" title="Link to this definition"></a></dt>
+<dd><p>Set fan mode (manual, auto)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.SetFanMode.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SetFanMode.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – [0]: Fan ID (in range 1-4), [1]: mode [MANUAL|AUTO]</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary with HardwareCommand response.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.SetFanSpeed">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">SetFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SetFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>Set cabinet fan speed (0-100)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.SetFanSpeed.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SetFanSpeed.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – [0]: Fan ID (in range 1-4), [1]: speed (percentage)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary with HardwareCommand response. Retval is actual speed</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.SetPSFanSpeed">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">SetPSFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SetPSFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>Set Power Supply fan speed (0-100)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.SetPSFanSpeed.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SetPSFanSpeed.do" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – [0]: Fan ID (in range 1-2), [1]: speed (percentage)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary with HardwareCommand response. Retval is actual speed</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.SubrackHardware">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">SubrackHardware</span></span><a class="headerlink" href="#subrack_hardware.SubrackHardware" title="Link to this definition"></a></dt>
+<dd><p>Hardware device class representing the Subrack.</p>
+<p>Initializes the SubrackMngBoard object and adds commands and attributes related to the Subrack.</p>
+<p>Attributes:
+- subrack: Reference to the SubrackMngBoard hardware object.</p>
+<p>Methods:
+- initialize(emulation=False): Initializes the SubrackMngBoard object.
+- execute_command(command, params=None): Executes the specified command.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.SubrackHardware.execute_command">
+<span class="sig-name descname"><span class="pre">execute_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SubrackHardware.execute_command" title="Link to this definition"></a></dt>
+<dd><p>Executes the specified command.</p>
+<p>Args:
+- command (str): The command to be executed.
+- params (dict): Optional parameters for the command.</p>
+<p>Returns:
+dict: Dictionary containing the command execution result.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.SubrackHardware.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emulation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.SubrackHardware.initialize" title="Link to this definition"></a></dt>
+<dd><p>Initializes the SubrackMngBoard object.</p>
+<p>Args:
+- emulation (bool): Indicates whether the Subrack is in emulation mode.</p>
+<p>Returns:
+None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.Subrack_PLL_Locked">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">Subrack_PLL_Locked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.Subrack_PLL_Locked" title="Link to this definition"></a></dt>
+<dd><p>Subrack PLL Lock status
+Returns status of Subrack PLL lock</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.Subrack_PLL_Locked.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.Subrack_PLL_Locked.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.Subrack_Timestamp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">Subrack_Timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.Subrack_Timestamp" title="Link to this definition"></a></dt>
+<dd><p>Subrack Time in timestamp
+Returns Time of Subrack in timrstamp format</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.Subrack_Timestamp.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.Subrack_Timestamp.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Add_List">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TPM_Add_List</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Add_List" title="Link to this definition"></a></dt>
+<dd><p>TPM IP Address Will Be Assigned.
+Returns 8 IP address, address will be assigned to each TPM in subrack slots</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Add_List.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Add_List.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Temperature_Alarms">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TPM_Temperature_Alarms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Temperature_Alarms" title="Link to this definition"></a></dt>
+<dd><p>TPMs Temperature alarm status
+Returns 8 temeprature alarms</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Temperature_Alarms.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Temperature_Alarms.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Temperatures">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TPM_Temperatures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Temperatures" title="Link to this definition"></a></dt>
+<dd><p>TPMs Temperature vectors
+Returns 8 TPMBoard temepratures , 8 TPM FPGA1 temperatures, 8 TPM FPGA2 temperatures</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Temperatures.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Temperatures.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Voltage_Alarms">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TPM_Voltage_Alarms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Voltage_Alarms" title="Link to this definition"></a></dt>
+<dd><p>TPMs Voltage alarm status
+Returns 8 voltage alarms</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TPM_Voltage_Alarms.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TPM_Voltage_Alarms.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmCurrents">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmCurrents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmCurrents" title="Link to this definition"></a></dt>
+<dd><p>TPM board current, in A.
+Returns 8 values, 0.0 for boards not present</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmCurrents.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmCurrents.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>8 values, 0.0 for boards not present</p>
+</dd>
+<dt class="field-even">Rvalue<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmIPs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmIPs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmIPs" title="Link to this definition"></a></dt>
+<dd><p>IP address of TPMs present on subrack.
+Returns 8 IP address, “0” for TPMs not powered off and “-1” for TPMs not present</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmIPs.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmIPs.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TPM IP</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmInfo" title="Link to this definition"></a></dt>
+<dd><p>Return info about TPM board present on subrack.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmInfo.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmInfo.do" title="Link to this definition"></a></dt>
+<dd><p>Info about TPM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>str</em>) – index of TPM to check (1-8)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TPM info</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmMCUTemperatures">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmMCUTemperatures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmMCUTemperatures" title="Link to this definition"></a></dt>
+<dd><p>TPM MCU temperatures, in celsius.
+Returns 8 values, 0.0 for boards not present or powered off</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmMCUTemperatures.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmMCUTemperatures.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TPM MCU temperature, in Celsius</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmOnOffVect">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmOnOffVect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmOnOffVect" title="Link to this definition"></a></dt>
+<dd><p>TPM board power status</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmOnOffVect.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmOnOffVect.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmPowers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmPowers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmPowers" title="Link to this definition"></a></dt>
+<dd><p>TPM board power usage (W)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmPowers.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmPowers.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>8 values, 0.0 for boards not present</p>
+</dd>
+<dt class="field-even">Rvalue<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmPresent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmPresent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmPresent" title="Link to this definition"></a></dt>
+<dd><p>TPM board presence
+Returns 8 values, True if board present and powered on</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmPresent.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmPresent.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmSupplyFault">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmSupplyFault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmSupplyFault" title="Link to this definition"></a></dt>
+<dd><p>TPM supply fault status
+Returns 8 bool values, True if board supply fault has been triggered</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmSupplyFault.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmSupplyFault.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.TpmVoltages">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">TpmVoltages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmVoltages" title="Link to this definition"></a></dt>
+<dd><p>TPM board power supply voltages (V)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.TpmVoltages.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.TpmVoltages.read_value" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>8 values, 0.0 for boards not present</p>
+</dd>
+<dt class="field-even">Rvalue<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_hardware.byte_to_bool_array">
+<span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">byte_to_bool_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">byte_in</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.byte_to_bool_array" title="Link to this definition"></a></dt>
+<dd><p>Convert a byte to a list of 8 bool. Bit 0 corresponds to list[0]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>byte_in</strong> (<em>int</em>) – Byte with 8 LS bits representing 8 logical values</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of 8 bool values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_hardware.ups_status">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_hardware.</span></span><span class="sig-name descname"><span class="pre">ups_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardware</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.ups_status" title="Link to this definition"></a></dt>
+<dd><p>UPS board status
+Returns UPS Board Status: ups_status = {“alarm”:False,”warning”:False,”charging”:False}</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_hardware.ups_status.read_value">
+<span class="sig-name descname"><span class="pre">read_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_hardware.ups_status.read_value" title="Link to this definition"></a></dt>
+<dd><p>Reads the actual value
+To be overrided in the subclass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Attribute true value, from real device</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-web_server">
+<dt class="sig sig-object py" id="web_server.MyServer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">web_server.</span></span><span class="sig-name descname"><span class="pre">MyServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_server.MyServer" title="Link to this definition"></a></dt>
+<dd><p>Request handler, subclassed from http package</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="web_server.MyServer.do_GET">
+<span class="sig-name descname"><span class="pre">do_GET</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_server.MyServer.do_GET" title="Link to this definition"></a></dt>
+<dd><p>Callback for GET request
+Retrieves query, and splits it into a dictionary
+Use mangle_dict to convert 1-lists to scalars,
+and numeric strings to numbers
+Calls appropriate methods of the hardware class.
+Formats the return dictionary to json and send it as response</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="web_server.mangle_dict">
+<span class="sig-prename descclassname"><span class="pre">web_server.</span></span><span class="sig-name descname"><span class="pre">mangle_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_server.mangle_dict" title="Link to this definition"></a></dt>
+<dd><p>Takes a query dictionary from the http.getquerydict()
+FOr each element keeps only the first element (list of values)
+Converts it to scalar if it is a list of 1 element
+If some values are numeric convert them to numbers</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="apidocs.html" class="btn btn-neutral float-left" title="Subrack management API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cplddocs.html" class="btn btn-neutral float-right" title="CPLD Management API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Simone Chiarucci (INAF-OAA).</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -603,7 +603,6 @@ def get_switch_status():
 import tabulate
 
 if __name__ == "__main__":
-
     parser = OptionParser(usage="usage: %test_tpm [options]")
     parser.add_option(
         "--ip",

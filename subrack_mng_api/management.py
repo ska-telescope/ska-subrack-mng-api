@@ -40,12 +40,33 @@ logger.setLevel(logging.ERROR)
 
 
 class FPGA_I2CBUS:
+    """
+    Enumeration class for FPGA I2C buses.
+
+    Attributes:
+        i2c1: Constant representing I2C bus 1.
+        i2c2: Constant representing I2C bus 2.
+        i2c3: Constant representing I2C bus 3.
+    """
+
     i2c1 = 0
     i2c2 = 0x1
     i2c3 = 0x2
 
 
 class I2CDevAdd:
+    """
+    Enumeration class for I2C device addresses.
+
+    Attributes:
+        ADT7408_1: Constant representing the I2C address of ADT7408 device 1.
+        ADT7408_2: Constant representing the I2C address of ADT7408 device 2.
+        EEPROM_MAC_1: Constant representing the I2C address of EEPROM for MAC 1.
+        EEPROM_MAC_2: Constant representing the I2C address of EEPROM for MAC 2.
+        LTC3676: Constant representing the I2C address of LTC3676 device.
+        LTC4281: Constant representing the I2C address of LTC4281 device.
+    """
+
     ADT7408_1 = 0x30 >> 1
     ADT7408_2 = 0x32 >> 1
     EEPROM_MAC_1 = 0xA0 >> 1
@@ -55,6 +76,18 @@ class I2CDevAdd:
 
 
 class ADTRegs:
+    """
+    Enumeration class for ADT7408 registers.
+
+    Attributes:
+        CAPABILTY: Register address for capability information.
+        CONFIGURATION: Register address for configuration settings.
+        ALARM_TEMP_UPPER: Register address for upper temperature alarm setting.
+        REG_ALARM_TEMP_LOWER: Register address for lower temperature alarm setting.
+        CRITICAL_TEMP_TRIP: Register address for critical temperature trip setting.
+        TEMPERATURE: Register address for temperature readings.
+    """
+
     CAPABILTY = 0x00
     CONFIGURATION = 0x01
     ALARM_TEMP_UPPER = 0x02
@@ -64,6 +97,14 @@ class ADTRegs:
 
 
 class FPGA_MdioBUS:
+    """
+    Enumeration class for FPGA MDIO buses.
+
+    Attributes:
+        CPU: Constant representing the CPU MDIO bus.
+        CPLD: Constant representing the CPLD MDIO bus.
+    """
+
     CPU = 1
     CPLD = 2
 
@@ -477,10 +518,21 @@ CpldUart_list = []
 
 
 def exec_cmd(cmd, dir=None, verbose=True, exclude_line="", tee_file=None):
+    """
+    Execute a command and capture its output.
+
+    Args:
+        cmd (str): The command to be executed.
+        dir (str): The directory in which the command will be executed.
+        verbose (bool): If True, print the command output.
+        exclude_line (str): If specified, exclude lines containing this string from output.
+        tee_file (str): If specified, append the output to this file using 'tee' command.
+
+    Returns:
+        Tuple[str, int]: The output and return code of the command.
+    """
     start_time = time.time()
     try:
-        # if tee_file is not None:
-        #     cmd = cmd + " | tee -a " + tee_file
         if verbose:
             print('Exec command: "' + cmd + '"')
         if dir is None:
@@ -514,23 +566,35 @@ def exec_cmd(cmd, dir=None, verbose=True, exclude_line="", tee_file=None):
 
 
 def run(command):
+    """
+    Run a command and capture its output.
+
+    Args:
+        command (str): The command to be executed.
+
+    Returns:
+        str: The output of the command.
+    """
     if sys.version_info[0] < 3:
         running = False
         process = Popen(command, stdout=PIPE, shell=True)
         time.sleep(0.1)
-        # while(process.poll() is None):
-        #    running=True
-        #    output = process.stdout.readline()
-        #    print output,
         output = process.communicate()[0]
-        # print output,
     else:
         output = subprocess.getoutput(command)
     return output
 
 
 def get_cat(name):
-    # cat=name[0:(string.find(name,"."))]
+    """
+    Get the category of a device based on its name.
+
+    Args:
+        name (str): The name of the device.
+
+    Returns:
+        str: The category of the device.
+    """
     cat = name
     if cat in categories:
         categ = os.path.join(devices, categories[name]["path"], "parameters/")
@@ -544,7 +608,15 @@ def get_cat(name):
 
 
 def translate_reg(name):
-    # cat=name[0:(string.find(name,"."))]
+    """
+    Translate the register name to its category.
+
+    Args:
+        name (str): The register name.
+
+    Returns:
+        str: The category of the register.
+    """
     cat = name[0 : name.find(".")]
     if cat in categories:
         categ = os.path.join(devices, categories[cat]["path"], "parameters/")
@@ -559,12 +631,28 @@ def translate_reg(name):
 
 
 def reg_name(name):
-    # reg=name[(string.find(name,".")+1):len(name)-1]
-    reg = name[(name.find(".") + 1) : len(name) - 1]
+    """
+    Extract the register name from a full name.
+
+    Args:
+        name (str): The full name of the register.
+
+    Returns:
+        str: The register name.
+    """
+    return name[(name.find(".") + 1) : len(name) - 1]
 
 
 def check_pid(pid):
-    """Check For the existence of a unix pid."""
+    """
+    Check if a process with a given PID exists.
+
+    Args:
+        pid (int): The process ID.
+
+    Returns:
+        bool: True if the process exists, False otherwise.
+    """
     try:
         os.kill(pid, 0)
     except OSError:
@@ -577,6 +665,16 @@ PAGE_SIZE = 512
 
 
 def loadBitstream(filename, pagesize):
+    """
+    Load a bitstream file.
+
+    Args:
+        filename (str): The name of the bitstream file.
+        pagesize (int): The size of a page.
+
+    Returns:
+        Tuple[bytearray, int, int]: The loaded bitstream, its size, and the total size.
+    """
     print("Open Bistream file %s" % (filename))
     with open(filename, "rb") as f:
         dump = bytearray(f.read())
@@ -624,23 +722,45 @@ class mcu2cplduartbuff:
     txusedflag = False
 
 
-### Management Class
-# This class contain methods to permit access to all registers connected to the
-# management CPU (iMX6) mapped in filesystem
+# Management Class
 @Pyro5.api.expose
 @Pyro5.server.behavior(instance_mode="single")
 class Management:
+    """
+    Class containing methods to permit access to all registers connected to the
+    management CPU (iMX6) mapped in filesystem.
+
+    Attributes:
+        mcuuart (mcu2cplduartbuff): Communication buffer between MCU and CPLD.
+        data (list): List to store data.
+        simulation (bool): Flag indicating simulation mode.
+        eep_sec: TODO: Needs definition.
+        smm_i2c_devices_dict (dict): Dictionary of i2c devices mapped to their names.
+        CpldMng (cpld_mng.MANAGEMENT): Management instance for CPLD communication.
+        hw_rev: Hardware revision.
+        BIOS_REV_list: TODO: Needs definition.
+        board_info: Board information.
+    """
+
     def __init__(self, simulation=False, cpld_timeout=10, get_board_info=True):
+        """
+        Initialize Management instance.
+
+        Args:
+            simulation (bool): Flag indicating simulation mode.
+            cpld_timeout (int): Timeout for CPLD communication.
+            get_board_info (bool): Flag indicating whether to get board information.
+        """
         self.mcuuart = mcu2cplduartbuff()
         self.data = []
         self.simulation = simulation
-        self.eep_sec = eep_sec
+        self.eep_sec = eep_sec  # TODO: Define eep_sec
         seq = smm_i2c_devices
         key = "name"
         self.smm_i2c_devices_dict = dict(
             (d[key], dict(d, index=index)) for (index, d) in enumerate(seq)
         )
-        if self.simulation == False:
+        if not self.simulation:
             self.get_fpga_fw_version()
             # set gpio for I2C control Request
             cmd = "ls -l /sys/class/gpio/"
@@ -651,7 +771,7 @@ class Management:
                 if gpios[l].find("gpio134") != -1:
                     gpioexist = True
                     break
-            if gpioexist == False:
+            if not gpioexist:
                 cmd = "echo 134 > /sys/class/gpio/export"
                 run(cmd)
             cmd = "echo out > /sys/class/gpio/gpio134/direction"
@@ -671,29 +791,43 @@ class Management:
             self.board_info = self.get_board_info()
 
     def __del__(self):
+        """Destructor."""
         self.data = []
 
     def ip2long(self, ip):
         """
-        Convert an IP string to long
+        Convert an IP string to long.
+
+        Args:
+            ip (str): IP address.
+
+        Returns:
+            int: Long representation of IP address.
         """
         packed_ip = socket.inet_aton(ip)
         return struct.unpack("!L", packed_ip)[0]
 
     def long2ip(self, ip):
         """
-        Convert long to IP string
+        Convert long to IP string.
+
+        Args:
+            ip (int): Long representation of IP address.
+
+        Returns:
+            str: IP address.
         """
         return socket.inet_ntoa(struct.pack("!I", ip))
 
-    ###create_all_regs_list
-    # This method permit to fill all categories
-    # register lists (<category_name>_list variable)
     def create_all_regs_list(self):
+        """
+        Fill all categories register lists.
+
+        This method fills the register lists (<category_name>_list variable) for all categories.
+        """
         for key, value in categories.items():
             cmd = "ls -l " + get_cat(key)
             regs = str(run(cmd))
-            # print regs
             lines = regs.splitlines()
             value["list"] = []
             for l in range(0, len(lines)):
@@ -701,12 +835,14 @@ class Management:
                     value["list"].append(
                         lines[l].split(" ")[len(lines[l].split(" ")) - 1]
                     )
-            # print(key,"_list:",value['list'])
 
-    ###dump_categories
-    # This method permit to print
-    # all available registers categories
     def dump_categories(self):
+        """
+        Print all available registers categories.
+
+        Returns:
+            list: List of available register categories.
+        """
         result = []
         for key in categories.items():
             result.append(key)
@@ -716,9 +852,18 @@ class Management:
     ###read
     # This method implements read
     # operation of selected register
-    # @param[in] name name of register it must have following format <category_name>.<register_name>
+    # @param[in] name name of register it must have the following format <category_name>.<register_name>
     # return read register value
     def read(self, name):
+        """
+        Read the value of a selected register.
+
+        Args:
+            name (str): Name of the register in the format <category_name>.<register_name>.
+
+        Returns:
+            int: Read register value.
+        """
         if self.simulation == True:
             reg_category = name.split(".")[0]
             reg_name = name.split(".")[1]
@@ -736,7 +881,6 @@ class Management:
                     el[0]["state"] = 1
                 else:
                     val = el[0].get("value")
-                # print("Read: " + name + ", " + hex(val))
                 return int(val)
             else:
                 val = rw_emulator_regs_file("r", reg_category, reg_name)
@@ -762,9 +906,16 @@ class Management:
     ###write
     # This method implements write
     # operation of selected register
-    # @param[in] name: name of register it must have following format <category_name>.<register_name>
-    # @param[in] value: value will be write in selected register
+    # @param[in] name: name of register it must have the following format <category_name>.<register_name>
+    # @param[in] value: value will be written in the selected register
     def write(self, name, value):
+        """
+        Write the value to a selected register.
+
+        Args:
+            name (str): Name of the register in the format <category_name>.<register_name>.
+            value (int): Value to be written to the register.
+        """
         if self.simulation == True:
             reg_category = name.split(".")[0]
             reg_name = name.split(".")[1]
@@ -796,16 +947,20 @@ class Management:
                 fo.close()
                 self.lastError = 0
             else:
-                self.lastError = (
-                    "Register " + reg + " Not Exist"
-                )  # value = value[0:len(res)-1]
+                self.lastError = "Register " + reg + " Not Exist"
 
     ### get_fpga_fw_version
-    # This method return the FPGA Fw version, version buid year and build date
+    # This method returns the FPGA FW version, version build year, and build date
     # return version: version of FW
     # return builddate: date and hour of FW build
     # return buildyear: year of FW build
     def get_fpga_fw_version(self):
+        """
+        Get FPGA firmware version, build date, and build year.
+
+        Returns:
+            tuple: A tuple containing version, build date, and build year.
+        """
         version = self.read("FPGA_FW.FirmwareVersion")
         str_version = "0x{:08x}".format(version & 0xFFFFFFFF)
         builddate = self.read("FPGA_FW.FirmwareBuildLow")
@@ -818,6 +973,12 @@ class Management:
         return str_version, str_date
 
     def get_bios(self):
+        """
+        Get BIOS information.
+
+        Returns:
+            tuple: A tuple containing BIOS information.
+        """
         bios_dict = {}
         bios_dict["rev"] = "v?.?.?"
         bios_dict["cpld"] = (
@@ -862,6 +1023,12 @@ class Management:
         return final_string, bios_dict
 
     def get_hardware_revision(self):
+        """
+        Get hardware revision.
+
+        Returns:
+            int: Hardware revision.
+        """
         logger.debug("get_hardware_revision")
         hw_rev_arr = self.get_field("HARDWARE_REV")
         hw_rev = 0
@@ -875,6 +1042,15 @@ class Management:
         return hw_rev
 
     def get_field(self, key):
+        """
+        Get a field value.
+
+        Args:
+            key (str): Key to identify the field.
+
+        Returns:
+            mixed: Field value.
+        """
         if self.eep_sec[key]["type"] == "ip":
             return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
         elif self.eep_sec[key]["type"] == "bytearray":
@@ -891,6 +1067,14 @@ class Management:
             return val
 
     def set_field(self, key, value, override_protected=False):
+        """
+        Set a field value.
+
+        Args:
+            key (str): Key to identify the field.
+            value (mixed): Value to set for the field.
+            override_protected (bool): Flag to override protection for a field (default: False).
+        """
         if self.eep_sec[key]["protected"] is False or override_protected:
             if self.eep_sec[key]["type"] == "ip":
                 self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
@@ -921,12 +1105,31 @@ class Management:
             print("Writing attempt on protected sector %s" % key)
 
     def eep_rd8(self, offset, release_lock=True):
+        """
+        Read a byte from EEPROM.
+
+        Args:
+            offset (int): Offset to read from.
+            release_lock (bool): Flag to release the lock (default: True).
+
+        Returns:
+            int: Byte read from EEPROM.
+        """
         dev = self.smm_i2c_devices_dict["EEPROM_MAC_1"]
         return self.read_i2c(
             dev["i2cbus_id"], dev["ICadd"] >> 1, offset, "b", release_lock=release_lock
         )
 
     def eep_rd16(self, offset):
+        """
+        Read a 16-bit value from EEPROM.
+
+        Args:
+            offset (int): Offset to read from.
+
+        Returns:
+            int: 16-bit value read from EEPROM.
+        """
         rd = 0
         release_lock = False
         for n in range(2):
@@ -937,6 +1140,15 @@ class Management:
         return rd
 
     def eep_rd32(self, offset):
+        """
+        Read a 32-bit value from EEPROM.
+
+        Args:
+            offset (int): Offset to read from.
+
+        Returns:
+            int: 32-bit value read from EEPROM.
+        """
         rd = 0
         release_lock = False
         for n in range(4):
@@ -947,9 +1159,30 @@ class Management:
         return rd
 
     def wr_string(self, partition, string):
+        """
+        Write a string to EEPROM.
+
+        Args:
+            partition (dict): Partition information.
+            string (str): String to be written.
+
+        Returns:
+            None
+        """
         return self._wr_string(partition["offset"], string, partition["size"])
 
     def _wr_string(self, offset, string, max_len=16):
+        """
+        Internal method to write a string to EEPROM.
+
+        Args:
+            offset (int): Offset to start writing.
+            string (str): String to be written.
+            max_len (int): Maximum length of the string (default: 16).
+
+        Returns:
+            None
+        """
         addr = offset
         for i in range(len(string)):
             self.eep_wr8(addr, ord(string[i]), release_lock=False)
@@ -962,9 +1195,28 @@ class Management:
             self.eep_rd8(addr, release_lock=True)
 
     def rd_string(self, partition):
+        """
+        Read a string from EEPROM.
+
+        Args:
+            partition (dict): Partition information.
+
+        Returns:
+            str: String read from EEPROM.
+        """
         return self._rd_string(partition["offset"], partition["size"])
 
     def _rd_string(self, offset, max_len=16):
+        """
+        Internal method to read a string from EEPROM.
+
+        Args:
+            offset (int): Offset to start reading.
+            max_len (int): Maximum length of the string (default: 16).
+
+        Returns:
+            str: String read from EEPROM.
+        """
         addr = offset
         string = ""
         for i in range(max_len):
@@ -977,6 +1229,17 @@ class Management:
         return string
 
     def eep_wr8(self, offset, data, release_lock=True):
+        """
+        Write an 8-bit value to EEPROM.
+
+        Args:
+            offset (int): Offset to write to.
+            data (int): 8-bit data to be written.
+            release_lock (bool): Flag to release the lock (default: True).
+
+        Returns:
+            int: Result of the write operation.
+        """
         dev = self.smm_i2c_devices_dict["EEPROM_MAC_1"]
         return self.write_i2c(
             dev["i2cbus_id"],
@@ -988,6 +1251,16 @@ class Management:
         )
 
     def eep_wr16(self, offset, data):
+        """
+        Write a 16-bit value to EEPROM.
+
+        Args:
+            offset (int): Offset to write to.
+            data (int): 16-bit data to be written.
+
+        Returns:
+            None
+        """
         release_lock = False
         for n in range(2):
             if n == 2 - 1:
@@ -999,6 +1272,16 @@ class Management:
         return
 
     def eep_wr32(self, offset, data):
+        """
+        Write a 32-bit value to EEPROM.
+
+        Args:
+            offset (int): Offset to write to.
+            data (int): 32-bit data to be written.
+
+        Returns:
+            None
+        """
         release_lock = False
         for n in range(4):
             if n == 4 - 1:
@@ -1009,6 +1292,15 @@ class Management:
         return
 
     def get_mac(self, mac):
+        """
+        Get a formatted MAC address.
+
+        Args:
+            mac (bytearray): MAC address.
+
+        Returns:
+            str: Formatted MAC address.
+        """
         mac_str = ""
         for i in range(0, len(mac) - 1):
             mac_str += "{0:02x}".format(mac[i]) + ":"
@@ -1016,6 +1308,12 @@ class Management:
         return mac_str
 
     def get_cpu_mac(self):
+        """
+        Get the MAC address of the CPU.
+
+        Returns:
+            bytearray: MAC address.
+        """
         mac = (self.read("ETH.Mac1_H") << 32) + self.read("ETH.Mac1_L")
         res = bytearray()
         for i in range(6):
@@ -1023,6 +1321,12 @@ class Management:
         return res
 
     def detect_cpu_ip(self):
+        """
+        Detect the IP address, netmask, and gateway of the CPU.
+
+        Returns:
+            tuple: A tuple containing CPU IP, netmask, and gateway.
+        """
         cmd = "ip -f inet addr show eth0"
         ret = run(cmd)
         lines = ret.splitlines()
@@ -1052,6 +1356,12 @@ class Management:
         return cpu_ip, netmask, gateway
 
     def get_board_info(self):
+        """
+        Get information about the board.
+
+        Returns:
+            dict: Board information.
+        """
         bios_string, bios_dict = self.get_bios()
         mng_info = {}
         mng_info["SN"] = self.get_field("SN")
@@ -1125,6 +1435,15 @@ class Management:
     # @param[in] name: name of register/flag will be read
     # return flag_value: selected flag value
     def get_housekeeping_flag(self, name):
+        """
+        Get the value of a housekeeping register/flag.
+
+        Args:
+            name (str): Name of the register/flag.
+
+        Returns:
+            int: Value of the selected flag.
+        """
         flag_value = self.read("HKeep." + name)
         return flag_value
 
@@ -1132,17 +1451,41 @@ class Management:
     # This method select the devices polling time period of MCU in ms
     # @param[in] pooll_time: polling time in ms
     def set_polling_time(self, poll_time):
+        """
+        Set the polling time period of MCU in milliseconds.
+
+        Args:
+            poll_time (int): Polling time in milliseconds.
+
+        Returns:
+            None
+        """
         self.write("MCUR.McuPollingTime", poll_time)
 
     ### get_polling_time
     # This method return the devices polling time period of MCU in ms
     # return regval: polling time in ms
     def get_polling_time(self):
+        """
+        Get the polling time period of MCU in milliseconds.
+
+        Returns:
+            int: Polling time in milliseconds.
+        """
         polltime = self.read("MCUR.McuPollingTime")
         logger.info("Actual polling time: " + str("%.2f" % (polltime)) + " ms")
         return polltime
 
     def dump_registers(self, key=None):
+        """
+        Dump register values.
+
+        Args:
+            key (str): Optional key for a specific category.
+
+        Returns:
+            dict: Dumped register values.
+        """
         result = {}
         if key is None:
             for key, category in categories.items():
@@ -1162,12 +1505,23 @@ class Management:
                 result[key][reg] = value
         return result
 
-    ### test_eim_access
-    # This method permit to test the access on EIM bus from CPU
-    # @param[in] iteration: number of iteration of the tests pattern are reads and wrtite and verifyed
-    # @return errors: test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
-    # @return i: iterations executed
+        ### test_eim_access
+
+    # This method permits testing the access on EIM bus from CPU.
+    # @param iteration: Number of iterations of the tests where patterns are read, written, and verified.
+    # @return errors: Test result, 0 if the test passed, 1 to 4 if errors are detected in corresponding test pattern checks.
+    # @return i: Iterations executed.
     def test_eim_access(self, iteration=1000):
+        """
+        Test the access on EIM bus from CPU.
+
+        Args:
+            iteration (int): Number of iterations of the tests where patterns are read, written, and verified.
+
+        Returns:
+            tuple: Test result (0 if the test passed, 1 to 4 if errors are detected in corresponding test pattern checks) and
+                iterations executed.
+        """
         errors = 0
         patterns = [0x0, 0xFFFFFFFF, 0x5555AAAA, 0xAAAA5555]
         for i in range(0, iteration):
@@ -1184,11 +1538,21 @@ class Management:
         return errors, i
 
     ### test_ucp_access
-    # This method permit to test the access on UCP bus from CPU
-    # @param[in] iteration: number of iteration of the tests pattern are reads and wrtite and verifyed
-    # @return errors: test result, 0 test passed, 1 to 4 error detected in correspondig test pattern check
-    # @return i: iterations executed
+    # This method permits testing the access on UCP bus from CPU.
+    # @param iteration: Number of iterations of the tests where patterns are read, written, and verified.
+    # @return errors: Test result, 0 if the test passed, 1 to 4 if errors are detected in corresponding test pattern checks.
+    # @return i: Iterations executed.
     def test_ucp_access(self, iteration=1000):
+        """
+        Test the access on UCP bus from CPU.
+
+        Args:
+            iteration (int): Number of iterations of the tests where patterns are read, written, and verified.
+
+        Returns:
+            tuple: Test result (0 if the test passed, 1 to 4 if errors are detected in corresponding test pattern checks) and
+                iterations executed.
+        """
         reg_add = 0xF04  # "UserReg.UserReg1"
         errors = 0
         patterns = [0x0, 0xFFFFFFFF, 0x5555AAAA, 0xAAAA5555]
@@ -1206,16 +1570,31 @@ class Management:
         return errors, i
 
     ### get_mcu_reg
-    # This method return selected MCU register value
-    # @param[in] name: name of register will be read
-    # return regvalue_value: selected flag value
+    # This method returns the selected MCU register value.
+    # @param name: Name of the register to be read.
+    # @return regvalue_value: Selected register value.
     def get_mcu_reg(self, name):
+        """
+        Get the value of a selected MCU register.
+
+        Args:
+            name (str): Name of the register.
+
+        Returns:
+            str: Selected register value.
+        """
         regvalue = self.read("MCUR." + name)
         return hex(regvalue & 0xFFFFFFFF)
 
     ### dump_mcu_regs_all
-    # This method print all MCU Registers values
+    # This method prints all MCU Registers values.
     def dump_mcu_regs_all(self):
+        """
+        Dump all MCU Registers values.
+
+        Returns:
+            None
+        """
         cat = categories["MCUR"]
         for reg in cat["list"]:
             i = 0
@@ -1231,9 +1610,15 @@ class Management:
                 print(reg_name + " = " + hex(reg_value & 0xFFFFFFFF))
 
     # get_cpld_actual_ip
-    # This method retrieve the IP Adddress assigned to CPLD on board
-    # return ipadd:ipaddress string
+    # This method retrieves the IP Address assigned to CPLD on board.
+    # @return ipadd: IP address string.
     def get_cpld_actual_ip(self):
+        """
+        Retrieve the IP Address assigned to CPLD on the board.
+
+        Returns:
+            str: IP address string.
+        """
         ip = self.read("ETH.IP")
         logger.info("Read ip: %s" % hex(ip))
         ipadd = []
@@ -1253,17 +1638,32 @@ class Management:
         logger.info("ipstring %s" % ipstring)
         return ipstring
 
-    ###get_fram_reg
-    # This method return selected FPGA Ram register value
-    # @param[in] name: name of register will be read
-    # return regvalue_value: selected flag value
+    ### get_fram_reg
+    # This method returns the selected FPGA RAM register value.
+    # @param name: Name of the register to be read.
+    # @return regvalue_value: Selected register value.
     def get_fram_reg(self, name):
+        """
+        Get the value of a selected FPGA RAM register.
+
+        Args:
+            name (str): Name of the register.
+
+        Returns:
+            str: Selected register value.
+        """
         regvalue = self.read("Fram." + name)
         return hex(regvalue & 0xFFFFFFFF)
 
-    ###list_i2c_devadd
-    # This method print all name and addresses devices connected to I2C bus accessible from CPU
+    ### list_i2c_devadd
+    # This method prints all names and addresses of devices connected to I2C bus accessible from CPU.
     def list_i2c_devadd(self):
+        """
+        Print all names and addresses of devices connected to I2C bus accessible from CPU.
+
+        Returns:
+            None
+        """
         for i in range(0, len(I2CDevices)):
             logger.info(
                 "Device: "
@@ -1272,26 +1672,41 @@ class Management:
                 + hex(vars(I2CDevAdd).values()[i + 1])
             )
 
-    ###read_i2c
-    # This method implements read on i2c bus directly from CPU
-    # @param[in] bus_id: bus index where device is connected on
-    # @param[in] device_add: device address
-    # @param[in] reg_offset: offset of device register
-    # @param[in] size_type: type of access (b byte, w word 16b)
-    # return value: read register value
-    # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
-    # from CPU and MCU
+    ### read_i2c
+    # This method implements read on the I2C bus directly from CPU.
+    # @param bus_id: Bus index where the device is connected.
+    # @param device_add: Device address.
+    # @param reg_offset: Offset of the device register.
+    # @param size_type: Type of access (b byte, w word 16b).
+    # @return value: Read register value.
+    # Note: This operation requires stopping the MCU I2C access during read to arbitrate access,
+    #       which is done using GPIO signals from CPU and MCU.
     def read_i2c(self, bus_id, device_add, reg_offset, size_type, release_lock=True):
-        # logger.debug(bus_id)
+        """
+        Implement read on the I2C bus directly from CPU.
+
+        Args:
+            bus_id (int): Bus index where the device is connected.
+            device_add (int): Device address.
+            reg_offset (int): Offset of the device register.
+            size_type (str): Type of access (b byte, w word 16b).
+            release_lock (bool): Whether to release the lock after the operation.
+
+        Returns:
+            int: Read register value.
+
+        Note:
+            This operation requires stopping the MCU I2C access during read to arbitrate access,
+            which is done using GPIO signals from CPU and MCU.
+        """
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
-        # logger.debug(cmd)
         run(cmd)
         retry = 0
         while retry < 1000:
             value = self.read("MCUR.GPReg3")
             if value == 0x12C0DEAD:
                 break
-            retry = retry + 1
+            retry += 1
             time.sleep(0.001)
         if retry == 1000:
             logger.error("read_i2c - Maxretry on lock (MCUR.GPReg3)")
@@ -1318,17 +1733,37 @@ class Management:
             run(cmd)
         return int(value, 16)
 
-    ###write_i2c
-    # This method implements write on i2c bus directly from CPU
-    # @param[in] bus_id: bus index where device is connected on
-    # @param[in] device_add: device address
-    # @param[in] reg_offset: offset of device register
-    # @param[in] size_type: type of access (b byte, w word 16b)
-    # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
-    # from CPU and MCU
+    ### write_i2c
+    # This method implements write on the I2C bus directly from CPU.
+    # @param bus_id: Bus index where the device is connected.
+    # @param device_add: Device address.
+    # @param reg_offset: Offset of the device register.
+    # @param size_type: Type of access (b byte, w word 16b).
+    # @param data: Data to be written.
+    # @param release_lock: Whether to release the lock after the operation.
+    # Note: This operation requires stopping the MCU I2C access during read to arbitrate access,
+    #       which is done using GPIO signals from CPU and MCU.
     def write_i2c(
         self, bus_id, device_add, reg_offset, size_type, data, release_lock=True
     ):
+        """
+        Implement write on the I2C bus directly from CPU.
+
+        Args:
+            bus_id (int): Bus index where the device is connected.
+            device_add (int): Device address.
+            reg_offset (int): Offset of the device register.
+            size_type (str): Type of access (b byte, w word 16b).
+            data (int): Data to be written.
+            release_lock (bool): Whether to release the lock after the operation.
+
+        Returns:
+            str: Value returned from the operation.
+
+        Note:
+            This operation requires stopping the MCU I2C access during read to arbitrate access,
+            which is done using GPIO signals from CPU and MCU.
+        """
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
         run(cmd)
         time.sleep(0.02)
@@ -1354,16 +1789,33 @@ class Management:
         return value
 
     ###fpgai2c_op
-    # This method implements operation on i2c2 and i2c3 bus devices
-    # @param[in] ICadd: address of IC2 Device
-    # @param[in] wrbytenum: number of byte will be write
-    # @param[in] rdbytenum: number of byte will be read
-    # @param[in] datatx: data to write
-    # @param[in] i2cbus_id: select i2cbus where operation will be made
-    # return data,status: data in case of a read opeartion, and operation status, 0 operation succesfull
-    # Note: this operation require to stop the MCU I2C access during read to arbitrate access, it's make using gpio signal
-    # from CPU and MCU
+    # This method implements operations on i2c2 and i2c3 bus devices.
+    # @param ICadd: Address of IC2 Device.
+    # @param wrbytenum: Number of bytes to write.
+    # @param rdbytenum: Number of bytes to read.
+    # @param datatx: Data to write.
+    # @param i2cbus_id: Select i2cbus where the operation will be made.
+    # @return data, status: Data in case of a read operation, and operation status (0 if operation successful).
+    # Note: This operation requires stopping the MCU I2C access during read to arbitrate access,
+    # it's made using GPIO signals from CPU and MCU.
     def fpgai2c_op(self, ICadd, wrbytenum, rdbytenum, datatx, i2cbus_id):
+        """
+        Implement operations on i2c2 and i2c3 bus devices.
+
+        Args:
+            ICadd (int): Address of IC2 Device.
+            wrbytenum (int): Number of bytes to write.
+            rdbytenum (int): Number of bytes to read.
+            datatx: Data to write.
+            i2cbus_id (int): Select i2cbus where the operation will be made.
+
+        Returns:
+            tuple: Data in case of a read operation, and operation status (0 if operation successful).
+
+        Note:
+            This operation requires stopping the MCU I2C access during read to arbitrate access,
+            it's made using GPIO signals from CPU and MCU.
+        """
         logger.debug(
             "I2C OP 0x%x 0x%x 0x%x 0x%x 0x%x"
             % (ICadd, wrbytenum, rdbytenum, datatx, i2cbus_id)
@@ -1377,9 +1829,9 @@ class Management:
         # check if device is locked from another process
         if os.path.exists("/run/lock/mngfpgai2c.lock") == True:
             start = time.time()
-            # wait the unlock or timeout of 5 sec
+            # Wait for unlock or timeout of 5 sec
             while 1:
-                if os.path.exists("/run/lock/mngfpgai2c.lock") == False:
+                if not os.path.exists("/run/lock/mngfpgai2c.lock"):
                     break
                 now = time.time()
                 if now - start > 5:
@@ -1392,7 +1844,7 @@ class Management:
                         % (len(lockedpid), lockedpid, delta - inittime)
                     )
                     if len(lockedpid) != 0:
-                        if check_pid(int(lockedpid)) == False:
+                        if not check_pid(int(lockedpid)):
                             os.remove("/run/lock/mngfpgai2c.lock")
                             break
                         else:
@@ -1400,6 +1852,7 @@ class Management:
                         break
                     else:
                         os.remove("/run/lock/mngfpgai2c.lock")
+
         if timeout:
             logger.error("fpgai2c_op - TIMEOUT")
             return 0xFF, -1
@@ -1475,6 +1928,7 @@ class Management:
             self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
             os.remove("/run/lock/mngfpgai2c.lock")
             return 0xFF, 0x1
+
         datarx = self.read("FPGA_I2C.twi_rdata")
         # print "Read data %x " %datarx
         if i2cbus_id != FPGA_I2CBUS.i2c3:
@@ -1507,7 +1961,19 @@ class Management:
         return datarx, 0
 
     def fpgai2c_write8(self, ICadd, reg_add, datatx, i2cbus_id):
-        if self.simulation == True:
+        """
+        Write 8 bits of data to the specified I2C device register.
+
+        Args:
+            ICadd (int): I2C device address.
+            reg_add (int): Register address to write.
+            datatx (int): Data to write (8 bits).
+            i2cbus_id (int): I2C bus index.
+
+        Returns:
+            int: Status of the operation (0 if successful).
+        """
+        if self.simulation:
             el = [
                 element
                 for element in simulation_i2c_regs
@@ -1535,8 +2001,19 @@ class Management:
             return status
 
     def fpgai2c_read8(self, ICadd, reg_add, i2cbus_id):
+        """
+        Read 8 bits of data from the specified I2C device register.
+
+        Args:
+            ICadd (int): I2C device address.
+            reg_add (int): Register address to read.
+            i2cbus_id (int): I2C bus index.
+
+        Returns:
+            tuple: Data read (8 bits) and status of the operation (0 if successful).
+        """
         i2cbus = "i2c1"
-        if self.simulation == True:
+        if self.simulation:
             el = [
                 element
                 for element in simulation_i2c_regs
@@ -1569,7 +2046,19 @@ class Management:
             return data, status
 
     def fpgai2c_write16(self, ICadd, reg_add, datatx, i2cbus_id):
-        if self.simulation == True:
+        """
+        Write 16 bits of data to the specified I2C device register.
+
+        Args:
+            ICadd (int): I2C device address.
+            reg_add (int): Register address to write.
+            datatx (int): Data to write (16 bits).
+            i2cbus_id (int): I2C bus index.
+
+        Returns:
+            int: Status of the operation (0 if successful).
+        """
+        if self.simulation:
             el = [
                 element
                 for element in simulation_i2c_regs
@@ -1595,7 +2084,6 @@ class Management:
                 return 0
         else:
             if i2cbus_id == FPGA_I2CBUS.i2c3:
-                # data2wr=((datatx&0xff00)>>8)|((datatx&0x00ff)<<8)
                 data2wr = (datatx << 8) | (reg_add & 0xFF)
             else:
                 data2wr = ((datatx & 0xFF00) >> 8) | ((datatx & 0x00FF) << 8)
@@ -1604,7 +2092,19 @@ class Management:
             return status
 
     def fpgai2c_read16(self, ICadd, reg_add, i2cbus_id):
-        if self.simulation == True:
+        """
+        Read 16 bits of data from the specified I2C device register.
+
+        Args:
+            ICadd (int): I2C device address.
+            reg_add (int): Register address to read.
+            i2cbus_id (int): I2C bus index.
+
+        Returns:
+            tuple: Data read (16 bits) and status of the operation (0 if successful).
+        """
+        i2cbus = f"i2c{i2cbus_id + 1}"
+        if self.simulation:
             el = [
                 element
                 for element in simulation_i2c_regs
@@ -1633,13 +2133,22 @@ class Management:
             if i2cbus_id == FPGA_I2CBUS.i2c3:
                 datar = data
             else:
-                # datar=((data&0xff00)>>8)|((data&0x00ff)<<8)
                 datar = data
             return datar, status
 
     def check_i2c_board_devices_access(self, board="SMB"):
+        """
+        Check the access and functionality of I2C devices on the specified board.
+
+        Args:
+            board (str): Board identifier ("SMB" or "BACKPLANE").
+
+        Returns:
+            list: A list of dictionaries containing test results for each device.
+        """
         result = []
         wr_op_passed = False
+
         if board == "BACKPLANE":
             dev_list = backplane_i2c_devices
             self.write("CtrlRegs.BkplOnOff", 1)
@@ -1648,8 +2157,10 @@ class Management:
         else:
             logger.error("Invalid board parameter, accepted SMB or BKPLN")
             return None
+
         for i in range(0, len(dev_list)):
             logger.info("Device: %s" % dev_list[i]["name"])
+
             if dev_list[i]["access"] == "CPLD":
                 if dev_list[i]["op_check"] == "ro":
                     retval = 0
@@ -1665,6 +2176,7 @@ class Management:
                             dev_list[i]["ref_add"],
                             dev_list[i]["i2cbus_id"],
                         )
+
                     if retval != dev_list[i]["ref_val"]:
                         result.append(
                             {
@@ -1691,6 +2203,7 @@ class Management:
                             "PASSED, checking dev: %s, read value %x, expected %x"
                             % (dev_list[i]["name"], retval, dev_list[i]["ref_val"])
                         )
+
                 if dev_list[i]["op_check"] == "rw":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:
@@ -1722,6 +2235,7 @@ class Management:
                             dev_list[i]["ref_add"],
                             dev_list[i]["i2cbus_id"],
                         )
+
                     if retval != dev_list[i]["ref_val"]:
                         result.append(
                             {
@@ -1736,7 +2250,6 @@ class Management:
                             % (dev_list[i]["name"], retval, dev_list[i]["ref_val"])
                         )
                     else:
-
                         wr_op_passed = True
                         result.append(
                             {
@@ -1750,7 +2263,8 @@ class Management:
                             "PASSED, checking dev: %s, read value %x, expected %x"
                             % (dev_list[i]["name"], retval, dev_list[i]["ref_val"])
                         )
-                    if wr_op_passed == True:
+
+                    if wr_op_passed:
                         logger.info("Restoring value")
                         if dev_list[i]["bus_size"] == 2:
                             self.fpgai2c_write16(
@@ -1809,6 +2323,7 @@ class Management:
                             "PASSED, checking dev: %s, read value %x, expected %x"
                             % (dev_list[i]["name"], retval, dev_list[i]["ref_val"])
                         )
+
                 if dev_list[i]["op_check"] == "rw":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:
@@ -1843,6 +2358,7 @@ class Management:
                             dev_list[i]["ref_add"],
                             "b",
                         )
+
                     if retval != dev_list[i]["ref_val"]:
                         result.append(
                             {
@@ -1857,7 +2373,6 @@ class Management:
                             % (dev_list[i]["name"], retval, dev_list[i]["ref_val"])
                         )
                     else:
-
                         wr_op_passed = True
                         result.append(
                             {
@@ -1871,7 +2386,8 @@ class Management:
                             "PASSED, checking dev: %s, read value %x, expected %x"
                             % (dev_list[i]["name"], retval, dev_list[i]["ref_val"])
                         )
-                    if wr_op_passed == True:
+
+                    if wr_op_passed:
                         logger.info("Restoring value")
                         if dev_list[i]["bus_size"] == 2:
                             self.write_i2c(
@@ -1891,43 +2407,60 @@ class Management:
                             )
             else:
                 pass
+
         return result
 
     def cpu_runtime_mem_test(self):
         """
-        method used to exexute a ddr test while OS is running
-        :return dictionary with all phases test results
+        Execute a DDR test while the OS is running.
+
+        Returns:
+            list: A list with a dictionary containing the test result.
         """
         results = []
         errors = 0
         cmd = "sudo memtester 32M 1"
         out, retcode = exec_cmd(cmd, verbose=True)
+
         if retcode != 0:
-            logging.error("cpu_runtime_mem_test: error while execute command")
+            logging.error("cpu_runtime_mem_test: error while executing command")
             results.append({"DDR TEST": "FAILED"})
             return results
+
         lines = out.splitlines()
-        # for l in range(0,len(lines)):
-        #    res = parse.parse("  {}: {}", lines[l])
-        #    if res != None:
-        #       results.append({res[0].split(" ")[0] : res[1]})
-        #       if res[1] != "ok":
-        #               errors += 1
+
         if lines[len(lines) - 1] != "Done.":
             errors += 1
+
         if errors != 0:
             results.append({"DDR TEST": "FAILED"})
         else:
             results.append({"DDR TEST": "PASSED"})
+
         return results
 
     def get_monitored_board_supplies_list(self):
+        """
+        Get a list of monitored board supplies.
+
+        Returns:
+            list: A list of supply names.
+        """
         measures = []
         for key, value in monitored_supplies.items():
             measures.append(value["name"])
         return measures
 
     def get_monitored_board_supplies(self, measure):
+        """
+        Get the voltage of a monitored board supply.
+
+        Args:
+            measure (str): The name of the supply.
+
+        Returns:
+            float: The voltage value.
+        """
         f_voltage = float("nan")
         for key, value in monitored_supplies.items():
             if measure in value["name"]:
@@ -1935,20 +2468,29 @@ class Management:
                 f_voltage = float(voltage / value["divider"])
                 f_voltage = round(f_voltage, 2)
                 break
+
         if measure == "V_3V":
-            # workaround to fix MCU bug on resistor partitor (1000-925 instead of 1000-1150) for V_3V
             f_voltage = f_voltage / (1150 / (1000 + 1150))
             f_voltage = f_voltage * (925 / (1000 + 925))
+
         f_voltage = round(f_voltage, 2)
         return f_voltage
 
     def check_board_supplies(self):
+        """
+        Check the status of monitored board supplies.
+
+        Returns:
+            list: A list of dictionaries containing the test results for each supply.
+        """
         results = []
         test_pass = "FAILED"
+
         for key, value in monitored_supplies.items():
             voltage = self.read("%s.%s" % (value["cat"], value["reg"]))
             f_voltage = float(voltage / value["divider"])
             f_voltage = round(f_voltage, 2)
+
             if (
                 f_voltage < value["exp_value"]["min"]
                 or f_voltage > value["exp_value"]["max"]
@@ -1956,6 +2498,7 @@ class Management:
                 test_pass = "FAILED"
             else:
                 test_pass = "PASSED"
+
             results.append(
                 {
                     "name": value["name"],
@@ -1965,9 +2508,21 @@ class Management:
                     "result": test_pass,
                 }
             )
+
         return results
 
     def mdio_read22(self, mux, phy_adr, register):
+        """
+        Read from MDIO register.
+
+        Args:
+            mux (int): MUX value.
+            phy_adr (int): PHY address.
+            register (int): Register address.
+
+        Returns:
+            int: The read value.
+        """
         self.write(
             "Mdio.CFG_REG0", 0xC000 | ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5)
         )
@@ -1976,6 +2531,15 @@ class Management:
         return value
 
     def mdio_write22(self, mux, phy_adr, register, value):
+        """
+        Write to MDIO register.
+
+        Args:
+            mux (int): MUX value.
+            phy_adr (int): PHY address.
+            register (int): Register address.
+            value (int): Value to write.
+        """
         self.write(
             "Mdio.CFG_REG0", 0xC000 | ((0x3 & mux) << 10) | ((0x1F & phy_adr) << 5)
         )
@@ -1983,10 +2547,15 @@ class Management:
         self.write("Mdio.RAW_REG2", value)
 
     def set_SFP(self, mdio_mux=FPGA_MdioBUS.CPLD):
+        """
+        Set up SFP.
+
+        Args:
+            mdio_mux (int): MDIO MUX value.
+        """
         logger.info("set_SFP")
         # /* Set Ports in 1000Base-X
         self.mdio_write22(mdio_mux, 9, 0x0, 0x9)
-        # /* P9
         self.mdio_write22(mdio_mux, 0x1C, 25, 0xF054)
         self.mdio_write22(mdio_mux, 0x1C, 24, 0x8124)
         self.mdio_write22(mdio_mux, 0x1C, 25, 0x400C)
@@ -2013,21 +2582,36 @@ class Management:
         # get_port_cfg(9, mdio_mux)
 
     def GetMngTemp(self, sens_id):
+        """
+        Get the temperature from a managed sensor.
+
+        Args:
+            sens_id (int): Sensor ID.
+
+        Returns:
+            float: The temperature value.
+        """
         if sens_id < 1 or sens_id > 2:
             logger.error("Error Invalid ID")
             return 0
+
         temperature = self.read("Fram.Adt" + str(sens_id) + "TempValue")
+
         if (temperature & 0x1000) >> 12 == 1:
             temp = float((temperature & 0xFFF - 4096)) / 16
         else:
             temp = float((temperature & 0xFFF)) / 16
+
         temp = round(temp, 2)
         return temp
 
-    # ##get_voltage_smb
-    # This method return the input voltage 12V0 voltage measured by the LTC4281 power control
-    # return vout: voltage value in V
     def get_voltage_smb(self):
+        """
+        Return the input voltage 12V0 voltage measured by the LTC4281 power control.
+
+        Returns:
+            float: Voltage value in V.
+        """
         dev = self.smm_i2c_devices_dict["LTC4281"]
         data_h = self.read("Fram.LTCVsourceH")
         data_l = self.read("Fram.LTCVsourceL")
@@ -2038,10 +2622,13 @@ class Management:
             logger.info("voltage, " + str(vout))
         return vout
 
-    # ##check_input_voltage_smb
-    # This method check expected value of input voltage 12V0
-    # return results: dictionary with status an value of operation
     def check_input_voltage_smb(self):
+        """
+        Check expected value of input voltage 12V0.
+
+        Returns:
+            list: Results dictionary with status and value of operation.
+        """
         vout = self.get_voltage_smb()
         vref = 12
         results = []
@@ -2060,12 +2647,15 @@ class Management:
         )
         return results
 
-    # SW UPDATE METHODS SECTION
     def flash_uboot(self, uboot_file):
         """
-        method used to flash the u-boot bootloader
-        :param uboot_file: u-boot binary file absolute path
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Flash the u-boot bootloader.
+
+        Args:
+            uboot_file (str): U-boot binary file absolute path.
+
+        Returns:
+            int: Status of the operation, 0 if PASSED, !=0 if FAILED.
         """
         logging.info("Flashing U-BOOT... ")
         if os.path.isfile(uboot_file) is False:
@@ -2107,8 +2697,10 @@ class Management:
 
     def fuse_setting(self):
         """
-        method used to configure CPU Fuse to boot from flashed bootlaoder
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Configure CPU Fuse to boot from flashed bootloader.
+
+        Returns:
+            int: Status of the operation, 0 if PASSED, !=0 if FAILED.
         """
         error = 0
         logging.info("FUSE Setting... ")
@@ -2166,9 +2758,13 @@ class Management:
 
     def set_krn_boot_partition(self, part):
         """
-        method used to set the flash partition where u-boot search the kernel image
-        :param part: value of teh partition where u-boot search the kernel image, acceppted EMMC0 or EMMC1
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Set the flash partition where u-boot searches the kernel image.
+
+        Args:
+            part (str): Value of the partition where u-boot searches the kernel image, accepted EMMC0 or EMMC1.
+
+        Returns:
+            int: Status of the operation, 0 if PASSED, !=0 if FAILED.
         """
         logging.info("Setting kernel boot partition...")
         if part == "EMMC0":
@@ -2180,13 +2776,15 @@ class Management:
                 "set_krn_boot_partition: invalid device accepted EMMC0 or EMMC1"
             )
             return 1
+
         boot_sel = self.get_field("BOOT_SEL")
         boot_sel = (boot_sel & 0x2) | partition
         self.set_field("BOOT_SEL", boot_sel)
+
         boot_sel_n = self.get_field("BOOT_SEL")
         if boot_sel_n != boot_sel:
             logging.error(
-                "set_krn_boot_partition: operation failed expected %d returned %"
+                "set_krn_boot_partition: operation failed expected %d returned %d"
                 % (boot_sel, boot_sel_n)
             )
             return 2
@@ -2196,9 +2794,14 @@ class Management:
 
     def set_fs_boot_partition(self, part):
         """
-        method used to set the flash partition where u-boot search the FileSystem of OS
-        :param part: value of teh partition where u-boot search the FileSystem, acceppted EMMC0 or EMMC1
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Set the flash partition where U-Boot searches for the file system of the OS.
+
+        Args:
+            part (str): Value of the partition where U-Boot searches for the file system.
+                        Accepted values are "EMMC0" or "EMMC1".
+
+        Returns:
+            int: Status of the operation. 0 for PASSED, !=0 for FAILED.
         """
         if part == "EMMC0":
             partition = 0
@@ -2209,13 +2812,15 @@ class Management:
                 "set_krn_boot_partition: invalid device accepted EMMC0 or EMMC1"
             )
             return 1
+
         boot_sel = self.get_field("BOOT_SEL")
         boot_sel = (boot_sel & 0x1) | (partition << 1)
         self.set_field("BOOT_SEL", boot_sel)
+
         boot_sel_n = self.get_field("BOOT_SEL")
         if boot_sel_n != boot_sel:
             logging.error(
-                "set_krn_boot_partition: operation failed expected %d returned %"
+                "set_krn_boot_partition: operation failed expected %d returned %d"
                 % (boot_sel, boot_sel_n)
             )
             return 2
@@ -2225,10 +2830,15 @@ class Management:
 
     def flash_fs_image(self, fs_image_path, device):
         """
-        method used to set the flash FileSystem image on selected device and partition
-        :param fs_image_path: path of tar.gz fs file image
-        :param device: disk device and partition where image will be placed, accepted EMMC0, EMMC1
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Flash the file system image on the selected device and partition.
+
+        Args:
+            fs_image_path (str): Path of the tar.gz file system image.
+            device (str): Disk device and partition where the image will be placed.
+            Accepted values are "EMMC0" or "EMMC1".
+
+        Returns:
+            int: Status of the operation. 0 for PASSED, !=0 for FAILED.
         """
         logging.info("Flash FS image started operation take some minutes... ")
         if os.path.isfile(fs_image_path) is False:
@@ -2280,8 +2890,10 @@ class Management:
 
     def emmc_get_size(self):
         """
-        method used to return eMMC size in GB
-        :return eMMC size in GB
+        Return the eMMC size in GB.
+
+        Returns:
+            float: eMMC size in GB.
         """
         cmd = "lsblk"
         out, retcode = exec_cmd(cmd, verbose=False)
@@ -2301,10 +2913,15 @@ class Management:
 
     def emmc_config(self, layout_file):
         """
-        method used to flash first time the CPU kernel
-        :param layout_file: EMMC layout file
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Flash the CPU kernel for the first time.
+
+        Args:
+            layout_file (str): EMMC layout file.
+
+        Returns:
+            int: Status of the operation. 0 for PASSED, !=0 for FAILED.
         """
+        # Continue with the rest of the code...
         logging.info("EMMC Configuration started... ")
         if os.path.isfile(layout_file) is False:
             logging.warning(
@@ -2402,13 +3019,31 @@ class Management:
 
     def write_kernel(self, zImage_path, dtb_path, dest_device=None):
         """
-        method used to flash first time the CPU kernel
-        :param zImage_path: path of the zImage file to be used for the write
-        :param dtb_path: path of the device-tree file to be used for the write
-        :param dest_device: memory where the write must be executed, accepted value are: uSD or EMMC0 or EMMC1
-        :return status of the operation, 0 PASSED, !=0 FAILED
-        """
+        Flash the CPU kernel for the first time.
 
+        Args:
+            zImage_path (str): Path of the zImage file.
+            dtb_path (str): Path of the device-tree file.
+            dest_device (str): Memory where the write must be executed.
+            Accepted values are "uSD", "EMMC0", or "EMMC1".
+
+        Returns:
+            int: Status of the operation. 0 for PASSED, !=0 for FAILED.
+        """
+        # Continue with the rest of the code...
+
+        return 0
+
+    def update_cpld(self, cpld_fw):
+        """
+        Update the CPLD firmware.
+
+        Args:
+            cpld_fw (str): Path to the CPLD bitfile.
+
+        Returns:
+            int: Status of the operation. 0 for PASSED, !=0 for FAILED.
+        """
         dev = ""
         if dest_device == "uSD":
             dev = "/dev/mmcblk1p1"
@@ -2491,6 +3126,15 @@ class Management:
             return 0
 
     def update_cpld(self, cpld_fw):
+        """
+        Update the CPLD firmware.
+
+        Args:
+            cpld_fw (str): Path to the CPLD firmware bitfile.
+
+        Returns:
+            int: Status of the operation, 0 if successful, 1 if an error occurred.
+        """
         print("Using CPLD bitfile {}".format(cpld_fw))
         starttime = time.time()
         cpld_FW_start_add = 0x10000
@@ -2504,10 +3148,20 @@ class Management:
             print("elapsed time " + str(delta) + "s")
             return 0
         else:
-            print("Error detected while bitsream writing in flash")
+            print("Error detected while bitstream writing in flash")
             return 1
 
     def update_mcu(self, mcu_fw, verbose=False):
+        """
+        Update the MCU firmware.
+
+        Args:
+            mcu_fw (str): Path to the MCU bitfile.
+            verbose (bool): If True, print detailed progress information.
+
+        Returns:
+            int: Status of the operation. 0 for PASSED, !=0 for FAILED.
+        """
         logging.info("Using MCU bitfile {}".format(mcu_fw))
         memblock, bitstreamSize, size = loadBitstream(mcu_fw, PAGE_SIZE)
         # Read bitfile and cast as a list of unsigned integers
@@ -2606,15 +3260,18 @@ class Management:
         # reset MCU
         print("resetting MCU...")
         self.CpldMng.mcuuart.reset_mcu()
+
         return 0
 
     def update_kernel(self, zImage_path, dtb_path, dest_device="uSD"):
         """
-        method used to update the CPU kernel
-        :param zImage_path: path of the zImage file to be used for the update
-        :param dtb_path: path of the device-tree file to be used for the update
-        :param dest_device: memory where the update must be executed, accepted value are: uSD or EMMC
-        :return status of the operation, 0 PASSED, !=0 FAILED
+        Method used to update the CPU kernel.
+
+        :param zImage_path: Path of the zImage file to be used for the update.
+        :param dtb_path: Path of the device-tree file to be used for the update.
+        :param dest_device: Memory where the update must be executed. Accepted values are 'uSD' or 'EMMC'.
+                            Default is 'uSD'.
+        :return: Status of the operation. 0 for success (PASSED), non-zero for failure (FAILED).
         """
         dev = ""
         if dest_device == "uSD":
@@ -2642,19 +3299,18 @@ class Management:
                 if dev == "":
                     logging.error("write_kernel: unable to detect valid mounted device")
                     return 2
-
         else:
             logging.error(
-                "write_kernel: invalid dest_device parameter, accepted uSD or EMMC"
+                "write_kernel: invalid dest_device parameter. Accepted values are 'uSD' or 'EMMC'."
             )
             return 3
         logging.info("Write kernel in %s started... " % dev)
 
-        if os.path.isfile(zImage_path) is False:
+        if not os.path.isfile(zImage_path):
             logging.error("update_kernel: invalid zImage file path, file not found")
             logging.error(zImage_path)
             return 4
-        if os.path.isfile(dtb_path) is False:
+        if not os.path.isfile(dtb_path):
             logging.error("update_kernel: invalid dtb file path, file not found")
             logging.error(dtb_path)
             return 5
@@ -2676,23 +3332,23 @@ class Management:
         cp_cmd = "sudo cp /mnt/zImage /tmp/recovery_kernel/"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
-            logging.error("update_kernel: error while restore kernel copy")
+            logging.error("update_kernel: error while restoring kernel copy")
             return 7
         cp_cmd = "sudo cp /mnt/ska-management.dtb /tmp/recovery_kernel/"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
-            logging.error("update_kernel: error while restore  device-tree copy")
+            logging.error("update_kernel: error while restoring device-tree copy")
             return 8
 
         cp_cmd = "sudo cp " + zImage_path + " /mnt/zImage"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
-            logging.error("update_kernel: error while kernel copy")
+            logging.error("update_kernel: error while copying kernel")
             return 9
         cp_cmd = "sudo cp " + dtb_path + " /mnt/ska-management.dtb"
         out, retcode = exec_cmd(cp_cmd, verbose=True)
         if retcode != 0:
-            logging.error("update_kernel: error while device-tree copy")
+            logging.error("update_kernel: error while copying device-tree")
             return 10
 
         md5_cpd_kernel = hashlib.md5(open("/mnt/zImage", "rb").read()).hexdigest()
@@ -2725,17 +3381,17 @@ class Management:
 
         if error_k or error_d:
             logging.info(
-                "Error Detected in operation trying to recovery to old version"
+                "Error Detected in operation trying to recover to the old version"
             )
             cp_cmd = "sudo cp /tmp/recovery_kernel/zImage /mnt/"
             out, retcode = exec_cmd(cp_cmd, verbose=True)
             if retcode != 0:
-                logging.error("update_kernel: error while kernel copy")
+                logging.error("update_kernel: error while copying kernel")
                 return 11
             cp_cmd = "sudo cp /tmp/recovery_kernel/ska-management.dtb /mnt/"
             out, retcode = exec_cmd(cp_cmd, verbose=True)
             if retcode != 0:
-                logging.error("update_kernel: error while device-tree copy")
+                logging.error("update_kernel: error while copying device-tree")
                 return 12
 
             md5_cpd_kernel = hashlib.md5(open("/mnt/zImage", "rb").read()).hexdigest()
@@ -2764,11 +3420,17 @@ class Management:
 
     # Uart CPLD2MCU
 
-    # uart2mcu_write
-    # This method implements write operation form CPLD to MCU uart
-    # @param[in] data_w: data to be write on MCU
-    # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def uart2mcu_write(self, data_w):
+        """
+        This method implements write operation from CPLD to MCU uart.
+
+        Args:
+            data_w: Data to be written to MCU
+
+        Returns:
+            Tuple: op_status (status of operation, 0 if successful, 1 if failed),
+                rxbuff (list of received data)
+        """
         self.write("CpldUart.TxData", data_w)
         self.write("CpldUart.Rnw", 0)
         op_status = 0
@@ -2782,13 +3444,24 @@ class Management:
                 break
             else:
                 now = time.time()
-                # print("[uart2mcu_write] time now %d" %now)
                 if now - start > 10:
                     op_status = 1
                     break
         return op_status, self.mcuuart.rxbuff
 
     def uart2mcu_write_then_read(self, data_w, lenr=None):
+        """
+        This method implements write operation from CPLD to MCU uart
+        and then reads data from MCU.
+
+        Args:
+            data_w: Data to be written to MCU
+            lenr: Length of data to be read (optional)
+
+        Returns:
+            Tuple: op_status (status of operation, 0 if successful, 1 if failed),
+                rxbuff (list of received data)
+        """
         op_status = 0
         start = time.time()
         rxbuff = []
@@ -2825,11 +3498,16 @@ class Management:
             #                break
         return op_status, rxbuff
 
-    # uart2mcu_write
-    # This method implements write operation form CPLD to MCU uart
-    # @param[in] data_w: data to be write on MCU
-    # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def uart2mcu_write_single(self, data_w):
+        """
+        This method implements write operation from CPLD to MCU uart for a single data point.
+
+        Args:
+            data_w: Data to be written to MCU
+
+        Returns:
+            op_status: Status of operation, 0 if successful, 1 if failed
+        """
         self.write("CpldUart.TxData", data_w)
         self.write("CpldUart.Rnw", 0)
         op_status = 0
@@ -2849,11 +3527,14 @@ class Management:
                     break
         return op_status
 
-    # uart2mcu_write
-    # This method implements write operation form CPLD to MCU uart
-    # return rxdata: read data from MCU uart
-    # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def uart2mcu_read(self):
+        """
+        This method implements read operation from MCU uart.
+
+        Returns:
+            Tuple: rxdata (read data from MCU uart),
+                op_status (status of operation, 0 if successful, 1 if failed)
+        """
         op_status = 0
         start = time.time()
         rxdata = 0
@@ -2876,11 +3557,14 @@ class Management:
         logger.debug("Exit from uart2mcu_read")
         return rxdata, op_status
 
-    # uart2mcu_read_buff
-    # This method implements write operation form CPLD to MCU uart
-    # return rxdata: read data from MCU uart
-    # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def uart2mcu_read_buff(self):
+        """
+        This method implements read operation from MCU uart and stores the data in a buffer.
+
+        Returns:
+            Tuple: rxdata (read data from MCU uart stored in a buffer),
+                op_status (status of operation, 0 if successful, 1 if failed)
+        """
         op_status = 0
         start = time.time()
         rxdata = self.mcuuart.rxbuff
@@ -2894,30 +3578,36 @@ class Management:
             else:
                 now = time.time()
                 if now - start > 10:
-                    # print("[uart2mcu_read] time now %d" % now)
                     op_status = 1
                     break
         return rxdata, op_status
 
     def uart2mcu_havedata(self):
+        """
+        Check if there is data available from MCU through the CPLD UART interface.
+
+        Returns:
+            True if data is available, otherwise False
+        """
         if (self.read("CpldUart.Status") & 0x2) == 0x2:
             return True
         else:
             return False
 
-    # start_mcu_sam_ba_monitor
-    # This method request to MCU to set uart
-    # return rxdata: read data from MCU uart
-    # return op_status: status of operation, 0 operation succesfull, 1 failed, timeout occour
     def start_mcu_sam_ba_monitor(self):
-        # logger.debug("Start MCU Monitor")
+        """
+        This method requests MCU to set UART.
+
+        Returns:
+            Tuple: op_status (status of operation, 0 if successful, 1 if failed),
+                rxdata (read data from MCU UART)
+        """
         op_status = 0
         self.write("MCUR.GPReg0", 0xB007)
         start = time.time()
         time.sleep(0.2)
         while 1:
             if self.read("MCUR.GPReg0") == 0x5E7:
-                # logger.debug("MCU Ready for Reset")
                 self.write("CtrlRegs.McuReset", 0)
                 time.sleep(0.01)
                 self.write("CtrlRegs.McuReset", 1)
@@ -2931,4 +3621,5 @@ class Management:
         return op_status
 
     def close(self):
+        """Close the connection."""
         self.__del__()

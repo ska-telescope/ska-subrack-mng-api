@@ -1,21 +1,22 @@
 __author__ = "Luca Schettini"
-"""This Script search 1Wire Device on the bus (fixed to bus 1)"""
+"""This Script searches for 1Wire Devices on the bus (fixed to bus 1)"""
 import sys
 import time
 from optparse import OptionParser
-from management import *
-from backplane import *
+from subrack_mng_api.management import *
+from subrack_mng_api.backplane import *
 
 import os
 import sys
-import termios, fcntl
+import termios
+import fcntl
 import select
 import struct
 import subprocess
 
-backplane = Backplane()
+backplane = Backplane(1)
 
-Mng = Management()
+Mng = Management(1)
 
 
 def search():

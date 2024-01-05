@@ -7,7 +7,7 @@ import time
 from optparse import OptionParser
 from subrack_mng_api.subrack_management_board import *
 
-subrack = SubrackMngBoard()
+#subrack = SubrackMngBoard()
 usage_string = "usage: %prog [options] \n"
 usage_hexample = (
     "(es power on TPM1 and TPM3). %prog --t1 --t3\n"
@@ -32,7 +32,6 @@ Note: Replace 'script_name.py' with the actual name of the script file.
 
 
 if __name__ == "__main__":
-
     parser = OptionParser(usage=(usage_string + usage_hexample))
     parser.add_option(
         "--t1",

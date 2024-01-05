@@ -11,7 +11,7 @@ usage_hexample = (
     "es (Read 8bit from reg 0x1 of device at add 0x40 on bus i2c2 ). %prog 0x40.2.8 0x01\n"
     "(Write 16bit, data 0x1234 at reg 0x1 of device at add 0x40 on bus i2c3). %prog 0x40.3.16 0x01 0x1234\n"
 )
-Mng = Management()
+zMng = Management()
 
 
 parser = OptionParser(usage=(usage_string + usage_hexample))

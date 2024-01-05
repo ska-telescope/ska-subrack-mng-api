@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subrack management API Documentation &mdash; Subrack Management API 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Web Server Documentation" href="webserverdocs.html" />
+    <link rel="prev" title="Welcome to Subrack Management API’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Subrack Management API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Subrack management API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#backplane.BackplaneInvalidParameter"><code class="docutils literal notranslate"><span class="pre">BackplaneInvalidParameter</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#backplane.twos_comp"><code class="docutils literal notranslate"><span class="pre">twos_comp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management.MANAGEMENT"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.checkLoad"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.checkLoad()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.disconnect"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.disconnect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.find_register"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.find_register()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.find_register_names"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.find_register_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_bios"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_bios()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_board"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_board()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_board_info"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_board_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_extended_info"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_extended_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_mac"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_mac()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_register_name_by_address"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_register_name_by_address()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.get_xml_from_board"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.get_xml_from_board()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.list_register_names"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.list_register_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.load_firmware_blocking"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.load_firmware_blocking()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.pll_calib"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.pll_calib()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.pll_dumpcfg"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.pll_dumpcfg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.pll_ioupdate"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.pll_ioupdate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.pll_ldcfg"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.pll_ldcfg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.pll_read_with_update"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.pll_read_with_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.pll_write_with_update"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.pll_write_with_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.read_register"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.read_register()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.read_spi"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.read_spi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.write_register"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.write_register()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#management.MANAGEMENT.write_spi"><code class="docutils literal notranslate"><span class="pre">MANAGEMENT.write_spi()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#management.filter_list_by_level"><code class="docutils literal notranslate"><span class="pre">filter_list_by_level()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management.format_num"><code class="docutils literal notranslate"><span class="pre">format_num()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management.get_max_width"><code class="docutils literal notranslate"><span class="pre">get_max_width()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management.get_shift_from_mask"><code class="docutils literal notranslate"><span class="pre">get_shift_from_mask()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management.hexstring2ascii"><code class="docutils literal notranslate"><span class="pre">hexstring2ascii()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#management.pprint_table"><code class="docutils literal notranslate"><span class="pre">pprint_table()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.Adu_Eth_Ping"><code class="docutils literal notranslate"><span class="pre">Adu_Eth_Ping()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.SubrackExecFault"><code class="docutils literal notranslate"><span class="pre">SubrackExecFault</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.SubrackInvalidCmd"><code class="docutils literal notranslate"><span class="pre">SubrackInvalidCmd</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.SubrackInvalidParameter"><code class="docutils literal notranslate"><span class="pre">SubrackInvalidParameter</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetCPLDLockedPLL"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetCPLDLockedPLL()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetFanAlarm"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetFanAlarm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetFanMode"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetFanMode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetFanPwm"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetFanPwm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetFanRpm"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetFanRpm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetFanSpeed"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetFanSpeed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetLockedPLL"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetLockedPLL()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPSFanSpeed"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPSFanSpeed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPSIout"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPSIout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPSPower"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPSPower()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPSVout"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPSVout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPingCpld"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPingCpld()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPingTPM"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPingTPM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPllSource"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPllSource()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetPowerAlarm"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetPowerAlarm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetSubrackTemperatures"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetSubrackTemperatures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMCurrent"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMCurrent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMGlobalStatusAlarm"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMGlobalStatusAlarm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMIP"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMIP()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMInfo"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMInfo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMMCUTemperature"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMMCUTemperature()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMOnOffVect"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMOnOffVect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMPower"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMPower()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMPresent"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMPresent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMSupplyFault"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMSupplyFault()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMTemperatures"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMTemperatures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPMVoltage"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPMVoltage()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetTPM_Add_List"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetTPM_Add_List()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetUPSStatus"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetUPSStatus()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.GetVoltageAlarm"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.GetVoltageAlarm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.Get_API_version"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.Get_API_version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.Get_Subrack_TimeTS"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.Get_Subrack_TimeTS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.Get_TPM_temperature_vector"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.Get_TPM_temperature_vector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.Get_tpm_alarms_vector"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.Get_tpm_alarms_vector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.Initialize"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.Initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.PllInitialize"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.PllInitialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.PowerOffTPM"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.PowerOffTPM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SetFanMode"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SetFanMode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SetFanSpeed"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SetFanSpeed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SetPSFanSpeed"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SetPSFanSpeed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SetTPMIP"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SetTPMIP()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SetUPSVoltageAlarmThresholds"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SetUPSVoltageAlarmThresholds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SetUPSVoltageWarningThresholds"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SetUPSVoltageWarningThresholds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.SubrackInitialConfiguration"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.SubrackInitialConfiguration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.all_monitoring_categories"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.all_monitoring_categories()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.all_monitoring_points"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.all_monitoring_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.bkpln_get_field"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.bkpln_get_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.bkpln_set_field"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.bkpln_set_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.get_board_info"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.get_board_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.get_health_dict"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.get_health_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.get_health_status"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.get_health_status()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.get_health_status_w_elapsed"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.get_health_status_w_elapsed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.get_subrack_cpu_cpld_ip"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.get_subrack_cpu_cpld_ip()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.read_tpm_singlewire"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.read_tpm_singlewire()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subrack_management_board.SubrackMngBoard.write_tpm_singlewire"><code class="docutils literal notranslate"><span class="pre">SubrackMngBoard.write_tpm_singlewire()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.detect_ip"><code class="docutils literal notranslate"><span class="pre">detect_ip()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.dt_to_timestamp"><code class="docutils literal notranslate"><span class="pre">dt_to_timestamp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.exec_cmd"><code class="docutils literal notranslate"><span class="pre">exec_cmd()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.flatten_dict"><code class="docutils literal notranslate"><span class="pre">flatten_dict()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.int2ip"><code class="docutils literal notranslate"><span class="pre">int2ip()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.ipstr2hex"><code class="docutils literal notranslate"><span class="pre">ipstr2hex()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_management_board.reduce"><code class="docutils literal notranslate"><span class="pre">reduce()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subrack_monitoring_point_lookup.partial"><code class="docutils literal notranslate"><span class="pre">partial</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="webserverdocs.html">Web Server Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cplddocs.html">CPLD Management API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toolsdocs.html">Subrack Tools Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Subrack Management API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Subrack management API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/apidocs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-backplane">
+<span id="subrack-management-api-documentation"></span><h1>Subrack management API Documentation<a class="headerlink" href="#module-backplane" title="Link to this heading"></a></h1>
+<dl class="py exception">
+<dt class="sig sig-object py" id="backplane.BackplaneInvalidParameter">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">backplane.</span></span><span class="sig-name descname"><span class="pre">BackplaneInvalidParameter</span></span><a class="headerlink" href="#backplane.BackplaneInvalidParameter" title="Link to this definition"></a></dt>
+<dd><p>Exception class for invalid parameters provided to a function or class method.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backplane.twos_comp">
+<span class="sig-prename descclassname"><span class="pre">backplane.</span></span><span class="sig-name descname"><span class="pre">twos_comp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bits</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#backplane.twos_comp" title="Link to this definition"></a></dt>
+<dd><p>Compute the two’s complement of an integer value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> (<em>int</em>) – The integer value.</p></li>
+<li><p><strong>bits</strong> (<em>int</em>) – The number of bits representing the integer.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The two’s complement of the input value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-management">
+<dt class="sig sig-object py" id="management.MANAGEMENT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">MANAGEMENT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT" title="Link to this definition"></a></dt>
+<dd><p>Class representing a MANAGEMENT instance.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.checkLoad">
+<span class="sig-name descname"><span class="pre">checkLoad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.checkLoad" title="Link to this definition"></a></dt>
+<dd><p>Check if the registers are loaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NameError</strong> – If registers are not loaded or the board is not connected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.disconnect">
+<span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.disconnect" title="Link to this definition"></a></dt>
+<dd><p>Disconnect from the network.</p>
+<p>This function closes the network connection and sets the state to “Unconnected”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.find_register">
+<span class="sig-name descname"><span class="pre">find_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.find_register" title="Link to this definition"></a></dt>
+<dd><p>Find register information for provided search string.
+:param register_name: Regular expression to search against
+:param display: True to output result to console
+:return: List of found registers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.find_register_names">
+<span class="sig-name descname"><span class="pre">find_register_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.find_register_names" title="Link to this definition"></a></dt>
+<dd><p>Find register names for the provided search string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>register_name</strong> (<em>str</em>) – Regular expression to search against.</p></li>
+<li><p><strong>display</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to output result to console. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of found register names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_bios">
+<span class="sig-name descname"><span class="pre">get_bios</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_bios" title="Link to this definition"></a></dt>
+<dd><p>Generate a BIOS string based on specific register values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BIOS information string.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_board">
+<span class="sig-name descname"><span class="pre">get_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_info_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_board" title="Link to this definition"></a></dt>
+<dd><p>Get the board name from the extended info string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ext_info_offset</strong> (<em>int</em><em>, </em><em>optional</em>) – Offset for extended info. Defaults to 0x10.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extracted board name.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NameError</strong> – If the field BOARD doesn’t exist in the extended info.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_board_info">
+<span class="sig-name descname"><span class="pre">get_board_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_board_info" title="Link to this definition"></a></dt>
+<dd><p>Retrieve information about the board.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Board information as a dictionary.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_extended_info">
+<span class="sig-name descname"><span class="pre">get_extended_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_info_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_extended_info" title="Link to this definition"></a></dt>
+<dd><p>Get the extended info string from the board.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_mac">
+<span class="sig-name descname"><span class="pre">get_mac</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_mac" title="Link to this definition"></a></dt>
+<dd><p>Retrieve the MAC address and format it as a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MAC address string.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_register_name_by_address">
+<span class="sig-name descname"><span class="pre">get_register_name_by_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_register_name_by_address" title="Link to this definition"></a></dt>
+<dd><p>Get register name by address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>add</strong> (<em>int</em>) – Register address.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Register name or “Unknown register address” if not found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.get_xml_from_board">
+<span class="sig-name descname"><span class="pre">get_xml_from_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_map_offset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.get_xml_from_board" title="Link to this definition"></a></dt>
+<dd><p>Get XML data from the board.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.list_register_names">
+<span class="sig-name descname"><span class="pre">list_register_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.list_register_names" title="Link to this definition"></a></dt>
+<dd><p>List register names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.load_firmware_blocking">
+<span class="sig-name descname"><span class="pre">load_firmware_blocking</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_xml_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xml_map_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.load_firmware_blocking" title="Link to this definition"></a></dt>
+<dd><p>Load firmware blocking.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.pll_calib">
+<span class="sig-name descname"><span class="pre">pll_calib</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.pll_calib" title="Link to this definition"></a></dt>
+<dd><p>Calibrate PLL.</p>
+<p>This function performs calibration by writing specific values to SPI addresses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.pll_dumpcfg">
+<span class="sig-name descname"><span class="pre">pll_dumpcfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.pll_dumpcfg" title="Link to this definition"></a></dt>
+<dd><p>Dump PLL configuration to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cfg_filename</strong> (<em>str</em>) – The path to the configuration file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.pll_ioupdate">
+<span class="sig-name descname"><span class="pre">pll_ioupdate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.pll_ioupdate" title="Link to this definition"></a></dt>
+<dd><p>Update PLL IO.</p>
+<p>This function updates PLL IO by writing a specific value to the SPI address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.pll_ldcfg">
+<span class="sig-name descname"><span class="pre">pll_ldcfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.pll_ldcfg" title="Link to this definition"></a></dt>
+<dd><p>Load PLL configuration from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cfg_filename</strong> (<em>str</em>) – The path to the configuration file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.pll_read_with_update">
+<span class="sig-name descname"><span class="pre">pll_read_with_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.pll_read_with_update" title="Link to this definition"></a></dt>
+<dd><p>Read from SPI with PLL update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>address</strong> (<em>int</em>) – The address to read from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The read value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.pll_write_with_update">
+<span class="sig-name descname"><span class="pre">pll_write_with_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.pll_write_with_update" title="Link to this definition"></a></dt>
+<dd><p>Write to SPI with PLL update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>int</em>) – The address to write to.</p></li>
+<li><p><strong>value</strong> (<em>int</em>) – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.read_register">
+<span class="sig-name descname"><span class="pre">read_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.read_register" title="Link to this definition"></a></dt>
+<dd><p>Get register value
+:param register: Register name
+:param n: Number of words to read
+:param offset: Memory address offset to read from
+:param device: Device/node can be explicitly specified
+:return: Values</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.read_spi">
+<span class="sig-name descname"><span class="pre">read_spi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.read_spi" title="Link to this definition"></a></dt>
+<dd><p>Read SPI data from the specified address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>address</strong> (<em>int</em>) – The address to read from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The read value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.write_register">
+<span class="sig-name descname"><span class="pre">write_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.write_register" title="Link to this definition"></a></dt>
+<dd><p>Set register value
+:param register: Register name
+:param values: Values to write
+:param offset: Memory address offset to write to
+:param device: Device/node can be explicitly specified</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="management.MANAGEMENT.write_spi">
+<span class="sig-name descname"><span class="pre">write_spi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.MANAGEMENT.write_spi" title="Link to this definition"></a></dt>
+<dd><p>Write SPI data to the specified address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>int</em>) – The address to write to.</p></li>
+<li><p><strong>value</strong> (<em>int</em>) – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="management.filter_list_by_level">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">filter_list_by_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reg_name_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.filter_list_by_level" title="Link to this definition"></a></dt>
+<dd><p>Filter a list of register names by level.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="management.format_num">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">format_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.format_num" title="Link to this definition"></a></dt>
+<dd><p>Convert a number to a string.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="management.get_max_width">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">get_max_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.get_max_width" title="Link to this definition"></a></dt>
+<dd><p>Get the maximum width of the given column index</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="management.get_shift_from_mask">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">get_shift_from_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.get_shift_from_mask" title="Link to this definition"></a></dt>
+<dd><p>Get the shift value from a mask.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="management.hexstring2ascii">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">hexstring2ascii</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hexstring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.hexstring2ascii" title="Link to this definition"></a></dt>
+<dd><p>Convert a hexstring to an ASCII-String.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hexstring</strong> (<em>str</em>) – The input hex string.</p></li>
+<li><p><strong>xor</strong> (<em>int</em>) – XOR value as an integer (default is 0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted ASCII string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="management.pprint_table">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">pprint_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#management.pprint_table" title="Link to this definition"></a></dt>
+<dd><p>Prints out a table of data, padded for alignment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>table</strong> (<em>list</em>) – The table to print. A list of lists.
+Each row must have the same number of columns.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-subrack_management_board">
+<dt class="sig sig-object py" id="subrack_management_board.Adu_Eth_Ping">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">Adu_Eth_Ping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.Adu_Eth_Ping" title="Link to this definition"></a></dt>
+<dd><p>Perform a ping on a specified IP address.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackExecFault">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">SubrackExecFault</span></span><a class="headerlink" href="#subrack_management_board.SubrackExecFault" title="Link to this definition"></a></dt>
+<dd><p>Define an exception which occurs when an error occur when
+a function or class method  fails</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackInvalidCmd">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">SubrackInvalidCmd</span></span><a class="headerlink" href="#subrack_management_board.SubrackInvalidCmd" title="Link to this definition"></a></dt>
+<dd><p>Define an exception which occurs when an invalid command is provided
+to a function or class method</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackInvalidParameter">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">SubrackInvalidParameter</span></span><a class="headerlink" href="#subrack_management_board.SubrackInvalidParameter" title="Link to this definition"></a></dt>
+<dd><p>Define an exception which occurs when an invalid parameter is provided
+to a function or class method</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">SubrackMngBoard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard" title="Link to this definition"></a></dt>
+<dd><p>This class implements methods to manage and to monitor the subrack management board</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetCPLDLockedPLL">
+<span class="sig-name descname"><span class="pre">GetCPLDLockedPLL</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetCPLDLockedPLL" title="Link to this definition"></a></dt>
+<dd><p>This method get the status of the CPLD internal PLL Lock
+:return locked: value of locked status, True PLL is locked, False PLL not locked</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetFanAlarm">
+<span class="sig-name descname"><span class="pre">GetFanAlarm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetFanAlarm" title="Link to this definition"></a></dt>
+<dd><p>method to get Fan Status Alarm Register of subrack
+:return alarms: OK, WARN, ALARM, WARN-ALARM, of each Fan</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetFanMode">
+<span class="sig-name descname"><span class="pre">GetFanMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fan_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetFanMode" title="Link to this definition"></a></dt>
+<dd><p>This method get the_bkpln_fan_mode
+:param fan_id: id of the selected fan accepted value: 1-4
+:return auto_mode: functional fan mode: auto or manual
+:return status: status of operation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetFanPwm">
+<span class="sig-name descname"><span class="pre">GetFanPwm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fan_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetFanPwm" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the PWM (Pulse Width Modulation) percentage of a specified fan.</p>
+<p>This method queries the fan speed and returns the PWM percentage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fan_id</strong> – The fan identifier.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The PWM (Pulse Width Modulation) percentage of the specified fan.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetFanRpm">
+<span class="sig-name descname"><span class="pre">GetFanRpm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fan_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetFanRpm" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the RPM (Revolutions Per Minute) of a specified fan.</p>
+<p>This method queries the fan speed and returns the RPM value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fan_id</strong> – The fan identifier.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The RPM (Revolutions Per Minute) of the specified fan.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetFanSpeed">
+<span class="sig-name descname"><span class="pre">GetFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fan_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>This method get the get_bkpln_fan_speed
+:param fan_id: id of the selected fan accepted value: 1-4
+:return fanrpm: fan rpm value
+:return fan_bank_pwm: pwm value of selected fan</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetLockedPLL">
+<span class="sig-name descname"><span class="pre">GetLockedPLL</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetLockedPLL" title="Link to this definition"></a></dt>
+<dd><p>This method get the status of the PLL Lock
+:return locked: value of locked status, True PLL is locked, False PLL not locked</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPSFanSpeed">
+<span class="sig-name descname"><span class="pre">GetPSFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ps_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPSFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>This method get the fan speed of selected Power Supply of subrack
+:param ps_id: id of the selected power supply, accepted value: 1,2
+:return fanspeed: speed of the fan</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPSIout">
+<span class="sig-name descname"><span class="pre">GetPSIout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ps_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPSIout" title="Link to this definition"></a></dt>
+<dd><p>This method get the Iout current value of selected Power Supply of subrack
+:param ps_id: id of the selected power supply, accepted value: 1,2
+:return vout: value of Iout in Ampere</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPSPower">
+<span class="sig-name descname"><span class="pre">GetPSPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ps_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPSPower" title="Link to this definition"></a></dt>
+<dd><p>This method get the Power consumption value of selected Power Supply of subrack
+:param ps_id: id of the selected power supply, accepted value: 1,2
+:return power: value of power in W</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPSVout">
+<span class="sig-name descname"><span class="pre">GetPSVout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ps_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPSVout" title="Link to this definition"></a></dt>
+<dd><p>This method get the Vout voltage value of selected Power Supply of subrack
+:param ps_id: id of the selected power supply, accepted value: 1,2
+:return vout: value of Vout in Volt</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPingCpld">
+<span class="sig-name descname"><span class="pre">GetPingCpld</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPingCpld" title="Link to this definition"></a></dt>
+<dd><p>Checks the connectivity to the CPLD using a ping operation.</p>
+<p>This method checks if the CPLD is reachable via ping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the CPLD is reachable via ping, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPingTPM">
+<span class="sig-name descname"><span class="pre">GetPingTPM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPingTPM" title="Link to this definition"></a></dt>
+<dd><p>Checks the connectivity to a TPM using a ping operation.</p>
+<p>This method checks if the TPM in the specified slot is present, powered on,
+and responds to a ping operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tpm_slot_id</strong> – The TPM slot identifier.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the TPM is reachable via ping, False if unreachable,
+None if TPM is not present or not powered on.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPllSource">
+<span class="sig-name descname"><span class="pre">GetPllSource</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPllSource" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the PLL (Phase-Locked Loop) source.</p>
+<p>This method reads the PLL source from the management interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>“internal” if the PLL source is internal, “external” otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetPowerAlarm">
+<span class="sig-name descname"><span class="pre">GetPowerAlarm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetPowerAlarm" title="Link to this definition"></a></dt>
+<dd><p>method to get TPM Power consumption Alarm Register of subrack
+:return alarms: status vector, OK, WARN, ALM of each TPM Voltages Alarm, for each board</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetSubrackTemperatures">
+<span class="sig-name descname"><span class="pre">GetSubrackTemperatures</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetSubrackTemperatures" title="Link to this definition"></a></dt>
+<dd><p>method to get temperatures from sensors placed on backplane and subrack-management boards
+:return temp_mng1: temperature value of management sensor 1
+:return temp_mng2: temperature value of management sensor 2
+:return temp_bck1: temperature value of backplane sensor 1
+:return temp_bck2: temperature value of backplane sensor 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMCurrent">
+<span class="sig-name descname"><span class="pre">GetTPMCurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMCurrent" title="Link to this definition"></a></dt>
+<dd><p>method to get current consuptin of selected tpm (providing subrack index slot of tpm)
+:param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
+:param force: force the operation even if no TPM is present in selected slot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMGlobalStatusAlarm">
+<span class="sig-name descname"><span class="pre">GetTPMGlobalStatusAlarm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forceread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMGlobalStatusAlarm" title="Link to this definition"></a></dt>
+<dd><p>Deprecated method to retrieve TPM global status alarms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpm_slot_id</strong> – The TPM slot identifier.</p></li>
+<li><p><strong>forceread</strong> – (Optional) If True, forces a read even if deprecated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#subrack_management_board.SubrackExecFault" title="subrack_management_board.SubrackExecFault"><strong>SubrackExecFault</strong></a> – Indicates that the method is deprecated, and
+subrack no longer accesses TPM.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMIP">
+<span class="sig-name descname"><span class="pre">GetTPMIP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMIP" title="Link to this definition"></a></dt>
+<dd><p>method to manually set volatile local ip address of a TPM board present on subrack
+:param tpm_slot_id:subrack slot index for selected TPM, accepted value 1-8
+:return tpm_ip_str: tpm ip address</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMInfo">
+<span class="sig-name descname"><span class="pre">GetTPMInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forceread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMInfo" title="Link to this definition"></a></dt>
+<dd><p>Deprecated method to retrieve TPM information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpm_slot_id</strong> – The TPM slot identifier.</p></li>
+<li><p><strong>forceread</strong> – (Optional) If True, forces a read even if deprecated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#subrack_management_board.SubrackExecFault" title="subrack_management_board.SubrackExecFault"><strong>SubrackExecFault</strong></a> – Indicates that the method is deprecated, and
+subrack no longer accesses TPM.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMMCUTemperature">
+<span class="sig-name descname"><span class="pre">GetTPMMCUTemperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forceread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMMCUTemperature" title="Link to this definition"></a></dt>
+<dd><p>Deprecated method to retrieve TPM MCU temperature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpm_slot_id</strong> – The TPM slot identifier.</p></li>
+<li><p><strong>forceread</strong> – (Optional) If True, forces a read even if deprecated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#subrack_management_board.SubrackExecFault" title="subrack_management_board.SubrackExecFault"><strong>SubrackExecFault</strong></a> – Indicates that the method is deprecated, and
+subrack no longer accesses TPM.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMOnOffVect">
+<span class="sig-name descname"><span class="pre">GetTPMOnOffVect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMOnOffVect" title="Link to this definition"></a></dt>
+<dd><p>method to get Power On status of inserted tpm, 0 off or not present, 1 power on
+:return vector of poweron status for slots, bits 7:0, bit 0 slot 1, bit 7 slot 8, 1 TPM power on, 0 no TPM
+inserted or power off</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMPower">
+<span class="sig-name descname"><span class="pre">GetTPMPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMPower" title="Link to this definition"></a></dt>
+<dd><p>method to get power consumption of selected tpm (providing subrack index slot of tpm)
+:param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
+:param force force the operation even if no TPM is present in selected slot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMPresent">
+<span class="sig-name descname"><span class="pre">GetTPMPresent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMPresent" title="Link to this definition"></a></dt>
+<dd><p>brief method to get info about TPM board present on subrack
+:return TpmDetected: vector of tpm positional,1 TPM detected,0 no TPM inserted,bit 7:0,bit 0 slot 1,bit 7 slot 8</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMSupplyFault">
+<span class="sig-name descname"><span class="pre">GetTPMSupplyFault</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMSupplyFault" title="Link to this definition"></a></dt>
+<dd><p>Method to get info about TPM supply fault status, 1 for each TPM in backplane slot
+:return tpmsupplyfault: vector of tpm supply fault status, 1 fault, 0 no fault,bit 7:0,bit 0 slot 1,bit 7 slot 8</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMTemperatures">
+<span class="sig-name descname"><span class="pre">GetTPMTemperatures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forceread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMTemperatures" title="Link to this definition"></a></dt>
+<dd><p>Deprecated method to retrieve TPM temperatures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpm_slot_id</strong> – The TPM slot identifier.</p></li>
+<li><p><strong>forceread</strong> – (Optional) If True, forces a read even if deprecated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#subrack_management_board.SubrackExecFault" title="subrack_management_board.SubrackExecFault"><strong>SubrackExecFault</strong></a> – Indicates that the method is deprecated, and
+subrack no longer accesses TPM.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPMVoltage">
+<span class="sig-name descname"><span class="pre">GetTPMVoltage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPMVoltage" title="Link to this definition"></a></dt>
+<dd><p>brief method to get power consuptin of selected tpm (providing subrack index slot of tpm)
+:param  tpm_slot_id:subrack slot index for selected TPM, accepted value 1-8
+:param force: force the operation even if no TPM is present in selected slot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetTPM_Add_List">
+<span class="sig-name descname"><span class="pre">GetTPM_Add_List</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetTPM_Add_List" title="Link to this definition"></a></dt>
+<dd><p>method to get the IP address will be assigned to each TPM board present on subrack
+:return list of IP address will be assigned assigned</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetUPSStatus">
+<span class="sig-name descname"><span class="pre">GetUPSStatus</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetUPSStatus" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the status of the uninterruptible power supply (UPS).</p>
+<p>This method reads data from the serial port to update UPS charge registers and
+ADC (Analog-to-Digital Converter) values. It also checks for warning and alarm
+conditions based on voltage levels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the UPS status information, including:
+- ‘warning’: True if there is a warning condition, False otherwise.
+- ‘alarm’: True if there is an alarm condition, False otherwise.
+- ‘charging’: True if the UPS is currently charging, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.GetVoltageAlarm">
+<span class="sig-name descname"><span class="pre">GetVoltageAlarm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.GetVoltageAlarm" title="Link to this definition"></a></dt>
+<dd><p>method to get TPM Voltages Power supply Alarm Register of subrack
+:return alarms: status vector, OK, WARN, ALM of each TPM Voltages Alarm, for each board</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.Get_API_version">
+<span class="sig-name descname"><span class="pre">Get_API_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.Get_API_version" title="Link to this definition"></a></dt>
+<dd><p>method to get the Version of the API
+:return string with API version</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.Get_Subrack_TimeTS">
+<span class="sig-name descname"><span class="pre">Get_Subrack_TimeTS</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.Get_Subrack_TimeTS" title="Link to this definition"></a></dt>
+<dd><p>method to get the subrack Time in timestamp format
+:return time in timestamp format</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.Get_TPM_temperature_vector">
+<span class="sig-name descname"><span class="pre">Get_TPM_temperature_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.Get_TPM_temperature_vector" title="Link to this definition"></a></dt>
+<dd><p>Deprecated method to retrieve TPM temperature vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#subrack_management_board.SubrackExecFault" title="subrack_management_board.SubrackExecFault"><strong>SubrackExecFault</strong></a> – Indicates that the method is deprecated, and
+subrack no longer accesses TPM.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.Get_tpm_alarms_vector">
+<span class="sig-name descname"><span class="pre">Get_tpm_alarms_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.Get_tpm_alarms_vector" title="Link to this definition"></a></dt>
+<dd><p>Deprecated method to retrieve TPM alarms vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#subrack_management_board.SubrackExecFault" title="subrack_management_board.SubrackExecFault"><strong>SubrackExecFault</strong></a> – Indicates that the method is deprecated, and
+subrack no longer accesses TPM.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.Initialize">
+<span class="sig-name descname"><span class="pre">Initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pll_source_internal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.Initialize" title="Link to this definition"></a></dt>
+<dd><p>Initialize the Subrack.</p>
+<p>Parameters:
+- pll_source_internal (bool): Set to True to use internal PLL source.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.PllInitialize">
+<span class="sig-name descname"><span class="pre">PllInitialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_internal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pll_cfg_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.PllInitialize" title="Link to this definition"></a></dt>
+<dd><p>This method initialize the PLL</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.PowerOffTPM">
+<span class="sig-name descname"><span class="pre">PowerOffTPM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.PowerOffTPM" title="Link to this definition"></a></dt>
+<dd><p>method to power off selected tpm
+:param  tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
+:param force: force the operation even if no TPM is present in selected slot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SetFanMode">
+<span class="sig-name descname"><span class="pre">SetFanMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fan_id_blk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SetFanMode" title="Link to this definition"></a></dt>
+<dd><p>This method set the fan mode
+:param fan_id_blk: id of the fan cuople accepted value: 1-4, for fan 1,2; 3 for fan 3,4
+:param auto_mode: fan mode configuration, 1 auto(controlled by MCU), 0 manual(use SetFanSpeed method)
+:note fan are coupled, passing fan_blk_id=1 both fan 1 and 2 will be configured at same mode,</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SetFanSpeed">
+<span class="sig-name descname"><span class="pre">SetFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fan_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_pwm_perc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SetFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>This method set the_bkpln_fan_speed
+:param fan_id: id of the selected fan accepted value: 1-4
+:param speed_pwm_perc: percentage value of fan RPM  (MIN 0=0% - MAX 100=100%)
+:note settings of fan speed is possible only if fan mode is manual</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SetPSFanSpeed">
+<span class="sig-name descname"><span class="pre">SetPSFanSpeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ps_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_percent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SetPSFanSpeed" title="Link to this definition"></a></dt>
+<dd><p>This method set the fan speed of selected Power Supply of subrack
+:param ps_id: id of the selected power supply, accepted value: 1,2
+:param speed_percent: speed in percentual value from 0 to 100</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SetTPMIP">
+<span class="sig-name descname"><span class="pre">SetTPMIP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">netmask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gateway</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bypass_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SetTPMIP" title="Link to this definition"></a></dt>
+<dd><p>method to manually set volatile local ip address of a TPM board present on subrack
+:param tpm_slot_id: subrack slot index for selected TPM, accepted value 1-8
+:param ip: ip address will be assigned to selected TPM
+:param netmask: netmask value will be assigned to selected TPM
+:return status</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SetUPSVoltageAlarmThresholds">
+<span class="sig-name descname"><span class="pre">SetUPSVoltageAlarmThresholds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alarm_level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SetUPSVoltageAlarmThresholds" title="Link to this definition"></a></dt>
+<dd><p>Sets the UPS voltage alarm thresholds.</p>
+<p>This method sets the alarm level for UPS voltage, considering the current
+UPS presence status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>alarm_level</strong> – The alarm level for UPS voltage.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of errors encountered during the operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SetUPSVoltageWarningThresholds">
+<span class="sig-name descname"><span class="pre">SetUPSVoltageWarningThresholds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">warning_level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SetUPSVoltageWarningThresholds" title="Link to this definition"></a></dt>
+<dd><p>Sets the UPS voltage warning thresholds.</p>
+<p>This method sets the warning level for UPS voltage, considering the current
+UPS presence status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>warning_level</strong> – The warning level for UPS voltage.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of errors encountered during the operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.SubrackInitialConfiguration">
+<span class="sig-name descname"><span class="pre">SubrackInitialConfiguration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.SubrackInitialConfiguration" title="Link to this definition"></a></dt>
+<dd><p>&#64;brief method Initizlize the Subrack power control configuration for TPM current limit</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.all_monitoring_categories">
+<span class="sig-name descname"><span class="pre">all_monitoring_categories</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.all_monitoring_categories" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of all monitoring point ‘categories’.
+Here categories is a super-set of monitoring points and is
+the full list of accepted strings to set_monitoring_point_attr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of categories</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.all_monitoring_points">
+<span class="sig-name descname"><span class="pre">all_monitoring_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.all_monitoring_points" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of all monitoring points by finding all leaf nodes
+in the lookup dict that have a corresponding method field.</p>
+<p>The monitoring points returned are strings produced from ‘.’ delimited
+keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of monitoring points</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.bkpln_get_field">
+<span class="sig-name descname"><span class="pre">bkpln_get_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.bkpln_get_field" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the value of a field from the backup location (Bkpln).</p>
+<p>This method delegates the task to the Bkpln instance to get the value of
+the specified field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> – The key identifying the field to be retrieved.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value of the specified field.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.bkpln_set_field">
+<span class="sig-name descname"><span class="pre">bkpln_set_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_protected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.bkpln_set_field" title="Link to this definition"></a></dt>
+<dd><p>Sets a field in the backup location (Bkpln).</p>
+<p>This method delegates the task to the Bkpln instance to set the specified
+field with the given value. Optionally, it allows overriding protected fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – The key identifying the field to be set.</p></li>
+<li><p><strong>value</strong> – The value to be set for the specified field.</p></li>
+<li><p><strong>override_protected</strong> – (Optional) If True, allows overriding protected fields.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of setting the field.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.get_board_info">
+<span class="sig-name descname"><span class="pre">get_board_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.get_board_info" title="Link to this definition"></a></dt>
+<dd><p>Get information about the Subrack board.</p>
+<p>Returns:
+dict: Board information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.get_health_dict">
+<span class="sig-name descname"><span class="pre">get_health_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.get_health_dict" title="Link to this definition"></a></dt>
+<dd><p>Returns the dictionary of SUBRACK monitoring points with the
+static key only, no value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.get_health_status">
+<span class="sig-name descname"><span class="pre">get_health_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.get_health_status" title="Link to this definition"></a></dt>
+<dd><p>Returns the current value of SUBRACK monitoring points
+If no group argument given, current value of all monitoring points is returned.</p>
+<p>For example:
+subrack.get_health_status(group=’temperatures’)
+would return only the health status for:</p>
+<p>A group attribute is provided by default, see subrack_monitoring_point_lookup.py.
+This can be used like the below example:
+subrack.get_health_status(group=’temperatures’)
+subrack.get_health_status(group=’slots’)
+subrack.get_health_status(group=’voltages’)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.get_health_status_w_elapsed">
+<span class="sig-name descname"><span class="pre">get_health_status_w_elapsed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.get_health_status_w_elapsed" title="Link to this definition"></a></dt>
+<dd><p>Returns the current value of SUBRACK monitoring points
+If no group argument given, current value of all monitoring points is returned.</p>
+<p>For example:
+subrack.get_health_status(group=’temperatures’)
+would return only the health status for:</p>
+<p>A group attribute is provided by default, see subrack_monitoring_point_lookup.py.
+This can be used like the below example:
+subrack.get_health_status(group=’temperatures’)
+subrack.get_health_status(group=’slots’)
+subrack.get_health_status(group=’voltages’)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.get_subrack_cpu_cpld_ip">
+<span class="sig-name descname"><span class="pre">get_subrack_cpu_cpld_ip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.get_subrack_cpu_cpld_ip" title="Link to this definition"></a></dt>
+<dd><p>SubrackInitialConfiguration
+&#64;brief method Initizlize the Subrack power control configuration for TPM current limit
+:return cpu_ip, cpld_ip: Management CPU IP, Management CPLD IP</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.read_tpm_singlewire">
+<span class="sig-name descname"><span class="pre">read_tpm_singlewire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.read_tpm_singlewire" title="Link to this definition"></a></dt>
+<dd><p>Reads a value from the single-wire interface of a TPM.</p>
+<p>This method selects a TPM by psnt_mux and reads a register value from the
+specified address in the single-wire interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpm_id</strong> – The TPM identifier.</p></li>
+<li><p><strong>address</strong> – The register address in the single-wire interface.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value read from the specified register.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="subrack_management_board.SubrackMngBoard.write_tpm_singlewire">
+<span class="sig-name descname"><span class="pre">write_tpm_singlewire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.SubrackMngBoard.write_tpm_singlewire" title="Link to this definition"></a></dt>
+<dd><p>Writes a value to the single-wire interface of a TPM.</p>
+<p>This method selects a TPM by psnt_mux and writes a value to the specified
+address in the single-wire interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpm_id</strong> – The TPM identifier.</p></li>
+<li><p><strong>address</strong> – The register address in the single-wire interface.</p></li>
+<li><p><strong>value</strong> – The value to be written to the register.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.detect_ip">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">detect_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tpm_slot_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.detect_ip" title="Link to this definition"></a></dt>
+<dd><p>Detect the IP address of a TPM board based on its slot ID.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.dt_to_timestamp">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">dt_to_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.dt_to_timestamp" title="Link to this definition"></a></dt>
+<dd><p>Convert a datetime object to a Unix timestamp.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.exec_cmd">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">exec_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.exec_cmd" title="Link to this definition"></a></dt>
+<dd><p>Execute a shell command and capture its output.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.flatten_dict">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">flatten_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.flatten_dict" title="Link to this definition"></a></dt>
+<dd><p>Flatten a nested dictionary.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.int2ip">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">int2ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.int2ip" title="Link to this definition"></a></dt>
+<dd><p>Convert an integer value to an IP address.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.ipstr2hex">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">ipstr2hex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_management_board.ipstr2hex" title="Link to this definition"></a></dt>
+<dd><p>Convert an IP address string to a hexadecimal representation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="subrack_management_board.reduce">
+<span class="sig-prename descclassname"><span class="pre">subrack_management_board.</span></span><span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">value</span></span></span><a class="headerlink" href="#subrack_management_board.reduce" title="Link to this definition"></a></dt>
+<dd><p>Apply a function of two arguments cumulatively to the items of a sequence
+or iterable, from left to right, so as to reduce the iterable to a single
+value.  For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
+of the iterable in the calculation, and serves as a default when the
+iterable is empty.</p>
+</dd></dl>
+
+<dl class="py class" id="module-subrack_monitoring_point_lookup">
+<dt class="sig sig-object py" id="subrack_monitoring_point_lookup.partial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">subrack_monitoring_point_lookup.</span></span><span class="sig-name descname"><span class="pre">partial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#subrack_monitoring_point_lookup.partial" title="Link to this definition"></a></dt>
+<dd><p>New function with partial application of the given arguments
+and keywords.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Subrack Management API’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="webserverdocs.html" class="btn btn-neutral float-right" title="Web Server Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Simone Chiarucci (INAF-OAA).</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

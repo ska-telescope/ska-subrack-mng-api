@@ -107,7 +107,6 @@ logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger("webServer")
 
 if __name__ == "__main__":
-
     hardware.initialize()
     webServer = HTTPServer((hostName, serverPort), MyServer)
     logger.info("Server started http://%s:%s" % (hostName, serverPort))

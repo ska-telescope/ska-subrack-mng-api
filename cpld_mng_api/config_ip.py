@@ -11,7 +11,15 @@ CPLD_GATEWAY_OFFSET = 0x00010030
 
 
 def int2ip(value):
-    """Convert an integer to an IP address string."""
+    """
+    Convert an integer to an IP address string.
+
+    Args:
+        value (int): Integer representation of the IP address.
+
+    Returns:
+        str: IP address string.
+    """
     ip = str((value >> 24) & 0xFF)
     ip += "."
     ip += str((value >> 16) & 0xFF)
@@ -23,7 +31,16 @@ def int2ip(value):
 
 
 def get_mac_from_eep(inst, phy_addr=0xA0):
-    """Read MAC address from EEPROM."""
+    """
+    Read MAC address from EEPROM.
+
+    Args:
+        inst (instance): Instance of a class with 'bsp' attribute.
+        phy_addr (int): Physical address in EEPROM (default is 0xA0).
+
+    Returns:
+        list: List representing the MAC address.
+    """
     mac = []
     for i in range(eep_sec["MAC"]["size"]):
         rdval = inst.bsp.eep_rd8(eep_sec["MAC"]["offset"] + i, phy_addr)
@@ -32,7 +49,15 @@ def get_mac_from_eep(inst, phy_addr=0xA0):
 
 
 def nuple2mac(mac):
-    """Convert a MAC address tuple to a string."""
+    """
+    Convert a MAC address tuple to a string.
+
+    Args:
+        mac (tuple): Tuple representing the MAC address.
+
+    Returns:
+        str: MAC address string.
+    """
     mac_str = ""
     for i in range(0, len(mac) - 1):
         mac_str += "{0:02x}".format(mac[i]) + ":"
@@ -41,7 +66,14 @@ def nuple2mac(mac):
 
 
 def write_string(inst, offset, string):
-    """Write a string to EEPROM."""
+    """
+    Write a string to EEPROM.
+
+    Args:
+        inst (instance): Instance of a class with 'bsp' attribute.
+        offset (int): Offset in EEPROM to start writing the string.
+        string (str): String to be written to EEPROM.
+    """
     addr = offset
     for i in range(len(string)):
         inst.bsp.eep_wr8(addr, ord(string[i]))
@@ -50,7 +82,17 @@ def write_string(inst, offset, string):
 
 
 def read_string(inst, offset, max_len=32):
-    """Read a string from EEPROM."""
+    """
+    Read a string from EEPROM.
+
+    Args:
+        inst (instance): Instance of a class with 'bsp' attribute.
+        offset (int): Offset in EEPROM to start reading the string.
+        max_len (int): Maximum length of the string to read (default is 32).
+
+    Returns:
+        str: Read string from EEPROM.
+    """
     addr = offset
     string = ""
     for i in range(max_len):
@@ -89,7 +131,6 @@ eep_sec = {
 
 
 if __name__ == "__main__":
-
     parser = OptionParser()
     parser.add_option(
         "--eep",
@@ -409,4 +450,4 @@ if __name__ == "__main__":
         # read configuration from EEPROM and set volatile registers
         # inst.rmp.wr32(0x00010018,1)
 
-inst.disconnect()
+    inst.disconnect()

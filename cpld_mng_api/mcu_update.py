@@ -35,30 +35,42 @@ MCU_NVMCTRL_BA = 0x400E0A00
 
 
 def loadBitstream(filename, pagesize):
-    print("Open Bistream file %s" % (filename))
+    """Load the bitstream from a file.
+
+    Args:
+        filename (str): The path to the bitstream file.
+        pagesize (int): The size of the pages.
+
+    Returns:
+        bytearray: The formatted bitstream.
+        int: The bitstream size.
+        int: The total size.
+    """
+    print("Open Bitstream file %s" % (filename))
     with open(filename, "rb") as f:
         dump = bytearray(f.read())
-    bitstreamSize = len(dump)
+    bitstream_size = len(dump)
 
-    pages = bitstreamSize / pagesize
-    if (pages * pagesize) != bitstreamSize:
+    pages = bitstream_size / pagesize
+    if (pages * pagesize) != bitstream_size:
         pages = pages + 1
     print(
         "Loading %s (%d bytes) = %d * %d bytes pages"
-        % (filename, bitstreamSize, pages, pagesize)
+        % (filename, bitstream_size, pages, pagesize)
     )
     s = pages * pagesize
     tmp = bytearray(s)
-    for i in range(0, bitstreamSize):
+    for i in range(0, bitstream_size):
         tmp[i] = dump[i]
-    for i in range(0, s - bitstreamSize):
-        tmp[i + bitstreamSize] = 0xFF
-    return tmp, bitstreamSize, s
+    for i in range(0, s - bitstream_size):
+        tmp[i + bitstream_size] = 0xFF
+    return tmp, bitstream_size, s
 
 
 if __name__ == "__main__":
-
-    parser = OptionParser(usage=(usage_string + usage_hexample))
+    parser = OptionParser(
+        usage="usage: %prog [options] [<value>]\n" "es. %prog -s 0x0a\nes. %prog -r\n"
+    )
     parser.add_option(
         "--ip",
         action="store",
@@ -93,14 +105,14 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
     Mng = MANAGEMENT(ip=options.ip, port=options.port, timeout=5)
+
     if options.update:
         if options.bitfile is not None:
             if os.path.exists(options.bitfile) and os.path.isfile(options.bitfile):
                 logging.info("Using MCU bitfile {}".format(options.bitfile))
-                memblock, bitstreamSize, size = loadBitstream(
+                memblock, bitstream_size, size = loadBitstream(
                     options.bitfile, PAGE_SIZE
                 )
-                # Read bitfile and cast as a list of unsigned integers
                 formatted_bitstream = list(
                     struct.unpack_from("I" * (len(memblock) / 4), memblock)
                 )
@@ -111,7 +123,7 @@ if __name__ == "__main__":
                     "*************************** WARNING ************************************"
                 )
                 print(
-                    "This operation will Erase actual MCU FW and it's dangerous are you sure to continue?(y/n)"
+                    "This operation will Erase actual MCU FW and it's dangerous. Are you sure to continue? (y/n)"
                 )
                 ans = raw_input("")
                 if ans != "y":
@@ -121,11 +133,10 @@ if __name__ == "__main__":
                 print("Start FW loading in Flash")
                 start = time.time()
                 pre = start
-                # ERASE sector cmd
                 cmd_erase = [
-                    flash_cmd.ERASESECT0,
-                    flash_cmd.ERASESECT1,
-                    flash_cmd.ERASESECTL,
+                    FlashCommand.ERASESECT0,
+                    FlashCommand.ERASESECT1,
+                    FlashCommand.ERASESECTL,
                 ]
                 dataw = []
                 rxdata = []
@@ -156,11 +167,10 @@ if __name__ == "__main__":
                         print("ERROR: TIMEOUT Occurred during write")
                         exit()
                     bw = bw + 4
-                    # if i != 0 and i % 127 == 0:
                     if bw == 512:
-                        wp_data = flash_cmd.WRITEPAGE_ARG | (page << 8)
+                        wp_data = FlashCommand.WRITEPAGE_ARG | (page << 8)
                         wp_cmd = (
-                            flash_cmd.WRITEPAGEERASE_CMD
+                            FlashCommand.WRITEPAGEERASE_CMD
                             + ","
                             + hex(wp_data)[2 : len(hex(wp_data))]
                             + "#"
@@ -182,9 +192,8 @@ if __name__ == "__main__":
                         bw = 0
                 end = time.time()
                 print("Elapsed time %.6f" % (end - start))
-                # set GPNVM
                 print("Setting MCU to start from Flash")
-                cmd = flash_cmd.SETGPNVM
+                cmd = FlashCommand.SETGPNVM
                 dataw = []
                 rxdata = []
                 for i in range(0, len(cmd)):

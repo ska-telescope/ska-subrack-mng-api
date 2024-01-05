@@ -17,7 +17,6 @@ import os
 from bsp.management import *
 
 if __name__ == "__main__":
-
     # Use OptionParse to get command-line arguments
     from optparse import OptionParser
     from sys import argv, stdout

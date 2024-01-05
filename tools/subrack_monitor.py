@@ -258,11 +258,33 @@ class KeyReader :
 
 
 def partial_reverse(list_, from_, to):
+    """
+    Reverse a portion of a list in-place.
+
+    Args:
+        list_ (list): The input list.
+        from_ (int): The starting index for reversal.
+        to (int): The ending index for reversal.
+    """
     (list_[4], list_[7]) = (list_[7], list_[4])
     (list_[5], list_[6]) = (list_[6], list_[5])
 
 
 def presentdata():
+    """
+    Retrieve TPM present and ON/OFF vectors, and update instances accordingly.
+
+    This function retrieves TPM present and ON/OFF vectors, reverses the bit order,
+    updates instances based on changes in TPM ON/OFF vector, and prints the status.
+
+    Note:
+        This function relies on global variables: present, tpm_is_on, tpm_is_on_old,
+        present_row, and tpm_is_on_row.
+
+    Raises:
+        Exception: If an error occurs while reading temperature.
+
+    """
     global present
     global tpmison
     global tpmison_old
@@ -309,6 +331,11 @@ def presentdata():
 
 
 def tab_present():
+    """
+    Display the table for TPM Present & ON status.
+
+    This function prints the TPM Present & ON status in a formatted table.
+    """
     table_present = [table_index, present, tpmison]
     clear()
     tablepres = terminaltables.AsciiTable(table_present)
@@ -317,6 +344,15 @@ def tab_present():
 
 
 def fandata():
+    """
+    Retrieve fan data and print the status.
+
+    This function retrieves fan data, specifically RPM and PWM percentage,
+    for each of the four fans and prints the status.
+
+    Raises:
+        Exception: If an error occurs while reading temperature.
+    """
     for i in range(4):
         try:
             # subrack.SetFanMode(i+1, 0)
@@ -326,6 +362,11 @@ def fandata():
 
 
 def tab_fandata():
+    """
+    Display fan data in a table.
+
+    The function creates a table displaying the RPM Fan Speed and PWM Percentage for each fan.
+    """
     fan_data = [
         ["Fan 1", "Fan 2", "Fan 3", "Fan 4"],
         rpmfan,
@@ -342,6 +383,11 @@ def tab_fandata():
 
 
 def voltagedata():
+    """
+    Update voltage-related data.
+
+    The function updates the voltage, current, and power-related data for TPM instances.
+    """
     presentdata()
     for i in range(8):
         if present[i] != 0:
@@ -363,6 +409,11 @@ def voltagedata():
 
 
 def tab_tpm():
+    """
+    Display TPM-related data in a table.
+
+    The function creates a table displaying various data related to TPM instances.
+    """
     table_tpmpow = [
         table_index_pow,
         present_row,
@@ -386,6 +437,11 @@ def tab_tpm():
 
 
 def tempdata():
+    """
+    Update temperature-related data.
+
+    The function updates temperature data, either by reading from sensors or using simulated values.
+    """
     temps[0], temps[1], temps[2], temps[3] = subrack.GetSubrackTemperatures()
     if subrack._simulation == False:
         p = subprocess.Popen(
@@ -405,6 +461,11 @@ def tempdata():
 
 
 def tab_tempdata():
+    """
+    Display temperature data in a table.
+
+    The function creates a table displaying temperature data for different components.
+    """
     table_brdtmp = [["Mng1", "Mng2", "Bckp1", "Bckp2", "CPU"], temps]
     tablebrdtmp = terminaltables.AsciiTable(table_brdtmp)
     tablebrdtmp.title = "Subrack Temperatures (Deg)"
@@ -412,6 +473,11 @@ def tab_tempdata():
 
 
 def tpmtempdata():
+    """
+    Update TPM temperature data.
+
+    The function updates temperature data for TPM instances based on their status.
+    """
     presentdata()
     for i in range(8):
         tpm_mcu_temp[i] = ""
@@ -430,6 +496,11 @@ def tpmtempdata():
 
 
 def psudata():
+    """
+    Update PSU-related data.
+
+    The function updates data related to Power Supply Units (PSU) including voltage, current, and power.
+    """
     psu_pow[2] = 0
     for i in range(2):
         _volt = subrack.GetPSVout(i + 1)
@@ -452,6 +523,11 @@ def psudata():
 
 
 def tab_psudata():
+    """
+    Display PSU data in a table.
+
+    The function creates a table displaying data related to Power Supply Units (PSU).
+    """
     table_psu = [
         psu_index,
         psu_volt,
@@ -532,8 +608,15 @@ subrack = SubrackMngBoard(simulation=options.emulation)
 # do_block = False
 # keyreader = KeyReader(echo=False, block=do_block)
 
+
 # Set logging
 def set_logging(level):
+    """
+    Configure logging level and format.
+
+    Args:
+        level (str): Logging level ('INFO', 'ERROR', 'DEBUG').
+    """
     log = logging.getLogger("")
     if level == "INFO":
         log.setLevel(logging.INFO)

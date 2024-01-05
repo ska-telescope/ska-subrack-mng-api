@@ -4,10 +4,10 @@ import sys
 
 # import netproto.rmp as rmp
 import lxml.etree as ET
-from .management_bsp import MANAGEMENT_BSP
-from .management_flash import MngProgFlash
-from .management_mcu_uart import MngMcuUart
-from .management_spi import MANAGEMENT_SPI
+from bsp.management_bsp import MANAGEMENT_BSP
+from bsp.management_flash import MngProgFlash
+from bsp.management_mcu_uart import MngMcuUart
+from bsp.management_spi import MANAGEMENT_SPI
 import zlib
 import binascii
 

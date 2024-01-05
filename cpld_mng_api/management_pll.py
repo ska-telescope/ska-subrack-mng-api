@@ -142,4 +142,4 @@ if __name__ == "__main__":
             inst.write_spi(int(args[0], 16), int(args[1], 16))
         else:
             print("Error. Wrong number of parameters")
-inst.disconnect()
+    inst.disconnect()
