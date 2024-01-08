@@ -20,4 +20,4 @@ if __name__ == "__main__":
     else:
         print("Error. Wrong number of parameters")
 
-inst.disconnect()
+    inst.disconnect()

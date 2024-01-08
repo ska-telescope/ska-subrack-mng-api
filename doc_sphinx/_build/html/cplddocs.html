@@ -54,6 +54,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#config_ip.nuple2mac"><code class="docutils literal notranslate"><span class="pre">nuple2mac()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#config_ip.read_string"><code class="docutils literal notranslate"><span class="pre">read_string()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#config_ip.write_string"><code class="docutils literal notranslate"><span class="pre">write_string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cpld2mcu_serial_ctrl_2.FlashCmd"><code class="docutils literal notranslate"><span class="pre">FlashCmd</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cpld2mcu_serial_ctrl_2.load_bitstream"><code class="docutils literal notranslate"><span class="pre">load_bitstream()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mcu_update.loadBitstream"><code class="docutils literal notranslate"><span class="pre">loadBitstream()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.cfg_10g"><code class="docutils literal notranslate"><span class="pre">cfg_10g()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#phy_marvell_88X2222_init.decode_register"><code class="docutils literal notranslate"><span class="pre">decode_register()</span></code></a></li>
@@ -238,6 +240,29 @@
 <li><p><strong>offset</strong> (<em>int</em>) – Offset in EEPROM to start writing the string.</p></li>
 <li><p><strong>string</strong> (<em>str</em>) – String to be written to EEPROM.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-cpld2mcu_serial_ctrl_2">
+<dt class="sig sig-object py" id="cpld2mcu_serial_ctrl_2.FlashCmd">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cpld2mcu_serial_ctrl_2.</span></span><span class="sig-name descname"><span class="pre">FlashCmd</span></span><a class="headerlink" href="#cpld2mcu_serial_ctrl_2.FlashCmd" title="Link to this definition"></a></dt>
+<dd><p>Class containing flash commands and related constants.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cpld2mcu_serial_ctrl_2.load_bitstream">
+<span class="sig-prename descclassname"><span class="pre">cpld2mcu_serial_ctrl_2.</span></span><span class="sig-name descname"><span class="pre">load_bitstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pagesize</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cpld2mcu_serial_ctrl_2.load_bitstream" title="Link to this definition"></a></dt>
+<dd><p>Load a bitstream from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> – The name of the file to load.</p></li>
+<li><p><strong>pagesize</strong> – The size of the pages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the loaded bitstream, bitstream size, and total size.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1149,7 +1174,358 @@ and the received data buffer.</p>
 
 </dd></dl>
 
-<span class="target" id="module-management_spi"></span></section>
+<dl class="py class" id="module-management_spi">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">MANAGEMENT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Class representing a MANAGEMENT instance.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">checkLoad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Check if the registers are loaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NameError</strong> – If registers are not loaded or the board is not connected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Disconnect from the network.</p>
+<p>This function closes the network connection and sets the state to “Unconnected”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">find_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Find register information for provided search string.
+:param register_name: Regular expression to search against
+:param display: True to output result to console
+:return: List of found registers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">find_register_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Find register names for the provided search string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>register_name</strong> (<em>str</em>) – Regular expression to search against.</p></li>
+<li><p><strong>display</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to output result to console. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of found register names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_bios</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Generate a BIOS string based on specific register values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BIOS information string.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_info_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get the board name from the extended info string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ext_info_offset</strong> (<em>int</em><em>, </em><em>optional</em>) – Offset for extended info. Defaults to 0x10.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extracted board name.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NameError</strong> – If the field BOARD doesn’t exist in the extended info.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_board_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Retrieve information about the board.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Board information as a dictionary.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_extended_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_info_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get the extended info string from the board.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_mac</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Retrieve the MAC address and format it as a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MAC address string.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_register_name_by_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get register name by address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>add</strong> (<em>int</em>) – Register address.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Register name or “Unknown register address” if not found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_xml_from_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_map_offset</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get XML data from the board.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">list_register_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>List register names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">load_firmware_blocking</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_xml_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xml_map_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load firmware blocking.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">pll_calib</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Calibrate PLL.</p>
+<p>This function performs calibration by writing specific values to SPI addresses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">pll_dumpcfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_filename</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Dump PLL configuration to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cfg_filename</strong> (<em>str</em>) – The path to the configuration file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">pll_ioupdate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Update PLL IO.</p>
+<p>This function updates PLL IO by writing a specific value to the SPI address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">pll_ldcfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_filename</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Load PLL configuration from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cfg_filename</strong> (<em>str</em>) – The path to the configuration file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">pll_read_with_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read from SPI with PLL update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>address</strong> (<em>int</em>) – The address to read from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The read value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">pll_write_with_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write to SPI with PLL update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>int</em>) – The address to write to.</p></li>
+<li><p><strong>value</strong> (<em>int</em>) – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">read_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get register value
+:param register: Register name
+:param n: Number of words to read
+:param offset: Memory address offset to read from
+:param device: Device/node can be explicitly specified
+:return: Values</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">read_spi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Read SPI data from the specified address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>address</strong> (<em>int</em>) – The address to read from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The read value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">write_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Set register value
+:param register: Register name
+:param values: Values to write
+:param offset: Memory address offset to write to
+:param device: Device/node can be explicitly specified</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">write_spi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Write SPI data to the specified address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>int</em>) – The address to write to.</p></li>
+<li><p><strong>value</strong> (<em>int</em>) – The value to write.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">filter_list_by_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reg_name_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_name</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Filter a list of register names by level.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">format_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert a number to a string.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">get_max_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index1</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get the maximum width of the given column index</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">get_shift_from_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get the shift value from a mask.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">hexstring2ascii</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hexstring</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Convert a hexstring to an ASCII-String.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hexstring</strong> (<em>str</em>) – The input hex string.</p></li>
+<li><p><strong>xor</strong> (<em>int</em>) – XOR value as an integer (default is 0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted ASCII string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">management.</span></span><span class="sig-name descname"><span class="pre">pprint_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Prints out a table of data, padded for alignment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>table</strong> (<em>list</em>) – The table to print. A list of lists.
+Each row must have the same number of columns.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 
 
            </div>

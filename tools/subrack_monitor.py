@@ -172,7 +172,7 @@ tpmison_row = []
 ip_assigned = [False, False, False, False, False, False, False, False]
 present_done = False
 
-clear = lambda: os.system("clear")  # on Linux System
+#clear = lambda: os.system("clear")  # on Linux System
 
 
 """
@@ -545,70 +545,6 @@ def tab_psudata():
     print(tablepsu.table)
 
 
-parser = OptionParser()
-
-parser.add_option(
-    "-s",
-    "--show",
-    action="store_true",
-    dest="show_measure",
-    default=False,
-    help="dump all fpga registers & flags",
-)
-parser.add_option(
-    "-e",
-    "--emulation",
-    action="store_true",
-    dest="emulation",
-    default=False,
-    help="enable emulation mode",
-)
-parser.add_option(
-    "-r",
-    "--remote",
-    action="store_true",
-    dest="remote",
-    default=False,
-    help="connect and send data to client",
-)
-parser.add_option(
-    "-f",
-    "--pll_cfg_file",
-    dest="pll_cfg_file",
-    default="../cpld_mng_api/pll_subrack_OCXO.txt",
-    help="connect and send data to client",
-)
-parser.add_option(
-    "-k",
-    "--skip_init",
-    action="store_true",
-    dest="skip_init",
-    default=False,
-    help="connect and send data to client",
-)
-parser.add_option("-p", "--pyro", action="store_true")
-
-
-(options, args) = parser.parse_args()
-
-if options.pyro:
-    import Pyro5.api
-
-    Pyro5.api.Daemon.serveSimple(
-        {
-            SubrackMngBoard: "subrack",
-            Management: "management",
-        },
-        ns=False,
-        host="0.0.0.0",
-        port=1234,
-    )
-
-subrack = SubrackMngBoard(simulation=options.emulation)
-# do_block = False
-# keyreader = KeyReader(echo=False, block=do_block)
-
-
 # Set logging
 def set_logging(level):
     """
@@ -630,102 +566,167 @@ def set_logging(level):
     log.addHandler(ch)
 
 
-# set_logging("DEBUG")
+if __name__ == '__main__':
+    parser = OptionParser()
+
+    parser.add_option(
+        "-s",
+        "--show",
+        action="store_true",
+        dest="show_measure",
+        default=False,
+        help="dump all fpga registers & flags",
+    )
+    parser.add_option(
+        "-e",
+        "--emulation",
+        action="store_true",
+        dest="emulation",
+        default=False,
+        help="enable emulation mode",
+    )
+    parser.add_option(
+        "-r",
+        "--remote",
+        action="store_true",
+        dest="remote",
+        default=False,
+        help="connect and send data to client",
+    )
+    parser.add_option(
+        "-f",
+        "--pll_cfg_file",
+        dest="pll_cfg_file",
+        default="../cpld_mng_api/pll_subrack_OCXO.txt",
+        help="connect and send data to client",
+    )
+    parser.add_option(
+        "-k",
+        "--skip_init",
+        action="store_true",
+        dest="skip_init",
+        default=False,
+        help="connect and send data to client",
+    )
+    parser.add_option("-p", "--pyro", action="store_true")
 
 
-if not options.skip_init:
-    subrack.PllInitialize(options.pll_cfg_file)
+    (options, args) = parser.parse_args()
 
-if options.remote:
-    HOST = "10.0.10.20"  # Standard loopback interface address (localhost)
-    PORT = 1234  # Port to listen on (non-privileged ports are > 1023)
-    NCLIENT = 1
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((HOST, PORT))
-    server.listen(NCLIENT)
-    try:
-        client, address = server.accept()
-        if len(address) > 0:
-            logging.info("Connected to : %s:%d" % (address[0], address[1]))
-        while True:
-            data = client.recv(1024)
-            # log.info("RECEIVED CMD: " + data + " (%d chars)" % (len(data)))
-            if not data:
-                break
-            cmd = data.split()
-            if cmd[0] == "ACQUIRE":
+    if options.pyro:
+        import Pyro5.api
+
+        Pyro5.api.Daemon.serveSimple(
+            {
+                SubrackMngBoard: "subrack",
+                Management: "management",
+            },
+            ns=False,
+            host="0.0.0.0",
+            port=1234,
+        )
+
+    subrack = SubrackMngBoard(simulation=options.emulation)
+    # do_block = False
+    # keyreader = KeyReader(echo=False, block=do_block)
+
+
+    # set_logging("DEBUG")
+
+
+    if not options.skip_init:
+        subrack.PllInitialize(options.pll_cfg_file)
+
+    if options.remote:
+        HOST = "10.0.10.20"  # Standard loopback interface address (localhost)
+        PORT = 1234  # Port to listen on (non-privileged ports are > 1023)
+        NCLIENT = 1
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((HOST, PORT))
+        server.listen(NCLIENT)
+        try:
+            client, address = server.accept()
+            if len(address) > 0:
+                logging.info("Connected to : %s:%d" % (address[0], address[1]))
+            while True:
+                data = client.recv(1024)
+                # log.info("RECEIVED CMD: " + data + " (%d chars)" % (len(data)))
+                if not data:
+                    break
+                cmd = data.split()
+                if cmd[0] == "ACQUIRE":
+                    presentdata()
+                    fandata()
+                    voltagedata()
+                    tempdata()
+                    psudata()
+                    # Message to the client
+                    msg = ""
+                    # Mgm Temps
+                    b = struct.pack(
+                        ">dddd",
+                        float(temps[0]),
+                        float(temps[1]),
+                        float(temps[2]),
+                        float(temps[3]),
+                    )
+                    msg += b
+                    # Fans RPM
+                    b = struct.pack(
+                        ">dddddd",
+                        float(pwm_perc[0]),
+                        float(pwm_perc[1]),
+                        float(rpmfan[0]),
+                        float(rpmfan[1]),
+                        float(rpmfan[2]),
+                        float(rpmfan[3]),
+                    )
+                    msg += b
+                    # TPM Power
+                    for z in range(8):
+                        b = struct.pack(">d", float(tpm_p_reg[z][:-1]))
+                        msg += b
+                    # Subrack Power
+                    b = struct.pack(
+                        ">dddd",
+                        float(psu_volt[0]),
+                        float(psu_curr[0]),
+                        float(psu_volt[1]),
+                        float(psu_curr[1]),
+                    )
+                    msg += b
+                    # Message Complete
+                    #
+                    # Data Size
+                    #   - Mgm Temps 4
+                    #   - Fans RPM  4
+                    #   - TPM Power 8
+                    client.sendall(msg)
+                    logging.info("AQUIRE Request Answered")
+                    # tab_present()
+                    tab_tpm()
+                    tab_fandata()
+                    tab_tempdata()
+                    tab_psudata()
+
+        except KeyboardInterrupt:
+            logging.info("\nTerminated")
+    elif options.show_measure:
+        while 1:
+            for i in range(20):
                 presentdata()
                 fandata()
                 voltagedata()
                 tempdata()
                 psudata()
-                # Message to the client
-                msg = ""
-                # Mgm Temps
-                b = struct.pack(
-                    ">dddd",
-                    float(temps[0]),
-                    float(temps[1]),
-                    float(temps[2]),
-                    float(temps[3]),
-                )
-                msg += b
-                # Fans RPM
-                b = struct.pack(
-                    ">dddddd",
-                    float(pwm_perc[0]),
-                    float(pwm_perc[1]),
-                    float(rpmfan[0]),
-                    float(rpmfan[1]),
-                    float(rpmfan[2]),
-                    float(rpmfan[3]),
-                )
-                msg += b
-                # TPM Power
-                for z in range(8):
-                    b = struct.pack(">d", float(tpm_p_reg[z][:-1]))
-                    msg += b
-                # Subrack Power
-                b = struct.pack(
-                    ">dddd",
-                    float(psu_volt[0]),
-                    float(psu_curr[0]),
-                    float(psu_volt[1]),
-                    float(psu_curr[1]),
-                )
-                msg += b
-                # Message Complete
-                #
-                # Data Size
-                #   - Mgm Temps 4
-                #   - Fans RPM  4
-                #   - TPM Power 8
-                client.sendall(msg)
-                logging.info("AQUIRE Request Answered")
-                # tab_present()
-                tab_tpm()
-                tab_fandata()
-                tab_tempdata()
-                tab_psudata()
-
-    except KeyboardInterrupt:
-        logging.info("\nTerminated")
-elif options.show_measure:
-    while 1:
-        for i in range(20):
-            presentdata()
-            fandata()
-            voltagedata()
-            tempdata()
-            psudata()
-            time.sleep(0.05)
-        tpmtempdata()
-        clear()
-        # tab_present()
-        tab_tpm()
-        tab_fandata()
-        tab_tempdata()
-        tab_psudata()
-else:
-    set_logging("INFO")
+                time.sleep(0.05)
+            tpmtempdata()
+            clear()
+            # tab_present()
+            tab_tpm()
+            tab_fandata()
+            tab_tempdata()
+            tab_psudata()
+    else:
+        set_logging("INFO")

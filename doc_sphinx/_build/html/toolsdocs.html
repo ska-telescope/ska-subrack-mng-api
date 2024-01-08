@@ -48,7 +48,12 @@
 <li class="toctree-l1"><a class="reference internal" href="apidocs.html">Subrack management API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="webserverdocs.html">Web Server Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cplddocs.html">CPLD Management API Documentation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Subrack Tools Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Subrack Tools Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#power_on_tpm.usage_hexample"><code class="docutils literal notranslate"><span class="pre">usage_hexample</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#power_off_tpm.usage_hexample"><code class="docutils literal notranslate"><span class="pre">usage_hexample</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i2c_reg.get_dev_add"><code class="docutils literal notranslate"><span class="pre">get_dev_add()</span></code></a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -75,8 +80,58 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="subrack-tools-documentation">
-<h1>Subrack Tools Documentation<a class="headerlink" href="#subrack-tools-documentation" title="Link to this heading"></a></h1>
+  <section id="module-power_on_tpm">
+<span id="subrack-tools-documentation"></span><h1>Subrack Tools Documentation<a class="headerlink" href="#module-power_on_tpm" title="Link to this heading"></a></h1>
+<dl class="py data">
+<dt class="sig sig-object py" id="power_on_tpm.usage_hexample">
+<span class="sig-prename descclassname"><span class="pre">power_on_tpm.</span></span><span class="sig-name descname"><span class="pre">usage_hexample</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'(es</span> <span class="pre">power</span> <span class="pre">on</span> <span class="pre">TPM1</span> <span class="pre">and</span> <span class="pre">TPM3).</span> <span class="pre">%prog</span> <span class="pre">--t1</span> <span class="pre">--t3\n(es</span> <span class="pre">power</span> <span class="pre">on</span> <span class="pre">all</span> <span class="pre">TPM).</span> <span class="pre">%prog</span> <span class="pre">--all\n'</span></em><a class="headerlink" href="#power_on_tpm.usage_hexample" title="Link to this definition"></a></dt>
+<dd><p>TPM Power Control Script</p>
+<p>This script provides a command-line interface for controlling the power state of TPMs (Trusted Platform Modules) in a SKALAB Subrack. It uses the OptionParser module to parse command-line options for selecting TPMs to power on.</p>
+<dl class="simple">
+<dt>Command-Line Options:</dt><dd><p>–t1, –t2, …, –t8: Select individual TPMs (1 to 8) to power on.
+–all: Select all TPMs to power on.</p>
+</dd>
+<dt>Usage Example:</dt><dd><p>$ python script_name.py –t1 –t3 –all</p>
+</dd>
+</dl>
+<p>Note: Replace ‘script_name.py’ with the actual name of the script file.</p>
+</dd></dl>
+
+<dl class="py data" id="module-power_off_tpm">
+<dt class="sig sig-object py" id="power_off_tpm.usage_hexample">
+<span class="sig-prename descclassname"><span class="pre">power_off_tpm.</span></span><span class="sig-name descname"><span class="pre">usage_hexample</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'(es</span> <span class="pre">power</span> <span class="pre">off</span> <span class="pre">TPM1</span> <span class="pre">and</span> <span class="pre">TPM3).</span> <span class="pre">%prog</span> <span class="pre">--t1</span> <span class="pre">--t3\n(es</span> <span class="pre">power</span> <span class="pre">off</span> <span class="pre">all</span> <span class="pre">TPM).</span> <span class="pre">%prog</span> <span class="pre">--all\n'</span></em><a class="headerlink" href="#power_off_tpm.usage_hexample" title="Link to this definition"></a></dt>
+<dd><p>TPM Power Control Script</p>
+<p>This script provides a command-line interface for controlling the power state of TPMs (Trusted Platform Modules) in a SKALAB Subrack. It uses the OptionParser module to parse command-line options for selecting TPMs to power off.</p>
+<dl class="simple">
+<dt>Command-Line Options:</dt><dd><p>–t1, –t2, …, –t8: Select individual TPMs (1 to 8) to power off.
+–all: Select all TPMs to power off.</p>
+</dd>
+<dt>Usage Example:</dt><dd><p>$ python script_name.py –t1 –t3 –all</p>
+</dd>
+</dl>
+<p>Note: Replace ‘script_name.py’ with the actual name of the script file.</p>
+</dd></dl>
+
+<dl class="py function" id="module-i2c_reg">
+<span id="module-fpga_i2c_reg"></span><span id="module-fpga_reg"></span><dt class="sig sig-object py" id="i2c_reg.get_dev_add">
+<span class="sig-prename descclassname"><span class="pre">i2c_reg.</span></span><span class="sig-name descname"><span class="pre">get_dev_add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">devname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#i2c_reg.get_dev_add" title="Link to this definition"></a></dt>
+<dd><p>Get the I2C device address based on the device name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>devname</strong> (<em>str</em>) – The name of the I2C device.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The I2C device address.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>SystemExit</strong> – If the provided device name is incorrect.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 

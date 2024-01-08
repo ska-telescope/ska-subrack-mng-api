@@ -3,9 +3,9 @@ CPLD Management API Documentation
 
 .. automodule:: config_ip
     :members:
-..
-    .. automodule:: cpld2mcu_serial_ctrl_2
-        :members:
+
+.. automodule:: cpld2mcu_serial_ctrl_2
+    :members:
 
 .. automodule:: management_pll
     :members:
@@ -40,7 +40,7 @@ CPLD Management API Documentation
 .. automodule:: management_spi
     :members:
 
-..
-    .. automodule:: management
-        :members:
+.. automodule:: management
+    :members:
+    :noindex:
 
