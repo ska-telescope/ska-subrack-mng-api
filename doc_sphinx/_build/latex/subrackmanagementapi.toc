@@ -1,0 +1,8 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Subrack management API Documentation}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Web Server Documentation}{13}{chapter.2}%
+\contentsline {chapter}{\numberline {3}CPLD Management API Documentation}{27}{chapter.3}%
+\contentsline {chapter}{\numberline {4}Subrack Tools Documentation}{43}{chapter.4}%
+\contentsline {chapter}{\numberline {5}Indices and tables}{45}{chapter.5}%
+\contentsline {chapter}{Python Module Index}{47}{section*.314}%
+\contentsline {chapter}{Index}{49}{section*.315}%
