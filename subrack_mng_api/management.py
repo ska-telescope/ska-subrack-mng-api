@@ -121,7 +121,7 @@ backplane_i2c_devices=[
      "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
     {'name': "PCF8574TS_1", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
-    {'name': "PCF8574TS_2", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
+    {'name': "PCF8574TS_2", "ICadd": 0x42, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
 ]
 

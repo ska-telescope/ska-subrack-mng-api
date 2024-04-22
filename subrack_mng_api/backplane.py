@@ -6,6 +6,7 @@ import os
 import time
 from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
+
 print_debug = False
 import logging
 import socket
@@ -45,6 +46,65 @@ eep_sec = {
     "SN":           {"offset": 0x10, "size": 16, "name": "SN", "type": "string", "protected": True},
 }
 
+
+
+class PCF8574_dev():
+    def __init__(self,mng,id):
+        self.mng = mng
+        self.i2c_PCF8574_add = [0x40,0x42]
+        self.i2c_bus = FPGA_I2CBUS.i2c2
+        self.i2c_add = self.i2c_PCF8574_add[id]
+        self.name = "FPGA_I2CBUS.i2c2.PCF8547(0x%x)"%(self.i2c_add)
+        self.input_mask = 0xff
+        #self.config_input_pin(self.input_mask)
+
+    def config_input_pin(self,port_id):
+       #set port in read mode 
+        status = 0
+        mask = self.input_mask | (1 << port_id)       
+        data, status = self.mng.fpgai2c_op(self.i2c_add, 1, 0, mask, self.i2c_bus)
+        if status != 0:
+            logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
+        else:
+            self.input_mask = mask
+        return status
+
+    def get_port(self,port_id):
+       #set port in read mode 
+        status = 0
+        mask = self.input_mask | (1 << port_id)       
+        data, status = self.mng.fpgai2c_op(self.i2c_add, 1, 0, mask, self.i2c_bus)
+        if status != 0:
+            logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
+            return 0xff, status
+        self.input_mask = mask
+        #read ports 
+        data, status = self.mng.fpgai2c_op(self.i2c_add, 0, 1, 0, self.i2c_bus)
+        if status != 0:
+            logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
+            return 0xff, status
+        # print(self.name, "read", reg, hex(data))
+        data = (data >> port_id) & 0x1
+        return data, status
+
+    def set_port(self,port_id, port_value):
+        status=0
+        if port_value == 0:
+            value= (( 1 << 8) - 1 - port_id) & self.input_mask
+        else:
+            value = self.input_mask | (1 << port_id)
+        self.input_mask = value
+        data, status = self.mng.fpgai2c_op(self.i2c_add, 1, 0, value, self.i2c_bus)
+        if status != 0:
+            logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
+            
+        return status
+
+
+
+    
+
+
 class LTC428x_dev():
 
     def __init__(self,tpm_id,mng):
@@ -64,8 +124,17 @@ class LTC428x_dev():
             'EE_SCRATCH_PAD_B2' : {'off' : 0x4d, 'len' : 1},
             'EE_SCRATCH_PAD_B3' : {'off' : 0x4e, 'len' : 1},
             'EE_SCRATCH_PAD_B4' : {'off' : 0x4f, 'len' : 1},
+            'GPIO_CONFIG'       : {'off' : 0x07, 'len' : 1},
+            'ALERT'             : {'off' : 0x02, 'len' : 2},
+            'ALERT_CONTROL'     : {'off' : 0x1C, 'len' : 1},
         }
-
+        self.gpios = {
+            'GPIO3' : {'status_bit_n': 7, 'direction': 'I', 'use': True},
+            'GPIO2' : {'status_bit_n': 6, 'direction': 'I', 'use': True},
+            'GPIO1' : {'status_bit_n': 5, 'direction': 'U', 'use': False},
+            'AlertN': {'status_bit_n': 4, 'direction': 'O', 'use': True},
+        }
+        
     def get_name(self):
         return self.name
     
@@ -109,6 +178,31 @@ class LTC428x_dev():
         else:
             return status
         
+    def config_gpio_alert(self):
+       #set GPIO 
+       self.write('ALERT', 0x0)
+
+    def get_gpio_status(self):
+        result ={}  
+        read_data, status = self.read('STATUS_B2')
+        for gpios in self.gpios:
+            if self.gpios[gpios]['direction'] == 'I' and self.gpios[gpios]['use']:
+                result[gpios]=read_data & (self.gpios[gpios]['status_bit_n']>>self.gpios[gpios]['status_bit_n'])
+        return result
+
+    def set_alertn_value(self, outval):
+        if outval == 1:
+            res,state = self.read('ALERT_CONTROL')
+            self.write('ALERT_CONTROL',res|0x40)
+        elif outval == 0:
+            res,state = self.read('ALERT_CONTROL')
+            self.write('ALERT_CONTROL',res&0xBF)
+        else:
+            logger.error("Invalid value, accepted 1 or 0")
+
+
+
+        
 # mng=MngBoard()
 # ## Backplane Board Class
 # This class contain methods to permit access to major functionality
@@ -120,6 +214,7 @@ class Backplane():
         self.simulation = simulation
         self.eep_sec = eep_sec
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
+        self.ioexpander =[PCF8574_dev(self.mng,x) for x in range (0,2)] 
         self.ps_vout_n = [None]*2
         try:
             data, status = self.power_supply[0].read('CONTROL_B1')
