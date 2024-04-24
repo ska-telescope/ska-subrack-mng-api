@@ -129,10 +129,10 @@ class LTC428x_dev():
             'ALERT_CONTROL'     : {'off' : 0x1C, 'len' : 1},
         }
         self.gpios = {
-            'GPIO3' : {'status_bit_n': 7, 'direction': 'I', 'use': True},
-            'GPIO2' : {'status_bit_n': 6, 'direction': 'I', 'use': True},
-            'GPIO1' : {'status_bit_n': 5, 'direction': 'U', 'use': False},
-            'AlertN': {'status_bit_n': 4, 'direction': 'O', 'use': True},
+            'GPIO3' : {'status_bit_n': 7, 'out_cfg_reg':'GPIO_CONFIG', 'output_cfg_bit': 7, 'direction': 'O', 'use': True},
+            'GPIO2' : {'status_bit_n': 6, 'out_cfg_reg':'GPIO_CONFIG', 'output_cfg_bit': 6, 'direction': 'I', 'use': True},
+            'GPIO1' : {'status_bit_n': 5, 'out_cfg_reg':'GPIO_CONFIG', 'output_cfg_bit': 5, 'direction': 'U', 'use': False},
+            'AlertN': {'status_bit_n': 4, 'out_cfg_reg':'ALERT_CONTROL',  'output_cfg_bit': 6, 'direction': 'O', 'use': True},
         }
         
     def get_name(self):
@@ -177,17 +177,34 @@ class LTC428x_dev():
             return 0
         else:
             return status
+
+
         
     def config_gpio_alert(self):
        #set GPIO 
        self.write('ALERT', 0x0)
+
+    def set_gpio(self,gpio,value):
+        if gpio in self.gpios:
+            print(gpio)
+            if value == 0:
+                out_conf_reg,status = self.read(self.gpios[gpio]['out_cfg_reg'])
+                data_w=out_conf_reg | (1<<self.gpios[gpio]['output_cfg_bit'])
+                print("val 0 data_w = %x" %data_w)
+                self.write(self.gpios[gpio]['out_cfg_reg'],data_w)
+            else:
+                out_conf_reg,status = self.read(self.gpios[gpio]['out_cfg_reg'])
+                data_w=out_conf_reg & (( 1 << 8) - 1 - (1 << self.gpios[gpio]['output_cfg_bit']))
+                print("val 1 data_w = %x" %data_w)
+                self.write(self.gpios[gpio]['out_cfg_reg'],data_w) 
+
 
     def get_gpio_status(self):
         result ={}  
         read_data, status = self.read('STATUS_B2')
         for gpios in self.gpios:
             if self.gpios[gpios]['direction'] == 'I' and self.gpios[gpios]['use']:
-                result[gpios]=read_data & (self.gpios[gpios]['status_bit_n']>>self.gpios[gpios]['status_bit_n'])
+                result[gpios]=(read_data >>self.gpios[gpios]['status_bit_n'])&0x1
         return result
 
     def set_alertn_value(self, outval):
@@ -199,6 +216,9 @@ class LTC428x_dev():
             self.write('ALERT_CONTROL',res&0xBF)
         else:
             logger.error("Invalid value, accepted 1 or 0")
+
+
+
 
 
 

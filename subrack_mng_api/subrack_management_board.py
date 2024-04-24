@@ -62,6 +62,14 @@ class SubrackAdminModes:
     NOT_FITTED=3
 
 
+bkpln_adu_gpio = {
+            'TPMx_RESET': {'bkpln_device': 'power_supply', 'pin': 'GPIO2'},
+            'TPMx_GPIO0': {'bkpln_device': 'power_supply', 'pin': 'GPIO3'},
+            'TPMx_INTn':  {'bkpln_device': 'ioexpander', 'pin':  [0,2,4,6,0,2,4,6] },
+            'AlertN_ioexp':  {'bkpln_device': 'ioexpander', 'pin': [1,3,5,7,1,3,5,7] },
+            'AlertN_ps':     {'bkpln_device': 'power_supply', 'pin': 'AlertN' }
+            }
+
 _initial_missing = object()
 def reduce(function, sequence, initial=_initial_missing):
     """
@@ -1265,7 +1273,49 @@ class SubrackMngBoard():
     
     def bkpln_get_field(self,key):
         return self.Bkpln.get_field(key)
-    
+
+    def get_slotx_bkpln_adu_gpio(self,slot_id,gpio):
+        if gpio in bkpln_adu_gpio:
+            if bkpln_adu_gpio[gpio]['bkpln_device'] == 'ioexpander':
+                if slot_id > 4:
+                    gpio_value=self.Bkpln.ioexpander[1].get_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1])
+                else:
+                    gpio_value=self.Bkpln.ioexpander[0].get_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1])
+                if gpio_value[1] == 0:
+                    gpio_value = gpio_value[0]
+                else:
+                    logger.error("Error while reading GPIO value ")
+                    return None                    
+            else:
+                gpios_values=self.Bkpln.power_supply[slot_id-1].get_gpio_status()
+                gpio_value=gpios_values[bkpln_adu_gpio[gpio]['pin']]
+        else:
+            logger.error("Invalid gpio parameter accepted are: ")
+            for gpios in bkpln_adu_gpio:
+                logger.error(gpios)
+            return None
+        return gpio_value
+
+
+    def set_slotx_bkpln_adu_gpio(self,slot_id,gpio,value):
+            if gpio in bkpln_adu_gpio:
+                #if gpio != "AlertN":
+                if bkpln_adu_gpio[gpio]['bkpln_device'] == 'ioexpander':
+                    if slot_id > 4:
+                        self.Bkpln.ioexpander[1].set_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1], value)
+                    else:
+                        self.Bkpln.ioexpander[0].set_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1], value)
+                else:
+                    self.Bkpln.power_supply[slot_id-1].set_gpio(bkpln_adu_gpio[gpio]['pin'],value)
+                #else:
+                #    self.Bkpln.power_supply[slot_id-1].set_alert(bkpln_adu_gpio[gpio]['pin'],value)
+            else:
+                logger.error("Invalid gpio parameter accepted are: ")
+                for gpios in bkpln_adu_gpio:
+                    logger.error(gpios)
+
+
+
     def close(self):
         self.__del__()
 
