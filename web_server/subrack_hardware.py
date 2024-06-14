@@ -659,6 +659,15 @@ class ups_status(HardwareAttribute) :
         ups_status = self._hardware.GetUPSStatus()
         return ups_status
 
+class Board_Info(HardwareAttribute):
+    """
+    Get board info
+    Returns information on board in use
+    """
+    def read_value(self):
+        info = self._hardware.get_board_info()
+        return info
+
 class SubrackHardware(HardwareThreadedDevice):
     def initialize(self, emulation=False):
         subrack = SubrackMngBoard(simulation=emulation)
@@ -711,6 +720,7 @@ class SubrackHardware(HardwareThreadedDevice):
         self.add_attribute(TPM_Temperatures("tpms_temperatures", 0, subrack))
         self.add_attribute(API_Version("api_version", 0, subrack))
         self.add_attribute(Subrack_Timestamp("subrack_timestamp", 0, subrack))
+        self.add_attribute(Board_Info("board_info", 0, subrack))
 
         self.subrack.Mng.write("Led.Led_3", 1) 
 
