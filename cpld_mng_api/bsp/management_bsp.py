@@ -18,6 +18,8 @@ eep_sec = {
             "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
             "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
             "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
+            "UPS_SMB_SN":   {"offset": 0x0c, "size": 16, "name": "UPS_SMB_SN", "type": "string", "protected": True},
+            "EXT_LABEL_SN": {"offset": 0x30, "size": 16, "name": "EXT_LABEL_SN",     "type": "string", "protected": True},
             "SN":           {"offset": 0x20, "size": 16, "name": "SN", "type": "string", "protected": True},
             "PN":           {"offset": 0x40, "size": 20, "name": "PN", "type": "string", "protected": True},
             "BOARD_MODE":   {"offset": 0x60, "size": 1, "name": "BOARD_MODE", "type": "uint", "protected": True},
@@ -33,6 +35,7 @@ eep_sec = {
                               "protected": False},
             "BOOT_SEL":     {"offset": 0x70, "size": 1, "name": "BOOT_SEL", "type": "uint",
                               "protected": False},
+            "EXT_LABEL_PN": {"offset": 0x72, "size": 14, "name": "EXT_LABEL_PN",     "type": "string", "protected": True},                              
             "MAC": {"offset": 0xFA, "size": 6, "name": "MAC", "type": "bytearray",
                     "protected": True},  # READ-ONLY
         }
