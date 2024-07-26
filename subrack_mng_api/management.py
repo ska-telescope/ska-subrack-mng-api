@@ -29,7 +29,7 @@ lasttemp = 59.875
 I2CDevices = ["ADT7408_1", "ADT7408_2", "EEPROM_MAC_1", "EEPROM_MAC_2", "LTC3676", "LTC4281"]
 
 logger=logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 class FPGA_I2CBUS:
     i2c1 = 0
@@ -711,11 +711,11 @@ class Management():
     def get_board_info(self):
         bios_string,bios_dict=self.get_bios()
         mng_info={}
+        mng_info["EXT_LABEL_SN"] = self.get_field("EXT_LABEL_SN")
+        mng_info["EXT_LABEL_PN"] = self.get_field("EXT_LABEL_PN")
         mng_info["SN"] = self.get_field("SN")
         mng_info["PN"] = self.get_field("PN")
-        location = [self.get_field("CABINET_LOCATION"),
-                    self.get_field("SUBRACK_LOCATION"),
-                    self.get_field("SLOT_LOCATION")]
+        mng_info["SMB_UPS_SN"] = self.get_field("UPS_SMB_SN")
         
         pcb_rev = self.get_field("PCB_REV")
         if pcb_rev == 0xff:
@@ -731,7 +731,6 @@ class Management():
         else:
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
-        mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
         for key,value in bios_dict.items():
             if key == 'rev':
                 mng_info['bios'] = value
