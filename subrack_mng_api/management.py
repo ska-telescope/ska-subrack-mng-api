@@ -29,7 +29,7 @@ lasttemp = 59.875
 I2CDevices = ["ADT7408_1", "ADT7408_2", "EEPROM_MAC_1", "EEPROM_MAC_2", "LTC3676", "LTC4281"]
 
 logger=logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 class FPGA_I2CBUS:
     i2c1 = 0

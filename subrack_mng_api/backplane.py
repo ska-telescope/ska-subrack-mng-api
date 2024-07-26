@@ -6,6 +6,7 @@ import os
 import time
 from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
+from subrack_mng_api import eeprom
 print_debug = False
 import logging
 import socket
@@ -43,6 +44,18 @@ eep_sec = {
     "HARDWARE_REV": {"offset": 0x0c, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
     "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
     "SN":           {"offset": 0x10, "size": 16, "name": "SN", "type": "string", "protected": True},
+}
+
+psm_eep_sec = {
+    "HARDWARE_REV":       {"offset": 0x0c, "size":  3, "name": "HARDWARE_REV",       "type": "bytearray", "protected": True},
+    "PCB_REV":            {"offset": 0x0f, "size":  1, "name": "PCB_REV",            "type": "string",    "protected": True},
+    "SN":                 {"offset": 0x10, "size": 16, "name": "SN",                 "type": "string",    "protected": True},
+    "PN":                 {"offset": 0x20, "size": 16, "name": "PN",                 "type": "string",    "protected": True},
+    "EXT_LABEL_SN":       {"offset": 0x30, "size": 16, "name": "EXT_LABEL_SN",       "type": "string",    "protected": True},
+    "EXT_LABEL_PN":       {"offset": 0x40, "size": 16, "name": "EXT_LABEL_PN",       "type": "string",    "protected": True},
+    "EXT_LABEL_SUPPLIER": {"offset": 0x50, "size": 16, "name": "EXT_LABEL_SUPPLIER", "type": "string",    "protected": True},
+    "EXT_LABEL_VER":      {"offset": 0x60, "size": 16, "name": "EXT_LABEL_VER",      "type": "string",    "protected": True},
+    #"MAC":                {"offset": 0xFA, "size": 6,  "name": "MAC",                "type": "bytearray", "protected": True},  # READ-ONLY
 }
 
 class LTC428x_dev():
@@ -123,6 +136,7 @@ class Backplane():
         self.ps_status_last = [None, None]
         self.ps_status_res = [{}, {}]
         self.eep_sec = eep_sec
+        self.psm_eep = eeprom.eeprom("PSM_EEPROM",Management_b, FPGA_I2CBUS.i2c3, 0xA6, psm_eep_sec)
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
             vout,status=self.get_ps_vout_mode(i+1)
