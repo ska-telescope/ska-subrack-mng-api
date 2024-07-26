@@ -149,7 +149,8 @@ class Backplane():
         except:
             self.bkpln_present = False
             logger.error("Error BKPLN not present!")
-        self.board_info= None
+        self.board_info = None
+        self.psm_board_info = None
         if get_board_info:
             self.board_info=self.get_board_info()
             self.psm_board_info=self.psm_get_board_info()

@@ -125,6 +125,17 @@ backplane_i2c_devices=[
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
 ]
 
+psm_i2c_devices=[
+    {'name': "U11-PCF8574TS", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 1, "ref_add": None,
+     "ref_val": None, "op_check": "ro", "access": "CPLD"},
+    {'name': "U30-EEPROM", "ICadd": 0xA6, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 1, "ref_add": 0x00,
+     "ref_val": None, "op_check": "ro", "access": "CPU"},
+    {'name': "J5-PSU1", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 2, "ref_add": 0x00,
+     "ref_val": None, "op_check": "ro", "access": "CPU"},
+    {'name': "J6-PSU2", "ICadd": 0xA2, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 2, "ref_add": 0x00,
+     "ref_val": None, "op_check": "ro", "access": "CPU"},
+]
+
 monitored_supplies= {
     "V_SOC": {'name': "V_SOC",  "Mon": "MCU", "cat": "MCUR", "reg": "VoltageSOC",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.30, 'max': 1.40}},
     "V_ARM": {'name': "V_ARM",  "Mon": "MCU", "cat": "MCUR", "reg": "VoltageARM",  "divider": 1000, "unit": "V", 'exp_value': {'min': 1.30, 'max': 1.40}},
@@ -934,6 +945,8 @@ class Management():
         if release_lock:
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
+        if value == 'Error: Read failed':
+            return None
         return int(value,16)
 
     ###write_i2c
@@ -1212,12 +1225,14 @@ class Management():
         result = []
         wr_op_passed = False
         if board == "BACKPLANE":
-            dev_list=backplane_i2c_devices
+            dev_list = backplane_i2c_devices
             self.write("CtrlRegs.BkplOnOff", 1)
+        elif board == "PSU_ADAPTER":
+            dev_list = psm_i2c_devices
         elif board == "SMB":
             dev_list = smm_i2c_devices
         else:
-            logger.error("Invalid board parameter, accepted SMB or BKPLN")
+            logger.error("Invalid board parameter, accepted SMB, BACKPLANE or PSU_ADAPTER")
             return None
         for i in range(0, len(dev_list)):
             logger.info("Device: %s" %dev_list[i]["name"])
@@ -1230,18 +1245,30 @@ class Management():
                     else:
                         retval,state = self.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                           dev_list[i]["i2cbus_id"])
-                    if retval != dev_list[i]["ref_val"]:
+                    if state != 0:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval, dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": None})
+                        logger.info("FAILED, checking dev: %s, no ACK reveived" % (dev_list[i]["name"]))
+                        continue
+                    if dev_list[i]["ref_val"] is not None:
+                        if retval != dev_list[i]["ref_val"]:
+                            result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval, dev_list[i]["ref_val"]))
+                        else:
+                            result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval, dev_list[i]["ref_val"]))
                     else:
                         result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval, dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, nothing expected" % (dev_list[i]["name"], retval))
                 if dev_list[i]["op_check"] == "rw":
                     retval=0
                     if dev_list[i]["bus_size"] == 2:
@@ -1283,7 +1310,7 @@ class Management():
                         else:
                             self.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                 dev_list[i]["res_val"], dev_list[i]["i2cbus_id"])
-            elif dev_list[i]["access"] == "CPLD":
+            elif dev_list[i]["access"] == "CPU":
                 if dev_list[i]["op_check"] == "ro":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:
@@ -1292,20 +1319,32 @@ class Management():
                     else:
                         retval = self.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                                dev_list[i]["ref_add"],"b")
-                    if retval != dev_list[i]["ref_val"]:
+                    if retval is None:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval,
-                                                                                              dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                        logger.info("FAILED, checking dev: %s, no ACK reveived" % (dev_list[i]["name"]))
+                        continue
+                    if dev_list[i]["ref_val"] is not None:
+                        if retval != dev_list[i]["ref_val"]:
+                            result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval,
+                                                                                                dev_list[i]["ref_val"]))
+                        else:
+                            result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval,
+                                                                                                dev_list[i]["ref_val"]))
                     else:
                         result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval,
-                                                                                              dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, nothing expected" % (dev_list[i]["name"], retval))
                 if dev_list[i]["op_check"] == "rw":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:
