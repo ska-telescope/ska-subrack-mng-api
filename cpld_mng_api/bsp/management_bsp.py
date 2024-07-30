@@ -512,3 +512,21 @@ class MANAGEMENT_BSP():
         self.rmp.wr32(0x0001003C, 0)
         self.rmp.wr32(0x00010038, 0)
         self.mcu_reset_n(1)
+
+
+    def i2c_set_passwd_no_mcu_rst(self):
+        rd = self.rmp.rd32(0x00010020)
+        self.rmp.wr32(0x0001003C, rd)
+        rd = self.rmp.rd32(0x00010024)
+        self.rmp.wr32(0x00010038, rd)
+        rd = self.rmp.rd32(0x0001003C)
+        if rd & 0x10000 == 0:
+            print("I2C password not accepted!")
+            exit(-1)
+        # else:
+        #    print "I2C password accepted!"
+
+    def i2c_remove_passwd_no_mcu_rst(self):
+        self.rmp.wr32(0x0001003C, 0)
+        self.rmp.wr32(0x00010038, 0)
+        
