@@ -44,6 +44,7 @@ eep_sec = {
     "HARDWARE_REV": {"offset": 0x0c, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
     "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
     "SN":           {"offset": 0x10, "size": 16, "name": "SN", "type": "string", "protected": True},
+    "EXT_LABEL":    {"offset": 0x30, "size": 48, "name": "EXT_LABEL",          "type": "string",    "protected": True},
 }
 
 psm_eep_sec = {
@@ -133,6 +134,7 @@ class Backplane():
         self.ps_status_last = [None, None]
         self.ps_status_res = [{}, {}]
         self.eep_sec = eep_sec
+        self.bkpln_eep = eeprom.eeprom("BKPLN_EEPROM",Management_b, FPGA_I2CBUS.i2c2, 0xA0, eep_sec)
         self.psm_eep = eeprom.eeprom("PSM_EEPROM",Management_b, FPGA_I2CBUS.i2c3, 0xA6, psm_eep_sec)
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
@@ -166,6 +168,7 @@ class Backplane():
             mng_info["PN"] = "NA"    
             return mng_info
         mng_info["SN"] = self.get_field("SN")
+        #add manage off data in EEP or in POWER CTRL
         mng_info["PN"] = "BACKPLANE"
         pcb_rev = self.get_field("PCB_REV")
         if pcb_rev == 0xff or pcb_rev == 0x00:
