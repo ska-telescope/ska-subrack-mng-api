@@ -1037,8 +1037,7 @@ class Management():
         # command=(rdbytenum<<24)|(wrbytenum<<16)|(i2cbus_id)|(ICadd>>1)cat /sy  bus
         # datatx_n=((datatx&0xff)<<24)|((datatx&0xff00>>8)<<24)|((datatx&0xff0000>>16)<<16)|((datatx&0xff000000>>24))
         # print "Write txdata swapped %x " %datatx
-        if ICadd == (0xA0>>1):
-            self.CpldMng.bsp.i2c_set_passwd_no_mcu_rst()
+
         command = (rdbytenum << 12) | (wrbytenum << 8) | (i2cbus_id << 16) | (ICadd)
         # print "Command %x" %command
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
@@ -1061,9 +1060,12 @@ class Management():
             return 0xff, 0x1
         # else:
         #     logger.error("Maxretry i2c fpga access (MCUR.GPReg3) %d"%retry)
+
         self.write("FPGA_I2C.twi_wrdata", datatx)
         if print_debug:
             logger.debug("fpgai2c_op - command = " + hex(command))
+        if ICadd == (0xA0>>1):
+            self.CpldMng.bsp.i2c_set_passwd_no_mcu_rst()
         self.write("FPGA_I2C.twi_command", command)
         
         retry = 0
