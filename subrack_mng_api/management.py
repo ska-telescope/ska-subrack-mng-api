@@ -1037,6 +1037,8 @@ class Management():
         # command=(rdbytenum<<24)|(wrbytenum<<16)|(i2cbus_id)|(ICadd>>1)cat /sy  bus
         # datatx_n=((datatx&0xff)<<24)|((datatx&0xff00>>8)<<24)|((datatx&0xff0000>>16)<<16)|((datatx&0xff000000>>24))
         # print "Write txdata swapped %x " %datatx
+        if ICadd == (0xA0>>1):
+            self.CpldMng.bsp.i2c_set_passwd_no_mcu_rst()
         command = (rdbytenum << 12) | (wrbytenum << 8) | (i2cbus_id << 16) | (ICadd)
         # print "Command %x" %command
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
