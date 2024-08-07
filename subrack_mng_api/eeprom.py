@@ -12,6 +12,11 @@ class eeprom():
         self.i2c_bus = i2c_bus
         self.i2c_add = i2c_add
         self.eep_sec = eep_sec
+        res = self.eep_rd8(0)
+        if res is None:
+            self.exists = False
+        else:
+            self.exists = True
     
     def ip2long(self, ip):
         """

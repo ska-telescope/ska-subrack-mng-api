@@ -135,7 +135,13 @@ class Backplane():
         self.ps_status_res = [{}, {}]
         self.eep_sec = eep_sec
         self.bkpln_eep = eeprom.eeprom("BKPLN_EEPROM",Management_b, FPGA_I2CBUS.i2c2, 0xA0, eep_sec)
+        if not self.bkpln_eep.exists:
+            del self.bkpln_eep
+            self.bkpln_eep = None
         self.psm_eep = eeprom.eeprom("PSM_EEPROM",Management_b, FPGA_I2CBUS.i2c3, 0xA6, psm_eep_sec)
+        if not self.psm_eep.exists:
+            del self.psm_eep
+            self.psm_eep = None
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         for i in range(2):
             vout,status=self.get_ps_vout_mode(i+1)
@@ -162,7 +168,7 @@ class Backplane():
         self.data = []
 
     def get_board_info(self):
-        mng_info={}
+        mng_info={'EXT_LABEL': '', 'SN': '', 'PN': '', 'HARDWARE_REV': ''}
         if not self.bkpln_present:
             mng_info["SN"] = "NA"
             mng_info["PN"] = "NA"    
@@ -184,7 +190,9 @@ class Backplane():
         return mng_info
 
     def psm_get_board_info(self):
-        mng_info={}
+        mng_info={'EXT_LABEL': '', 'SN': '', 'PN': '', 'HARDWARE_REV': ''}
+        if self.psm_eep is None:
+            return mng_info
         if not self.bkpln_present:
             mng_info["SN"] = "NA"
             mng_info["PN"] = "NA"    
