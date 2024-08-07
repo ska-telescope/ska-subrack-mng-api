@@ -18,6 +18,8 @@ eep_sec = {
             "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
             "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
             "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
+            "UPS_SMB_SN":   {"offset": 0x0c, "size": 16, "name": "UPS_SMB_SN", "type": "string", "protected": True},
+            "EXT_LABEL_SN": {"offset": 0x30, "size": 16, "name": "EXT_LABEL_SN",     "type": "string", "protected": True},
             "SN":           {"offset": 0x20, "size": 16, "name": "SN", "type": "string", "protected": True},
             "PN":           {"offset": 0x40, "size": 20, "name": "PN", "type": "string", "protected": True},
             "BOARD_MODE":   {"offset": 0x60, "size": 1, "name": "BOARD_MODE", "type": "uint", "protected": True},
@@ -33,6 +35,7 @@ eep_sec = {
                               "protected": False},
             "BOOT_SEL":     {"offset": 0x70, "size": 1, "name": "BOOT_SEL", "type": "uint",
                               "protected": False},
+            "EXT_LABEL_PN": {"offset": 0x72, "size": 14, "name": "EXT_LABEL_PN",     "type": "string", "protected": True},                              
             "MAC": {"offset": 0xFA, "size": 6, "name": "MAC", "type": "bytearray",
                     "protected": True},  # READ-ONLY
         }
@@ -509,3 +512,21 @@ class MANAGEMENT_BSP():
         self.rmp.wr32(0x0001003C, 0)
         self.rmp.wr32(0x00010038, 0)
         self.mcu_reset_n(1)
+
+
+    def i2c_set_passwd_no_mcu_rst(self):
+        rd = self.rmp.rd32(0x00010020)
+        self.rmp.wr32(0x0001003C, rd)
+        rd = self.rmp.rd32(0x00010024)
+        self.rmp.wr32(0x00010038, rd)
+        rd = self.rmp.rd32(0x0001003C)
+        if rd & 0x10000 == 0:
+            print("I2C password not accepted!")
+            exit(-1)
+        else:
+            print("I2C password accepted!")
+
+    def i2c_remove_passwd_no_mcu_rst(self):
+        self.rmp.wr32(0x0001003C, 0)
+        self.rmp.wr32(0x00010038, 0)
+        
