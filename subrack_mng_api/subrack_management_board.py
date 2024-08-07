@@ -251,7 +251,8 @@ class SubrackMngBoard():
         logger.info("SubrackMngBoard init done!")
         self.board_info = {}
         self.board_info['SMM']=self.Mng.board_info
-        self.board_info['BACKPLANE']=self.Bkpln.board_info
+        self.board_info['SUBRACK']=self.Bkpln.board_info
+        self.board_info['PSM']=self.Bkpln.psm_board_info
         try:
             board_info_file = open("/tmp/board_info", "w")
             for board_key,board_info in self.board_info.items():
@@ -259,14 +260,13 @@ class SubrackMngBoard():
                 for key,value in board_info.items():
                     logger.info("%s: %s"%(key,value))
                     table.append([str(key), str(value)])
-                board_info_file.write(tabulate.tabulate(table,headers=["BOARD INFO",board_key],tablefmt='pipe'))
+                board_info_file.write(tabulate.tabulate(table,headers=["{:<24}".format(board_key),"{:<36}".format("INFO")],tablefmt='pipe'))
                 board_info_file.write('\n')
                 board_info_file.write('\n')
             board_info_file.write("SubrackMngAPI version: %s\n" % self.Get_API_version())
             board_info_file.close()
         except PermissionError:
             logger.warning("Cannot create '/tmp/board_info' -  Permission error")
-
     def __del__(self):
         self.data = []
 
@@ -1314,8 +1314,12 @@ class SubrackMngBoard():
                 for gpios in bkpln_adu_gpio:
                     logger.error(gpios)
 
-
-
+    def psm_set_field(self,key,value, override_protected=False):
+        return self.Bkpln.psm_eep.set_field(key,value,override_protected)
+    
+    def psm_get_field(self,key):
+        return self.Bkpln.psm_eep.get_field(key)
+    
     def close(self):
         self.__del__()
 

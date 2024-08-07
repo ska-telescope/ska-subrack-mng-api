@@ -97,8 +97,8 @@ backplane_i2c_devices=[
      "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
     {'name': "ADT7470_2", "ICadd": 0x5e, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x3d,
      "ref_val": 0x70, "op_check": "ro", "access":"CPLD"},
-#    {'name': "EEPROM", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x7f,
-#     "ref_val": 0xa5, "res_val": 0xFF, "op_check": "rw", "access": "CPLD"},
+    {'name': "EEPROM", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": 0x7f,
+     "ref_val": 0xa5, "res_val": 0xFF, "op_check": "rw", "access": "CPLD"},
     {'name': "ADT7408_1", "ICadd": 0x30, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
      "ref_val": 0x11d4, "op_check": "ro", "access": "CPLD"},
     {'name': "ADT7408_2", "ICadd": 0x32, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 2, "ref_add": 0x6,
@@ -123,6 +123,17 @@ backplane_i2c_devices=[
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
     {'name': "PCF8574TS_2", "ICadd": 0x42, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
+]
+
+psm_i2c_devices=[
+    {'name': "U11-PCF8574TS", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 1, "ref_add": None,
+     "ref_val": None, "op_check": "ro", "access": "CPLD"},
+    {'name': "U30-EEPROM", "ICadd": 0xA6, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 1, "ref_add": 0x00,
+     "ref_val": None, "op_check": "ro", "access": "CPU"},
+    {'name': "J5-PSU1", "ICadd": 0xA0, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 2, "ref_add": 0x00,
+     "ref_val": None, "op_check": "ro", "access": "CPU"},
+    {'name': "J6-PSU2", "ICadd": 0xA2, "i2cbus_id": FPGA_I2CBUS.i2c3, "bus_size": 2, "ref_add": 0x00,
+     "ref_val": None, "op_check": "ro", "access": "CPU"},
 ]
 
 monitored_supplies= {
@@ -711,11 +722,11 @@ class Management():
     def get_board_info(self):
         bios_string,bios_dict=self.get_bios()
         mng_info={}
+        mng_info["EXT_LABEL_SN"] = self.get_field("EXT_LABEL_SN")
+        mng_info["EXT_LABEL_PN"] = self.get_field("EXT_LABEL_PN")
         mng_info["SN"] = self.get_field("SN")
         mng_info["PN"] = self.get_field("PN")
-        location = [self.get_field("CABINET_LOCATION"),
-                    self.get_field("SUBRACK_LOCATION"),
-                    self.get_field("SLOT_LOCATION")]
+        mng_info["SMB_UPS_SN"] = self.get_field("UPS_SMB_SN")
         
         pcb_rev = self.get_field("PCB_REV")
         if pcb_rev == 0xff:
@@ -731,7 +742,6 @@ class Management():
         else:
             mng_info["BOARD_MODE"] = "UNKNOWN"
             # print("Board Mode Read value ", self.get_field("BOARD_MODE"))
-        mng_info["LOCATION"] = str(location[0]) + ":" + str(location[1]) + ":" + str(location[2])
         for key,value in bios_dict.items():
             if key == 'rev':
                 mng_info['bios'] = value
@@ -935,6 +945,8 @@ class Management():
         if release_lock:
             cmd = "echo 1 > /sys/class/gpio/gpio134/value"
             run(cmd)
+        if value == 'Error: Read failed':
+            return None
         return int(value,16)
 
     ###write_i2c
@@ -1025,6 +1037,7 @@ class Management():
         # command=(rdbytenum<<24)|(wrbytenum<<16)|(i2cbus_id)|(ICadd>>1)cat /sy  bus
         # datatx_n=((datatx&0xff)<<24)|((datatx&0xff00>>8)<<24)|((datatx&0xff0000>>16)<<16)|((datatx&0xff000000>>24))
         # print "Write txdata swapped %x " %datatx
+
         command = (rdbytenum << 12) | (wrbytenum << 8) | (i2cbus_id << 16) | (ICadd)
         # print "Command %x" %command
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
@@ -1047,9 +1060,12 @@ class Management():
             return 0xff, 0x1
         # else:
         #     logger.error("Maxretry i2c fpga access (MCUR.GPReg3) %d"%retry)
+
         self.write("FPGA_I2C.twi_wrdata", datatx)
         if print_debug:
             logger.debug("fpgai2c_op - command = " + hex(command))
+        if ICadd == (0xA0>>1):
+            self.CpldMng.bsp.i2c_set_passwd_no_mcu_rst()
         self.write("FPGA_I2C.twi_command", command)
         
         retry = 0
@@ -1213,12 +1229,14 @@ class Management():
         result = []
         wr_op_passed = False
         if board == "BACKPLANE":
-            dev_list=backplane_i2c_devices
+            dev_list = backplane_i2c_devices
             self.write("CtrlRegs.BkplOnOff", 1)
+        elif board == "PSU_ADAPTER":
+            dev_list = psm_i2c_devices
         elif board == "SMB":
             dev_list = smm_i2c_devices
         else:
-            logger.error("Invalid board parameter, accepted SMB or BKPLN")
+            logger.error("Invalid board parameter, accepted SMB, BACKPLANE or PSU_ADAPTER")
             return None
         for i in range(0, len(dev_list)):
             logger.info("Device: %s" %dev_list[i]["name"])
@@ -1231,18 +1249,30 @@ class Management():
                     else:
                         retval,state = self.fpgai2c_read8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                           dev_list[i]["i2cbus_id"])
-                    if retval != dev_list[i]["ref_val"]:
+                    if state != 0:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval, dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": None})
+                        logger.info("FAILED, checking dev: %s, no ACK reveived" % (dev_list[i]["name"]))
+                        continue
+                    if dev_list[i]["ref_val"] is not None:
+                        if retval != dev_list[i]["ref_val"]:
+                            result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval, dev_list[i]["ref_val"]))
+                        else:
+                            result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval, dev_list[i]["ref_val"]))
                     else:
                         result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval, dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, nothing expected" % (dev_list[i]["name"], retval))
                 if dev_list[i]["op_check"] == "rw":
                     retval=0
                     if dev_list[i]["bus_size"] == 2:
@@ -1284,7 +1314,7 @@ class Management():
                         else:
                             self.fpgai2c_write8(dev_list[i]["ICadd"], dev_list[i]["ref_add"],
                                                 dev_list[i]["res_val"], dev_list[i]["i2cbus_id"])
-            elif dev_list[i]["access"] == "CPLD":
+            elif dev_list[i]["access"] == "CPU":
                 if dev_list[i]["op_check"] == "ro":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:
@@ -1293,20 +1323,32 @@ class Management():
                     else:
                         retval = self.read_i2c(dev_list[i]["i2cbus_id"],dev_list[i]["ICadd"] >> 1,
                                                dev_list[i]["ref_add"],"b")
-                    if retval != dev_list[i]["ref_val"]:
+                    if retval is None:
                         result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval,
-                                                                                              dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                        logger.info("FAILED, checking dev: %s, no ACK reveived" % (dev_list[i]["name"]))
+                        continue
+                    if dev_list[i]["ref_val"] is not None:
+                        if retval != dev_list[i]["ref_val"]:
+                            result.append({"name":dev_list[i]["name"],"test_result": "FAILED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("FAILED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval,
+                                                                                                dev_list[i]["ref_val"]))
+                        else:
+                            result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                            logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
+                                                                                                retval,
+                                                                                                dev_list[i]["ref_val"]))
                     else:
                         result.append({"name":dev_list[i]["name"],"test_result": "PASSED",
-                                       "expected": dev_list[i]["ref_val"],
-                                       "read": retval})
-                        logger.info("PASSED, checking dev: %s, read value %x, expected %x" % (dev_list[i]["name"],
-                                                                                              retval,
-                                                                                              dev_list[i]["ref_val"]))
+                                        "expected": dev_list[i]["ref_val"],
+                                        "read": retval})
+                        logger.info("PASSED, checking dev: %s, read value %x, nothing expected" % (dev_list[i]["name"], retval))
                 if dev_list[i]["op_check"] == "rw":
                     retval = 0
                     if dev_list[i]["bus_size"] == 2:

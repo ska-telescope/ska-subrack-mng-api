@@ -6,7 +6,7 @@ import os
 import time
 from subrack_mng_api import management
 from subrack_mng_api.management import FPGA_I2CBUS
-
+from subrack_mng_api import eeprom
 print_debug = False
 import logging
 import socket
@@ -44,6 +44,16 @@ eep_sec = {
     "HARDWARE_REV": {"offset": 0x0c, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
     "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
     "SN":           {"offset": 0x10, "size": 16, "name": "SN", "type": "string", "protected": True},
+    "EXT_LABEL":    {"offset": 0x30, "size": 48, "name": "EXT_LABEL",          "type": "string",    "protected": True},
+}
+
+psm_eep_sec = {
+    "HARDWARE_REV":       {"offset": 0x0c, "size":  3, "name": "HARDWARE_REV",       "type": "bytearray", "protected": True},
+    "PCB_REV":            {"offset": 0x0f, "size":  1, "name": "PCB_REV",            "type": "string",    "protected": True},
+    "SN":                 {"offset": 0x10, "size": 16, "name": "SN",                 "type": "string",    "protected": True},
+    "PN":                 {"offset": 0x20, "size": 16, "name": "PN",                 "type": "string",    "protected": True},
+    "EXT_LABEL":          {"offset": 0x30, "size": 48, "name": "EXT_LABEL",          "type": "string",    "protected": True},
+    #"MAC":                {"offset": 0xFA, "size": 6,  "name": "MAC",                "type": "bytearray", "protected": True},  # READ-ONLY
 }
 
 
@@ -233,6 +243,14 @@ class Backplane():
         self.mng = Management_b
         self.simulation = simulation
         self.eep_sec = eep_sec
+        self.bkpln_eep = eeprom.eeprom("BKPLN_EEPROM",Management_b, FPGA_I2CBUS.i2c2, 0xA0, eep_sec)
+        if not self.bkpln_eep.exists:
+            del self.bkpln_eep
+            self.bkpln_eep = None
+        self.psm_eep = eeprom.eeprom("PSM_EEPROM",Management_b, FPGA_I2CBUS.i2c3, 0xA6, psm_eep_sec)
+        if not self.psm_eep.exists:
+            del self.psm_eep
+            self.psm_eep = None
         self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
         self.ioexpander =[PCF8574_dev(self.mng,x) for x in range (0,2)] 
         self.ps_vout_n = [None]*2
@@ -246,21 +264,24 @@ class Backplane():
         except:
             self.bkpln_present = False
             logger.error("Error BKPLN not present!")
-        self.board_info= None
+        self.board_info = None
+        self.psm_board_info = None
         if get_board_info:
             self.board_info=self.get_board_info()
+            self.psm_board_info=self.psm_get_board_info()
         
 
     def __del__(self):
         self.data = []
 
     def get_board_info(self):
-        mng_info={}
+        mng_info={'EXT_LABEL': '', 'SN': '', 'PN': '', 'HARDWARE_REV': ''}
         if not self.bkpln_present:
             mng_info["SN"] = "NA"
             mng_info["PN"] = "NA"    
             return mng_info
         mng_info["SN"] = self.get_field("SN")
+        #add manage off data in EEP or in POWER CTRL
         mng_info["PN"] = "BACKPLANE"
         pcb_rev = self.get_field("PCB_REV")
         if pcb_rev == 0xff or pcb_rev == 0x00:
@@ -273,6 +294,26 @@ class Backplane():
         mng_info["CPLD_netmask_eep"] = self.get_field("netmask")
         mng_info["CPLD_gateway_eep"] = self.get_field("gateway")
 
+        return mng_info
+
+    def psm_get_board_info(self):
+        mng_info={'EXT_LABEL': '', 'SN': '', 'PN': '', 'HARDWARE_REV': ''}
+        if self.psm_eep is None:
+            return mng_info
+        if not self.bkpln_present:
+            mng_info["SN"] = "NA"
+            mng_info["PN"] = "NA"    
+            return mng_info
+        mng_info["SN"] = self.psm_eep.get_field("SN")
+        mng_info["PN"] = self.psm_eep.get_field("PN")
+        pcb_rev = self.psm_eep.get_field("PCB_REV")
+        if pcb_rev == 0xff or pcb_rev == 0x00:
+            pcb_rev_string = ""
+        else:
+            pcb_rev_string = str(pcb_rev)
+        hw_rev = self.psm_eep.get_field("HARDWARE_REV")
+        mng_info["HARDWARE_REV"] = "v" + str(hw_rev[0]) + "." + str(hw_rev[1]) + "." + str(hw_rev[2]) + pcb_rev_string
+        mng_info["EXT_LABEL"] = self.psm_eep.get_field("EXT_LABEL")
         return mng_info
 
     def ip2long(self, ip):
