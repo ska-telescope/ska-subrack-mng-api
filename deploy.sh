@@ -12,7 +12,7 @@ function display_help(){
     echo "This script will update SubrackMngAPI software in /home/mnguser/SubrackMngAPI."
     echo
     echo "Arguments:"
-    echo "-b <branch> specifies branch to be installed [default $BRANCH]"
+    echo "-b <branch> specifies branch or tag to be installed [default $BRANCH]"
     echo "-u             do not update, install locale version"
     echo "-v             do not reset venv to configured version"
     echo "-h             Print this message"
@@ -42,8 +42,19 @@ fi
 
 if [ $UPDATE == true ]; then
     echo "Updating API repository with online version"
-    git -C $ROOT checkout $BRANCH || { echo 'cmd failed' ; exit 1; }
-    git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
+    git -C $ROOT fetch || { echo 'cmd failed' ; exit 1; }
+    git -C $ROOT checkout $BRANCH || { 
+        echo 'cmd failed' ; 
+        echo 'Available tags:' ; 
+        git tag;
+        echo 'Available branches:' ; 
+        git branch -r;
+        exit 1; }
+    if [ $(git tag -l "$BRANCH") ]; then
+        :
+    else
+        git -C $ROOT pull || { echo 'cmd failed' ; exit 1; }
+    fi
     if [ $CLEAN_VENV == true ]; then
         ./deploy.sh -u -b $BRANCH || { echo 'cmd failed' ; exit 1; }
     else
@@ -72,4 +83,6 @@ $ROOT/venv/bin/python -m pip install -U $ROOT || { echo 'cmd failed' ; exit 1; }
 
 echo "Web server service restarting"
 sudo systemctl restart web_server
+echo "SubrackMngAPI updated to:"
+git describe --tags --always --dirty
 
