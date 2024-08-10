@@ -1138,7 +1138,7 @@ class Management():
                 return 0
         else:
             data2wr = (datatx << 8) | (reg_add & 0xFF)
-            data, status = self.fpgai2c_op(ICadd, 2, 1, data2wr, i2cbus_id)
+            data, status = self.fpgai2c_op(ICadd, 2, 0, data2wr, i2cbus_id)
             return status
 
     def fpgai2c_read8(self, ICadd, reg_add, i2cbus_id):
