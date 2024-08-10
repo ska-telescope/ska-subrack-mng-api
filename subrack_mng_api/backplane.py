@@ -38,13 +38,23 @@ def _decodePMBus(message):
     return message
 
 eep_sec = {
-    "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address", "type": "ip", "protected": False},
-    "netmask":      {"offset": 0x04, "size": 4, "name": "netmask", "type": "ip", "protected": False},
-    "gateway":      {"offset": 0x08, "size": 4, "name": "gateway", "type": "ip", "protected": False},
+    "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address",   "type": "ip",        "protected": False},
+    "netmask":      {"offset": 0x04, "size": 4, "name": "netmask",      "type": "ip",        "protected": False},
+    "gateway":      {"offset": 0x08, "size": 4, "name": "gateway",      "type": "ip",        "protected": False},
     "HARDWARE_REV": {"offset": 0x0c, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
-    "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV", "type": "string", "protected": True},
-    "SN":           {"offset": 0x10, "size": 16, "name": "SN", "type": "string", "protected": True},
-    "EXT_LABEL":    {"offset": 0x30, "size": 48, "name": "EXT_LABEL",          "type": "string",    "protected": True},
+    "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV",      "type": "string",    "protected": True},
+    "SN":           {"offset": 0x10, "size": 16, "name": "SN",          "type": "string",    "protected": True},
+}
+
+eep_sec_new = {
+    "ip_address":   {"offset": 0x00, "size": 4, "name": "ip_address",   "type": "ip",        "protected": False},
+    "netmask":      {"offset": 0x04, "size": 4, "name": "netmask",      "type": "ip",        "protected": False},
+    "gateway":      {"offset": 0x08, "size": 4, "name": "gateway",      "type": "ip",        "protected": False},
+    "HARDWARE_REV": {"offset": 0x0c, "size": 3, "name": "HARDWARE_REV", "type": "bytearray", "protected": True},
+    "PCB_REV":      {"offset": 0x0f, "size": 1, "name": "PCB_REV",      "type": "string",    "protected": True},
+    "SN":           {"offset": 0x10, "size": 16, "name": "SN",          "type": "string",    "protected": True},
+    "PN":           {"offset": 0x20, "size": 16, "name": "PN",          "type": "string",    "protected": True},
+    "EXT_LABEL":    {"offset": 0x30, "size": 48, "name": "EXT_LABEL",   "type": "string",    "protected": True},
 }
 
 psm_eep_sec = {
@@ -243,16 +253,19 @@ class Backplane():
         self.mng = Management_b
         self.simulation = simulation
         self.eep_sec = eep_sec
-        self.bkpln_eep = eeprom.eeprom("BKPLN_EEPROM",Management_b, FPGA_I2CBUS.i2c2, 0xA0, eep_sec)
-        if not self.bkpln_eep.exists:
-            del self.bkpln_eep
-            self.bkpln_eep = None
+        self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
+        self.ioexpander = [PCF8574_dev(self.mng,x) for x in range (0,2)] 
+        self.bkpln_eep = None
+        # check if SN exists into old eeprom distributed into power_supplies otherwise try to access new eeprom
+        if self.get_field("SN") == "":
+            self.bkpln_eep = eeprom.eeprom("BKPLN_EEPROM",Management_b, FPGA_I2CBUS.i2c2, 0xA0, eep_sec_new, access_via_fpga = True)
+            if not self.bkpln_eep.exists:
+                del self.bkpln_eep
+                self.bkpln_eep = None
         self.psm_eep = eeprom.eeprom("PSM_EEPROM",Management_b, FPGA_I2CBUS.i2c3, 0xA6, psm_eep_sec)
         if not self.psm_eep.exists:
             del self.psm_eep
             self.psm_eep = None
-        self.power_supply = [LTC428x_dev(x,self.mng) for x in range(1,9)]
-        self.ioexpander =[PCF8574_dev(self.mng,x) for x in range (0,2)] 
         self.ps_vout_n = [None]*2
         try:
             data, status = self.power_supply[0].read('CONTROL_B1')
@@ -282,7 +295,7 @@ class Backplane():
             return mng_info
         mng_info["SN"] = self.get_field("SN")
         #add manage off data in EEP or in POWER CTRL
-        mng_info["PN"] = "BACKPLANE"
+        mng_info["PN"] = self.get_field("PN")
         pcb_rev = self.get_field("PCB_REV")
         if pcb_rev == 0xff or pcb_rev == 0x00:
             pcb_rev_string = ""
@@ -293,7 +306,8 @@ class Backplane():
         mng_info["CPLD_ip_address_eep"] = self.get_field("ip_address")
         mng_info["CPLD_netmask_eep"] = self.get_field("netmask")
         mng_info["CPLD_gateway_eep"] = self.get_field("gateway")
-
+        mng_info["EXT_LABEL"] = self.get_field("EXT_LABEL")
+        
         return mng_info
 
     def psm_get_board_info(self):
@@ -330,39 +344,49 @@ class Backplane():
         return socket.inet_ntoa(struct.pack("!I", ip))
     
     def get_field(self, key):
-        if self.eep_sec[key]["type"] == "ip":
-            return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
-        elif self.eep_sec[key]["type"] == "bytearray":
-            arr = bytearray()
-            for offset in range(self.eep_sec[key]["size"]):
-                arr.append(self.eep_rd8(self.eep_sec[key]["offset"]+offset))
-            return arr
-        elif self.eep_sec[key]["type"] == "string":
-            return self.rd_string(self.eep_sec[key])
-        elif self.eep_sec[key]["type"] == "uint":
-            val = 0
-            for offset in range(self.eep_sec[key]["size"]):
-                val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"]+offset)
-            return val
+        if self.bkpln_eep is None:
+            if key == "EXT_LABEL":
+                return ""
+            elif key == "PN":
+                return "BACKPLANE"
+            elif self.eep_sec[key]["type"] == "ip":
+                return self.long2ip(self.eep_rd32(self.eep_sec[key]["offset"]))
+            elif self.eep_sec[key]["type"] == "bytearray":
+                arr = bytearray()
+                for offset in range(self.eep_sec[key]["size"]):
+                    arr.append(self.eep_rd8(self.eep_sec[key]["offset"]+offset))
+                return arr
+            elif self.eep_sec[key]["type"] == "string":
+                return self.rd_string(self.eep_sec[key])
+            elif self.eep_sec[key]["type"] == "uint":
+                val = 0
+                for offset in range(self.eep_sec[key]["size"]):
+                    val = val * 256 + self.eep_rd8(self.eep_sec[key]["offset"]+offset)
+                return val
+        else:
+            return self.bkpln_eep.get_field(key)
         
     def set_field(self, key, value, override_protected=False):
-        if self.eep_sec[key]["protected"] is False or override_protected:
-            if self.eep_sec[key]["type"] == "ip":
-                self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
-            elif self.eep_sec[key]["type"] == "bytearray":
-                for offset in range(self.eep_sec[key]["size"]):
-                    self.eep_wr8(self.eep_sec[key]["offset"] + offset,
-                             ((value & (0xff << (8*(self.eep_sec[key]["size"]-1-offset))))
-                              >> (8*(self.eep_sec[key]["size"]-1-offset))) & 0xff)
-            elif self.eep_sec[key]["type"] == "string":
-                self.wr_string(self.eep_sec[key], value)
-            elif self.eep_sec[key]["type"] == "uint":
-                val = value
-                for offset in range(self.eep_sec[key]["size"]):
-                    self.eep_wr8(self.eep_sec[key]["offset"]+offset, val & 0xff)
-                    val = val >> 8
+        if self.bkpln_eep is None:
+            if self.eep_sec[key]["protected"] is False or override_protected:
+                if self.eep_sec[key]["type"] == "ip":
+                    self.eep_wr32(self.eep_sec[key]["offset"], self.ip2long(value))
+                elif self.eep_sec[key]["type"] == "bytearray":
+                    for offset in range(self.eep_sec[key]["size"]):
+                        self.eep_wr8(self.eep_sec[key]["offset"] + offset,
+                                ((value & (0xff << (8*(self.eep_sec[key]["size"]-1-offset))))
+                                >> (8*(self.eep_sec[key]["size"]-1-offset))) & 0xff)
+                elif self.eep_sec[key]["type"] == "string":
+                    self.wr_string(self.eep_sec[key], value)
+                elif self.eep_sec[key]["type"] == "uint":
+                    val = value
+                    for offset in range(self.eep_sec[key]["size"]):
+                        self.eep_wr8(self.eep_sec[key]["offset"]+offset, val & 0xff)
+                        val = val >> 8
+            else:
+                print("Writing attempt on protected sector %s" % key)
         else:
-            print("Writing attempt on protected sector %s" % key)
+            return self.bkpln_eep.set_field(key, value, override_protected)
 
     def eep_rd8(self, offset, release_lock = True):
         _id = (offset // 4)
