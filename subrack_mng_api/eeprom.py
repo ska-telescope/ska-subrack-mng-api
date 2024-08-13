@@ -6,12 +6,13 @@ logger=logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
 
 class eeprom():
-    def __init__(self,name,mng,i2c_bus,i2c_add,eep_sec):
+    def __init__(self,name,mng,i2c_bus,i2c_add,eep_sec,access_via_fpga = False):
         self.name = name
         self.mng = mng
         self.i2c_bus = i2c_bus
         self.i2c_add = i2c_add
         self.eep_sec = eep_sec
+        self.access_via_fpga = access_via_fpga
         res = self.eep_rd8(0)
         if res is None:
             self.exists = False
@@ -37,8 +38,14 @@ class eeprom():
         #     logger.error(self.name + " Error reading on device " + hex(self.i2c_add))
         #     return None
         # return data
-        return self.mng.read_i2c(self.i2c_bus, self.i2c_add>>1, offset, "b", release_lock)
-
+        if self.access_via_fpga:
+            data, status = self.mng.fpgai2c_read8(self.i2c_add, offset, self.i2c_bus,)
+            if status != 0:
+                data = None
+            return data
+        else:
+            return self.mng.read_i2c(self.i2c_bus, self.i2c_add>>1, offset, "b", release_lock)
+        
     def eep_rd32(self, offset):
         rd = 0
         release_lock = False
@@ -66,7 +73,10 @@ class eeprom():
 
     def eep_wr8(self, offset, data, release_lock = True):
         # return self.mng.fpgai2c_write8(self.i2c_add, offset, data, self.i2c_bus)
-        return self.mng.write_i2c(self.i2c_bus,self.i2c_add>>1, offset, "b", data, release_lock)
+        if self.access_via_fpga:
+            return self.mng.fpgai2c_write8(self.i2c_add, offset, data, self.i2c_bus)
+        else:
+            return self.mng.write_i2c(self.i2c_bus,self.i2c_add>>1, offset, "b", data, release_lock)
     
     def eep_wr32(self, offset, data):
         release_lock = False

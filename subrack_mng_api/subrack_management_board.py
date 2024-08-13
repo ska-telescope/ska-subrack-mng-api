@@ -62,6 +62,14 @@ class SubrackAdminModes:
     NOT_FITTED=3
 
 
+bkpln_adu_gpio = {
+            'TPMx_RESET': {'bkpln_device': 'power_supply', 'pin': 'GPIO2'},
+            'TPMx_GPIO0': {'bkpln_device': 'power_supply', 'pin': 'GPIO3'},
+            'TPMx_INTn':  {'bkpln_device': 'ioexpander', 'pin':  [0,2,4,6,0,2,4,6] },
+            'AlertN_ioexp':  {'bkpln_device': 'ioexpander', 'pin': [1,3,5,7,1,3,5,7] },
+            'AlertN_ps':     {'bkpln_device': 'power_supply', 'pin': 'AlertN' }
+            }
+
 _initial_missing = object()
 def reduce(function, sequence, initial=_initial_missing):
     """
@@ -174,6 +182,15 @@ def exec_cmd(cmd,dir=None,verbose=True, exclude_line=""):
         print("...CTRL+C...")
         raise NameError("exec_cmd fails: \""+cmd+"\"")
 
+def flatten_dict(d, parent_key='', sep='_'):
+    rows = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, dict):
+            rows.extend(flatten_dict(v, new_key, sep=sep))
+        elif isinstance(v, (int, float, bool, str)):
+            rows.append((new_key, v))
+    return rows
 
 def Adu_Eth_Ping(ip, count=1, interval='0.2', size=8, wait = '1'):
     cmd='ping ' + ip + ' -c %d'%count + ' -i ' + interval
@@ -363,6 +380,15 @@ class SubrackMngBoard():
         """ method to get the Version of the API
         :return string with API version
         """
+        note=""
+        if self.board_info['SMM']['bios'] == 'v?.?.?':
+            note = " [WARNING SMM bios in beta]"
+            logger.warning(note)
+        else:
+            if [int(x) for x in self.board_info['SMM']['bios'].lstrip('v').split(".")] < [int(x) for x in minimum_SMM_bios_required.lstrip('v').split(".")]:
+                note += " [WARNING minimum SMM bios required %s]"%minimum_SMM_bios_required
+                logger.warning(note)
+            
         try:
             cmd="git -C %s describe --tags --dirty --always"%os.path.dirname(__file__)
         except:
@@ -371,10 +397,10 @@ class SubrackMngBoard():
         try:
             result = subprocess.run(cmd.split(" "), stdout=subprocess.PIPE)
             if result.returncode == 0:
-                return get_version() + " (%s)"%str(result.stdout.decode('utf-8').strip())
-            return get_version()
+                return get_version() + " (%s)"%str(result.stdout.decode('utf-8').strip()) + note
+            return get_version() + note
         except:
-            return get_version()
+            return get_version() + note
 
     def Get_Subrack_TimeTS(self):
         """ method to get the subrack Time in timestamp format
@@ -558,6 +584,7 @@ class SubrackMngBoard():
         """
         if (self.GetTPMPresent() & (1 << (tpm_slot_id-1))) != 0 or force:
             pwr = self.Bkpln.get_power_tpm(tpm_slot_id)
+            pwr = round(pwr, 2)
             return pwr
         else:
             raise SubrackInvalidCmd("Impossible to get Power Value, TPM is not present")
@@ -575,7 +602,7 @@ class SubrackMngBoard():
                 curr = 0
             else:
                 curr = float(pwr/volt)
-            curr = round(curr, 3)
+            curr = round(curr, 2)
             return curr
         else:
             raise SubrackInvalidCmd("Impossible to get Power Value, TPM is not present")
@@ -588,6 +615,7 @@ class SubrackMngBoard():
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) != 0 or force:
             if self.Bkpln.is_tpm_on(tpm_slot_id):
                 volt = self.Bkpln.get_voltage_tpm(tpm_slot_id)
+                volt = round(volt, 2)
                 return volt
             else:
                 return None
@@ -670,7 +698,7 @@ class SubrackMngBoard():
     def GetPingTPM(self, tpm_slot_id):
         if self.GetTPMPresent() & (1 << (tpm_slot_id-1)) > 0:
             if self.Bkpln.is_tpm_on(tpm_slot_id):
-                ip = self.GetTPMIP(tpm_slot_id)
+                ip = self.tpm_ip_list[tpm_slot_id - 1]
                 if Adu_Eth_Ping(ip) == 0:
                     return True
                 else:
@@ -964,11 +992,11 @@ class SubrackMngBoard():
         """
         if ps_id > 2 or ps_id < 1:
             raise SubrackInvalidParameter("ERROR: Invalid Power supply ID")
-        fanspeed, status = self.Bkpln.get_ps_fanspeed(ps_id)
-        if status != 0:
-            raise SubrackExecFault("ERROR: Get PS Fan speed operation failed")
-        else:
-            return fanspeed
+        fanspeed = self.Bkpln.get_ps_fanspeed(ps_id)
+        # if status != 0:
+        #     raise SubrackExecFault("ERROR: Get PS Fan speed operation failed")
+        # else:
+        return fanspeed
 
     def SetPSFanSpeed(self, ps_id, speed_percent):
         """This method set the fan speed of selected Power Supply of subrack
@@ -1178,6 +1206,49 @@ class SubrackMngBoard():
             health_status = self._create_nested_dict(lookup, value, health_status)
         return health_status
     
+    def get_health_status_w_elapsed(self, **kwargs):
+        """
+        Returns the current value of SUBRACK monitoring points
+        If no group argument given, current value of all monitoring points is returned.
+
+        For example:
+        subrack.get_health_status(group='temperatures')
+        would return only the health status for:
+        
+        A group attribute is provided by default, see subrack_monitoring_point_lookup.py.
+        This can be used like the below example:
+        subrack.get_health_status(group='temperatures')
+        subrack.get_health_status(group='slots')
+        subrack.get_health_status(group='voltages')
+        
+
+        """
+        all_start = time.time()
+        health_status = {}
+        health_status['iso_datetime']= datetime.now(timezone.utc).isoformat()
+        mon_point_list = self._kwargs_handler(kwargs)
+        for monitoring_point in mon_point_list:
+            lookup = monitoring_point.split('.')
+            lookup_entry = self._parse_dict_by_path(self.monitoring_point_lookup_dict, lookup)
+            # call method stored in lookup entry
+            start = time.time()
+            value = lookup_entry["method"]()
+            end = time.time()
+            value = {'val':value,'ms':round((end-start)*1000,1)}
+            # Resolve nested values with only one value i.e
+            # get_voltage("voltage_name") returns {"voltage_name": voltage}
+            # get_clock_manager_status(fpga_id, name) returns {"FPGAid": {"name": status}}
+            while True:
+                if not isinstance(value, dict):
+                    break
+                if len(value) != 1:
+                    break
+                value = list(value.values())[0]
+            # Create dictionary of monitoring points in same format as lookup
+            health_status = self._create_nested_dict(lookup, value, health_status)
+        print(time.time()-all_start)
+        return health_status
+    
     def get_health_dict(self, **kwargs):
         """
         Returns the dictionary of SUBRACK monitoring points with the 
@@ -1202,7 +1273,47 @@ class SubrackMngBoard():
     
     def bkpln_get_field(self,key):
         return self.Bkpln.get_field(key)
-    
+
+    def get_slotx_bkpln_adu_gpio(self,slot_id,gpio):
+        if gpio in bkpln_adu_gpio:
+            if bkpln_adu_gpio[gpio]['bkpln_device'] == 'ioexpander':
+                if slot_id > 4:
+                    gpio_value=self.Bkpln.ioexpander[1].get_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1])
+                else:
+                    gpio_value=self.Bkpln.ioexpander[0].get_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1])
+                if gpio_value[1] == 0:
+                    gpio_value = gpio_value[0]
+                else:
+                    logger.error("Error while reading GPIO value ")
+                    return None                    
+            else:
+                gpios_values=self.Bkpln.power_supply[slot_id-1].get_gpio_status()
+                gpio_value=gpios_values[bkpln_adu_gpio[gpio]['pin']]
+        else:
+            logger.error("Invalid gpio parameter accepted are: ")
+            for gpios in bkpln_adu_gpio:
+                logger.error(gpios)
+            return None
+        return gpio_value
+
+
+    def set_slotx_bkpln_adu_gpio(self,slot_id,gpio,value):
+            if gpio in bkpln_adu_gpio:
+                #if gpio != "AlertN":
+                if bkpln_adu_gpio[gpio]['bkpln_device'] == 'ioexpander':
+                    if slot_id > 4:
+                        self.Bkpln.ioexpander[1].set_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1], value)
+                    else:
+                        self.Bkpln.ioexpander[0].set_port(bkpln_adu_gpio[gpio]['pin'][slot_id-1], value)
+                else:
+                    self.Bkpln.power_supply[slot_id-1].set_gpio(bkpln_adu_gpio[gpio]['pin'],value)
+                #else:
+                #    self.Bkpln.power_supply[slot_id-1].set_alert(bkpln_adu_gpio[gpio]['pin'],value)
+            else:
+                logger.error("Invalid gpio parameter accepted are: ")
+                for gpios in bkpln_adu_gpio:
+                    logger.error(gpios)
+
     def psm_set_field(self,key,value, override_protected=False):
         return self.Bkpln.psm_eep.set_field(key,value,override_protected)
     

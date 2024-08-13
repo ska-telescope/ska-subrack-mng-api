@@ -121,7 +121,7 @@ backplane_i2c_devices=[
      "ref_val": 0x08, "res_val": 0x0, "op_check": "ro", "access": "CPLD"},
     {'name': "PCF8574TS_1", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
-    {'name': "PCF8574TS_2", "ICadd": 0x40, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
+    {'name': "PCF8574TS_2", "ICadd": 0x42, "i2cbus_id": FPGA_I2CBUS.i2c2, "bus_size": 1, "ref_add": None,
      "ref_val": None, "res_val": 0x0, "op_check": None, "access": "CPLD"},
 ]
 
@@ -1042,7 +1042,7 @@ class Management():
         # print "Command %x" %command
         cmd = "echo 0 > /sys/class/gpio/gpio134/value"
         run(cmd)
-        time.sleep(0.01)
+        time.sleep(0.001)
         retry = 0
         while (retry < 1000):
             value=self.read("MCUR.GPReg3")
@@ -1113,7 +1113,7 @@ class Management():
         # print "Read data swapped %x " %datarx
         cmd = "echo 1 > /sys/class/gpio/gpio134/value"
         run(cmd)
-        time.sleep(0.01)
+        time.sleep(0.001)
         self.write("Lock.CPULock", CPULOCK_UNLOCK_VAL)
         os.remove("/run/lock/mngfpgai2c.lock")
         logger.debug("fpgai2c_op - End I2C OP")
@@ -1138,7 +1138,7 @@ class Management():
                 return 0
         else:
             data2wr = (datatx << 8) | (reg_add & 0xFF)
-            data, status = self.fpgai2c_op(ICadd, 2, 1, data2wr, i2cbus_id)
+            data, status = self.fpgai2c_op(ICadd, 2, 0, data2wr, i2cbus_id)
             return status
 
     def fpgai2c_read8(self, ICadd, reg_add, i2cbus_id):
@@ -1434,6 +1434,11 @@ class Management():
                 f_voltage = float(voltage / value["divider"])
                 f_voltage = round(f_voltage, 2)
                 break
+        if measure == "V_3V":
+            #workaround to fix MCU bug on resistor partitor (1000-925 instead of 1000-1150) for V_3V
+            f_voltage = f_voltage / (1150 / ( 1000 + 1150))
+            f_voltage = f_voltage * (925 / ( 1000 + 925))
+        f_voltage = round(f_voltage,2)
         return f_voltage
 
     def check_board_supplies(self):
@@ -1510,11 +1515,11 @@ class Management():
     # return vout: voltage value in V
     def get_voltage_smb(self):
         dev = self.smm_i2c_devices_dict["LTC4281"]
-        data_h, status = self.fpgai2c_read8(dev["ICadd"], 0x3A, dev["i2cbus_id"])
-        data_l, status = self.fpgai2c_read8(dev["ICadd"], 0x3b, dev["i2cbus_id"])
+        data_h = self.read("Fram.LTCVsourceH")
+        data_l = self.read("Fram.LTCVsourceL")
         voltage = ((data_h << 8) & 0xff00) | (data_l & 0xff)
         vout = float(voltage * 16.64) / 65535
-        vout = round(vout, 3)
+        vout = round(vout, 2)
         if print_debug:
             logger.info("voltage, " + str(vout))
         return vout
