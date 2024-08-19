@@ -116,20 +116,20 @@ class AbortCommand(HardwareCommand):
         """
         answer = super().do()
         device = self._hardware
-        if device._blocked:
+        if param in device.command_dict.keys():
+            command = device.command_dict[param]
+            if issubclass(type(command), ThreadedHardwareCommand):
+                command.abort()
+        elif device._blocked:
             if device._runningCommand is None:
                 pass
             else:
                 device._runningCommand.abort()
                 device._runningCommand = None
                 device._blocked = False
-        elif param in device.command_dict.keys():
-            command = device.command_dict[param]
-            if issubclass(type(command), ThreadedHardwareCommand):
-                command.abort()
         else:
             answer["status"] = "ERROR"
-            answer["info"] = param + " not implemented"
+            answer["info"] = "Command " + str(param) + " not implemented"
 
         return answer
 
@@ -195,7 +195,14 @@ class HardwareThreadedDevice(HardwareBaseDevice):
 
         :return: dictionary for json answer
         """
-        if command in self.command_dict.keys():
+        if command is None: 
+            answer = {
+                "status": "ERROR",
+                "info": "Command not specified",
+                "command": command,
+                "retvalue": "",
+            }
+        elif command in self.command_dict.keys():
             cmdObj = self.command_dict[command]
             blocked = False
             if not (self._runningCommand is None):
@@ -219,7 +226,7 @@ class HardwareThreadedDevice(HardwareBaseDevice):
         else:
             answer = {
                 "status": "ERROR",
-                "info": command + " not implemented",
+                "info": "Command " + str(command) + " not implemented",
                 "command": command,
                 "retvalue": "",
             }

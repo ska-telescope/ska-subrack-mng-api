@@ -118,6 +118,7 @@ class HardwareAttribute:
         """
         # default answer (everything OK)
         status = "OK"
+        value = None                           # if something fails
         info = "Setting attribute " + self._name + " OK"
         # check for read write permission
         if self._rw_mode == HardwareAttribute.HW_ATTR_RO:
@@ -137,12 +138,10 @@ class HardwareAttribute:
             info = "Wrong number of values for attribute " + self._name
 
         if value is None:
-            status = "ERROR"
-            info = self._lasterr
+            self._lasterr = info
         else:
             self._value = value
             status = "OK"
-            info = ""
         answer = {
             "status": status,
             "info": info,
@@ -256,12 +255,19 @@ class HardwareBaseDevice:
 
         :return: dictionary for json answer
         """
-        if command in self.command_dict.keys():
+        if command is None:
+            answer = {
+                "status": "ERROR",
+                "info": "Command not specified",
+                "command": command,
+                "retvalue": "",
+            }
+        elif command in self.command_dict.keys():
             answer = self.command_dict[command].do(params)
         else:
             answer = {
                 "status": "ERROR",
-                "info": command + " not implemented",
+                "info": "Command " + str(command) + " not implemented",
                 "command": command,
                 "retvalue": "",
             }
@@ -272,17 +278,24 @@ class HardwareBaseDevice:
         Set attribute values
 
         :param attribute: Attribute name
-        :type command: str
+        :type attribute: str
         :param values: Attribute values, simple list or scalar
 
         :return: dictionary for json answer
         """
-        if attribute in self.attribute_dict.keys():
+        if attribute is None:
+            answer = {
+                "status": "ERROR",
+                "info": "attribute not specified",
+                "attribute": attribute,
+                "retvalue": "",
+            }
+        elif attribute in self.attribute_dict.keys():
             answer = self.attribute_dict[attribute].write(values)
         else:
             answer = {
                 "status": "ERROR",
-                "info": attribute + " not present",
+                "info": "Attribute " + str(attribute) + " not present",
                 "attribute": attribute,
                 "retvalue": "",
             }
@@ -293,17 +306,23 @@ class HardwareBaseDevice:
         Get attribute values
 
         :param attribute: Attribute name
-        :type command: str
+        :type attribute: str
 
         :return: dictionary for json answer
         """
-
-        if attribute in self.attribute_dict.keys():
+        if attribute is None:
+            answer = {
+                "status": "ERROR",
+                "info": "attribute not specified",
+                "attribute": attribute,
+                "retvalue": "",
+            }
+        elif attribute in self.attribute_dict.keys():
             answer = self.attribute_dict[attribute].read()
         else:
             answer = {
                 "status": "ERROR",
-                "info": attribute + " not present",
+                "info": "Attribute " + str(attribute) + " not present",
                 "attribute": attribute,
                 "retvalue": "",
             }
@@ -314,7 +333,7 @@ class HardwareBaseDevice:
         Add a command to the command list
 
         :param command: Command object
-        :type attribute: :py:class:`HardwareBase.HardwareCommand`
+        :type command: :py:class:`HardwareBase.HardwareCommand`
 
         :return: True if command canbe added, False otherwise
         :rtype: Bool
