@@ -3,7 +3,7 @@ __author__ = 'Cristian Albanese'
 import sys
 import time
 from optparse import OptionParser
-from management import *
+from subrack_mng_api.management import *
 
 
 usage_string="usage: %prog [options] [<I2C Device add>.<i2c_bus_id>.<data_size> <offset>] [<value>] \n"

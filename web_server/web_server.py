@@ -101,14 +101,14 @@ class MyServer(BaseHTTPRequestHandler):
         logger.debug('Sent: '+response)
 
 hardware = SubrackHardware()
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 logger=logging.getLogger('webServer')
 
 if __name__ == "__main__":        
 
     hardware.initialize()
     webServer = HTTPServer((hostName, serverPort), MyServer)
-    print("Server started http://%s:%s" % (hostName, serverPort))
+    logger.info("Server started http://%s:%s" % (hostName, serverPort))
 
     try:
         webServer.serve_forever()

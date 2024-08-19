@@ -3,7 +3,7 @@ import sys
 import socket
 import struct
 import binascii
-sys.path.append("../")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 from bsp.management import *
 import lxml.etree as ET
 from optparse import OptionParser
@@ -36,7 +36,7 @@ def pprint_table(table):
         print
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-p", "--udp_port", dest="udp_port", default="10000", help="BOARD UCP UDP port")
     parser.add_option("--ip", dest="ip", default="10.0.10.10", help="BOARD IP Address")
